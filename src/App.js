@@ -1,4 +1,3 @@
-// App.js
 import React from 'react';
 import './App.css';
 
@@ -20,7 +19,7 @@ const Navbar = () => (
 const Banner = () => (
   <div className="banner">
     <h1>Welcome to TheraMind!</h1>
-    <p>Not until we’re lost do we begin to understand ourselves.</p>
+    <p>Not until we're lost do we begin to understand ourselves.</p>
     <button className="action-btn">Take Action</button>
   </div>
 );
@@ -28,42 +27,87 @@ const Banner = () => (
 // Services Component
 const Services = () => (
   <section id="services" className="services">
-    <h2>Get better, faster, with quality mental health care</h2>
+    <h2 className="services-title">Get better, faster, with quality mental health care</h2>
     <div className="services-grid">
-      <div className="service-item">
-        <h3>Schedule Virtual Sessions</h3>
-        <p>Connect with professional therapists online for personalized support.</p>
+      <div className="service-card">
+        <h3>Schedule Virtual Appointments</h3>
+        <p>You can schedule virtual appointments with licensed clinical psychologists on TheraMind, who will guide you in your self-healing journey.</p>
+        <button className="service-btn">Book a Session</button>
       </div>
-      <div className="service-item">
-        <h3>Get Personalized Assessments</h3>
-        <p>AI-powered tools for tailored mental health insights.</p>
+      
+      <div className="service-card">
+        <h3>Get Personalized Treatment Plan</h3>
+        <p>Based on assessment by the doctors, you will have an easy to follow daily actionable treatment plan that will track your healing journey.</p>
+        <button className="service-btn">Get yourself better</button>
       </div>
-      <div className="service-item">
-        <h3>Chat or Talk to Experts</h3>
-        <p>24/7 support from certified mental health professionals.</p>
+      
+      <div className="service-card">
+        <h3>Chat with Digital Assistant</h3>
+        <p>Chat with our top-notch Generative AI assistant that will support you your healing journey. It will provide you with guided assistance.</p>
+        <button className="service-btn">Chat with AI</button>
       </div>
-      <div className="service-item">
-        <h3>Education</h3>
-        <p>Explore articles and resources to better understand mental health.</p>
+      
+      <div className="service-card">
+        <h3>Practice Meditation</h3>
+        <p>Practice Meditation and Mindfulness, which will help you in your healing journey. Get step by step instructions on how to practice meditation.</p>
+        <button className="service-btn">Explore Exercises</button>
       </div>
     </div>
   </section>
 );
 
-// How It Works Component
-const HowItWorks = () => (
-  <section id="how-it-works" className="how-it-works">
-    <h2>How TheraMind Works?</h2>
-    <p>We make mental health care accessible and efficient with these simple steps:</p>
-    <ol className="steps-list">
-      <li>Create an account to get started.</li>
-      <li>Take a brief assessment to help us understand your needs.</li>
-      <li>Match with a therapist tailored to your preferences.</li>
-      <li>Start your journey to better mental health with regular sessions.</li>
-    </ol>
-    <img src="/path-to-your-image.png" alt="How TheraMind Works" className="how-it-works-image" />
-  </section>
-);
+// Updated How It Works Component
+const HowItWorks = () => {
+  const steps = [
+    { id: 1, text: "Create your TheraMind account and fill out a brief questionnaire" },
+    { id: 2, text: "Tell your particular diagnosis" },
+    { id: 3, text: "Get yourself more relaxed with the meditation exercises" },
+    { id: 4, text: "Tell us what's your exact sign in your profile to experience your plan" },
+    { id: 5, text: "Find your guidance, let the technology help you control your mind and enjoy the life" }
+  ];
+
+  const stats = [
+    { title: "Anxiety Improved", percentage: "85%" },
+    { title: "Focus Recovered", percentage: "75%" },
+    { title: "Sleep Restored", percentage: "80%" },
+    { title: "Digital Platform's response", percentage: "90%" }
+  ];
+
+  return (
+    <section id="how-it-works" className="how-it-works">
+      <div className="how-it-works-container">
+        <h2>How TheraMind Works?</h2>
+        
+        <div className="steps-container">
+          <div className="steps-list">
+            {steps.map((step) => (
+              <div key={step.id} className="step-item">
+                <div className="step-number">{step.id}</div>
+                <p>{step.text}</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="gradient-image">
+            {/* Gradient background image */}
+          </div>
+        </div>
+
+        <div className="stats-section">
+          <h3>The numbers speak for themselves</h3>
+          <div className="stats-grid">
+            {stats.map((stat, index) => (
+              <div key={index} className="stat-card">
+                <div className="stat-percentage">{stat.percentage}</div>
+                <h4 className="stat-title">{stat.title}</h4>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 // Contact Component
 const Contact = () => (
