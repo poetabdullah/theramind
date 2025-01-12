@@ -252,6 +252,36 @@ body {
   margin: 0;
 }
 
+.testimonial-section {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.testimonial-heading {
+  color: #6c63ff;
+}
+
+.testimonial-content {
+  max-width: 600px;
+  margin: auto;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.testimonial-link {
+  color: #ff6f61;
+  text-decoration: none;
+}
+
+.testimonial-buttons {
+  margin-top: 1rem;
+}
+
+.testimonial-buttons button {
+  margin: 0 1rem;
+}
+
+
 /* Contact form styles */
 .contact form {
   display: flex;
