@@ -1,15 +1,16 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import Navbar from "./components/Navbar";
-import Questionnaire from "./pages/questionnaire";
+
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import Navbar from './components/Navbar';
+import QuestionnaireForm from './pages/Questionnaire';
 
 const App = () => (
   <div>
     <Navbar />
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/questionnaire" element={<Questionnaire />} />
+      <Route path="/questionnaire" element={<QuestionnaireForm />} />
     </Routes>
   </div>
 );
