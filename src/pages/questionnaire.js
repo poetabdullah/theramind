@@ -27,6 +27,10 @@ const QuestionnaireForm = () => {
   };
 
   const handleNext = () => {
+    if (currentQuestion === 2 && responses.none === true && responses.symptoms === "No") {
+      setCurrentQuestion(3);
+      return;
+    }
     setCurrentQuestion((prev) => prev + 1);
   };
 
@@ -138,13 +142,35 @@ const QuestionnaireForm = () => {
         </>
       )}
 
+      {currentQuestion === 3 && (
+        <>
+          <div>
+            <h3>Thank you for taking TheraMind's diagnostic questionnaire!</h3>
+            <p>Based on the response you have submitted you are not diagnosed with any of the following
+              mental health conditions (Stress, Anxiety, Depression, Trauma, OCD) and its subtypes.</p>
+          </div>
+        </>
+      )}
+
       {/* Button To Submit */}
-      <div class="flex justify-between mt-4">
-        {currentQuestion > 1 && (
-          <button class="bg-gray-300 p-2 rounded" onClick={handlePrevious}>Back</button>
+      <div className="flex justify-between mt-4">
+        {currentQuestion > 1 && currentQuestion < 3 && (
+          <button className="bg-gray-300 p-2 rounded" onClick={handlePrevious}>Back</button>
         )}
-        {currentQuestion < 2 && (
-          <button class="bg-gray-300 p-2 rounded" onClick={handleNext}>Next</button>
+        {currentQuestion === 1 && (
+          <button className="bg-gray-300 p-2 rounded" onClick={handleNext}
+            disabled={!(responses.depressedLonely ||
+              responses.lossofInterest ||
+              responses.repetitiveBehavior ||
+              responses.difficultyBreathing ||
+              responses.flashbacksNightmares ||
+              responses.none
+            )}>Next</button>
+        )}
+
+        {currentQuestion === 2 && (
+          <button className="bg-gray-300 p-2 rounded" onClick={handleNext}
+            disabled={!responses.symptoms}>Next</button>
         )}
       </div>
 
