@@ -1,8 +1,8 @@
-<<<<<<< HEAD
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
+import Meditation from './pages/Meditation';
 import Navbar from './components/Navbar';
 import questionnaire from './pages/questionnaire';
 
@@ -11,8 +11,8 @@ const App = () => (
     <Navbar />
     <Routes>
       <Route path="/" element={<HomePage />} />
-<<<<<<< HEAD
-      <Route path="/questionnaire" element={<questionnaire />} />
+      <Route path="/Meditation" element={<Meditation />} />
+      <Route path="/questionnaire" element={<questionnaire />}/>
     </Routes>
   </div>
 );
