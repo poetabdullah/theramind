@@ -13,9 +13,7 @@ const Navbar = () => (
         </a>
       </li>
       <li>
-        <a href="/Questionnaire" className="hover:text-orange-500">
-          Questionnaire
-        </a>
+        <a href="/questionnaire">questionnaire</a>
       </li>
       <li>
         <a href="#services" className="hover:text-orange-500">
@@ -23,9 +21,7 @@ const Navbar = () => (
         </a>
       </li>
       <li>
-        <a href="#how-it-works" className="hover:text-orange-500">
-          How It Works
-        </a>
+        <a href="/Meditation">Meditation</a>
       </li>
       <li>
         <a href="#contact" className="hover:text-orange-500">
