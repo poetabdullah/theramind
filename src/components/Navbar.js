@@ -13,7 +13,7 @@ const Navbar = () => (
         </Link>
       </li>
       <li>
-        <Link to="/questionnaire" className="hover:text-orange-500">
+        <Link to="/Questionnaire" className="hover:text-orange-500">
           Questionnaire
         </Link>
       </li>
