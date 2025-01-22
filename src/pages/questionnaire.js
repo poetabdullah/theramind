@@ -18,6 +18,7 @@ const QuestionnaireForm = () => {
       [name]: checked,
     }));
   };
+
   return (
     <>
       <div>
@@ -36,70 +37,65 @@ const QuestionnaireForm = () => {
               name="depressedLonely"
               checked={responses.depressedLonely}
               onChange={changeEvent}
-            >
-              Feeling depressed & lonely
-            </input>
+            />
+            Feeling depressed & lonely
           </label>
-          <br></br>
+          <br />
           <label>
             <input
               type="checkbox"
               name="lossofInterest"
               checked={responses.lossofInterest}
               onChange={changeEvent}
-            >
-              Loss of interest in activities
-            </input>
+            />
+            Loss of interest in activities
           </label>
-          <br></br>
+          <br />
           <label>
             <input
               type="checkbox"
               name="repetitiveBehavior"
               checked={responses.repetitiveBehavior}
               onChange={changeEvent}
-            >
-              Repetitive behaviors
-            </input>
+            />
+            Repetitive behaviors
           </label>
-          <br></br>
+          <br />
           <label>
             <input
               type="checkbox"
               name="difficultyBreathing"
               checked={responses.difficultyBreathing}
               onChange={changeEvent}
-            >
-              Difficulty concentrating
-            </input>
+            />
+            Difficulty concentrating
           </label>
-          <br></br>
+          <br />
           <label>
             <input
               type="checkbox"
               name="flashbacksNightmares"
               checked={responses.flashbacksNightmares}
               onChange={changeEvent}
-            >
-              Flashbacks/nightmares
-            </input>
+            />
+            Flashbacks/nightmares
           </label>
-          <br></br>
+          <br />
           <label>
             <input
               type="checkbox"
               name="none"
               checked={responses.none}
               onChange={changeEvent}
-            >
-              None of the above
-            </input>
+            />
+            None of the above
           </label>
-          <br></br>
+          <br />
         </form>
       </div>
       <Footer />
     </>
   );
 };
+
 export default QuestionnaireForm;
