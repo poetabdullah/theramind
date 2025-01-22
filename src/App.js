@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
 import questionnaire from "./pages/questionnaire";
+import SignupPage from "./pages/SignupPage";
 
 const App = () => (
   <div>
@@ -12,6 +13,7 @@ const App = () => (
       <Route path="/" element={<HomePage />} />
       <Route path="/Meditation" element={<Meditation />} />
       <Route path="/questionnaire" element={<questionnaire />} />
+      <Route path="/signup" element={<SignupPage />} />
     </Routes>
   </div>
 );
