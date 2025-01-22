@@ -42,7 +42,7 @@ const Navbar = () => (
       </li>
       <li>
         <Link
-          to="/#login"
+          to="/login"
           className="bg-orange-500 px-4 py-2 rounded-md hover:bg-purple-700"
         >
           Login
