@@ -30,7 +30,7 @@ const Navbar = () => (
       </li>
       <li>
         <a
-          href="./page/SignUpPage"
+          href="signup-btn"
           className="bg-pink-500 px-4 py-2 rounded-md hover:bg-orange-400"
         >
           SignUp
