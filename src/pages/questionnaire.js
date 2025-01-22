@@ -13,6 +13,9 @@ const QuestionnaireForm = () => {
     none: false,
     //Options For Question 2
     symptoms: "",
+    //Part 2: (Suicidal Thoughts)
+    // Options For Question 3
+    suicidalThoughts: "",
   });
 
   //Tracking the Current Question 
@@ -27,7 +30,25 @@ const QuestionnaireForm = () => {
   };
 
   const handleNext = () => {
+    if (currentQuestion === 4 && responses.suicidalThoughts === "Yes") {
+      setCurrentQuestion(5);
+      return;
+    }
+    if (currentQuestion === 2 && responses.symptoms === "Yes" && (
+      responses.depressedLonely ||
+      responses.lossofInterest ||
+      responses.repetitiveBehavior ||
+      responses.difficultyBreathing ||
+      responses.flashbacksNightmares
+    )) {
+      setCurrentQuestion(4);
+      return;
+    }
     if (currentQuestion === 2 && responses.none === true && responses.symptoms === "No") {
+      setCurrentQuestion(3);
+      return;
+    }
+    if (currentQuestion === 4 && responses.suicidalThoughts === "No") {
       setCurrentQuestion(3);
       return;
     }
@@ -152,6 +173,49 @@ const QuestionnaireForm = () => {
         </>
       )}
 
+      {/* Question 4 */}
+      {currentQuestion === 4 && (
+        <>
+          <div>
+            <h3>Q3. Have you had any thought that it was better if you were dead, or are you planning on
+              ending your life?</h3>
+          </div>
+          <div>
+            <form>
+              <label>
+                <input type="radio" name="suicidalThoughts" value="Yes"
+                  checked={responses.suicidalThoughts === "Yes"} onChange={changeEvent} />Yes
+              </label>
+              <br></br>
+              <label>
+                <input type="radio" name="suicidalThoughts" value="No"
+                  checked={responses.suicidalThoughts === "No"} onChange={changeEvent} />No
+              </label>
+            </form>
+          </div>
+        </>
+      )}
+
+      {currentQuestion === 5 && responses.suicidalThoughts === "Yes" && (
+        <>
+          <div>
+            <h2 className="text-red-100">Suicidal Thoughts!</h2>
+            <h3>You have been diagnosed with Suicidal Thoughts, you need to contact an emergency hotline,
+              your life could be in danger and we care for you, so here are some of the emergency contacts
+              you can get help from.</h3>
+            <p>
+              <h3>Emergency Hotlines:</h3>
+              Umang: (92) 0311 7786264 <br></br>
+              Rozan: (92) 0304 111 1741 <br></br>
+              Welfare Bureau: 1121
+            </p>
+            <p>It is important to talk to someone right away. If you are in immediate danger, please dial 911.</p>
+            <p>If you need someone to talk to, consider reaching out to a helpline, counselor, or a trusted individual.</p>
+            <p>Your safety and well-being are a priority.</p>
+          </div>
+        </>
+      )}
+
       {/* Button To Submit */}
       <div className="flex justify-between mt-4">
         {currentQuestion > 1 && currentQuestion < 3 && (
@@ -171,6 +235,11 @@ const QuestionnaireForm = () => {
         {currentQuestion === 2 && (
           <button className="bg-gray-300 p-2 rounded" onClick={handleNext}
             disabled={!responses.symptoms}>Next</button>
+        )}
+
+        {currentQuestion === 4 && (
+          <button className="bg-gray-300 p-2 rounded" onClick={handleNext}
+            disabled={!responses.suicidalThoughts}>Next</button>
         )}
       </div>
 
