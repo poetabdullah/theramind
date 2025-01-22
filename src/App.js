@@ -1,9 +1,8 @@
-
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import Navbar from './components/Navbar';
-import QuestionnaireForm from './pages/Questionnaire';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import Navbar from "./components/Navbar";
+import QuestionnaireForm from "./pages/Questionnaire";
 
 const App = () => (
   <div>
