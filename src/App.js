@@ -5,6 +5,7 @@ import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
 import Questionnaire from "./pages/Questionnaire";
 import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
 
 const App = () => (
   <div>
@@ -14,6 +15,7 @@ const App = () => (
       <Route path="/Meditation" element={<Meditation />} />
       <Route path="/questionnaire" element={<Questionnaire />} />
       <Route path="/signup" element={<SignUpPage />} />
+      <Route path="/login" element={<LoginPage />} />
     </Routes>
   </div>
 );
