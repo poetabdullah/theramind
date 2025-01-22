@@ -75,7 +75,7 @@ const Questionnaire = () => {
       {/* Question 1 */}
       {currentQuestion === 1 && (
         <>
-          <div>
+          <div className="heading">
             <h3>Q1. Have you been feeling any of the following lately?</h3>
           </div>
           <div>
@@ -148,7 +148,7 @@ const Questionnaire = () => {
       {/* Question 1 */}
       {currentQuestion === 2 && (
         <>
-          <div>
+          <div className="heading">
             <h3>
               Q2. Are you having any of the following symptoms lately; shortness
               of breath, constant worry, fatigue/prolonged muscle tension,
@@ -200,7 +200,7 @@ const Questionnaire = () => {
       {/* Question 4 */}
       {currentQuestion === 4 && (
         <>
-          <div>
+          <div className="heading">
             <h3>
               Q3. Have you had any thought that it was better if you were dead,
               or are you planning on ending your life?
