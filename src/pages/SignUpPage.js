@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import DoctorSignup from "../components/DoctorSignup";
 import PatientSignup from "../components/PatientSignup";
+import Footer from "../components/Footer";
 const SignUpPage = () => {
   const [activeForm, setActiveForm] = useState("patient");
 
@@ -60,5 +61,4 @@ const SignUpPage = () => {
     </div>
   );
 };
-
 export default SignUpPage;
