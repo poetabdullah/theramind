@@ -12,7 +12,6 @@ const App = () => (
       <Route path="/" element={<HomePage />} />
       <Route path="/questionnaire" element={<QuestionnaireForm />} />
     </Routes>
-
   </div>
 );
 
