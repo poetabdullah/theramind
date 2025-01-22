@@ -1,17 +1,17 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
+import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
-import QuestionnaireForm from "./pages/questionnaire";
-import SignUpPage from "./pages/SignUpPage";
+import questionnaire from "./pages/questionnaire";
 
 const App = () => (
   <div>
     <Navbar />
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/questionnaire" element={<QuestionnaireForm />} />
-      <Route path="/signup" element={<SignUpPage />} />
+      <Route path="/Meditation" element={<Meditation />} />
+      <Route path="/questionnaire" element={<questionnaire />} />
     </Routes>
   </div>
 );
