@@ -13,6 +13,9 @@ const QuestionnaireForm = () => {
     none: false,
     //Options For Question 2
     symptoms: "",
+    //Part 2: (Suicidal Thoughts)
+    // Options For Question 3
+    suicidalThoughts: "",
   });
 
   //Tracking the Current Question 
@@ -27,7 +30,16 @@ const QuestionnaireForm = () => {
   };
 
   const handleNext = () => {
-    if (currentQuestion === 2 && responses.none === true && responses.symptoms === "No") {
+    if (currentQuestion === 2 && responses.symptoms === "Yes" && (
+      responses.depressedLonely ||
+      responses.lossofInterest ||
+      responses.repetitiveBehavior ||
+      responses.difficultyBreathing ||
+      responses.flashbacksNightmares
+    )) {
+      setCurrentQuestion(4);
+    }
+    else if (currentQuestion === 2 && responses.none === true && responses.symptoms === "No") {
       setCurrentQuestion(3);
       return;
     }
@@ -148,6 +160,28 @@ const QuestionnaireForm = () => {
             <h3>Thank you for taking TheraMind's diagnostic questionnaire!</h3>
             <p>Based on the response you have submitted you are not diagnosed with any of the following
               mental health conditions (Stress, Anxiety, Depression, Trauma, OCD) and its subtypes.</p>
+          </div>
+        </>
+      )}
+
+      {/* Question 4 */}
+      {currentQuestion === 4 && (
+        <>
+          <div>
+            <h3>Q3. Have you had any thought that it was better if you were dead, or are you planning on
+              ending your life?</h3>
+          </div>
+          <div>
+            <form>
+              <label>
+                <input type="radio" name="suicidalThoughts" value="Yes" checked={responses.suicidalThoughts}
+                  onChange={changeEvent} />Yes
+              </label>
+              <label>
+                <input type="radio" name="suicidalThoughts" value="No" checked={responses.suicidalThoughts}
+                  onChange={changeEvent} />No
+              </label>
+            </form>
           </div>
         </>
       )}
