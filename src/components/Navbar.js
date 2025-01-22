@@ -1,31 +1,50 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => (
-  <nav className="navbar">
-    <div className="logo">TheraMind</div>
-    <ul className="nav-links">
+  <nav className="flex justify-between items-center bg-purple-800 text-white py-4 px-6 sticky top-0 z-50">
+    <div className="text-2xl font-bold cursor-pointer hover:text-orange-500">
+      <a href="/">TheraMind</a>
+    </div>
+    <ul className="flex gap-6">
       <li>
-        <a href="#about">About</a>
+        <a href="#about" className="hover:text-orange-500">
+          About
+        </a>
       </li>
       <li>
-        <a href="/Questionnaire">Questionnaire</a>
+        <a href="/Questionnaire" className="hover:text-orange-500">
+          Questionnaire
+        </a>
       </li>
       <li>
-        <a href="#services">Services</a>
+        <a href="#services" className="hover:text-orange-500">
+          Services
+        </a>
       </li>
       <li>
-        <a href="#how-it-works">How It Works</a>
+        <a href="#how-it-works" className="hover:text-orange-500">
+          How It Works
+        </a>
       </li>
       <li>
-        <a href="#contact">Contact</a>
+        <a href="#contact" className="hover:text-orange-500">
+          Contact
+        </a>
       </li>
       <li>
-        <a href="#signup" className="signup-btn">
+        <a
+          href="/signup"
+          className="bg-pink-500 px-4 py-2 rounded-md hover:bg-orange-400"
+        >
           SignUp
         </a>
       </li>
       <li>
-        <a href="#login" className="login-btn">
+        <a
+          href="#login"
+          className="bg-orange-500 px-4 py-2 rounded-md hover:bg-purple-700"
+        >
           Login
         </a>
       </li>
