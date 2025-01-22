@@ -5,7 +5,7 @@ const DiagnosticQuestionnaire = () => {
   const navigate = useNavigate();
 
   const handleStart = () => {
-    navigate('/Questionnaire');
+    navigate('/questionnaire');
   };
 
   return (
