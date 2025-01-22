@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import DoctorSignup from "../components/DoctorSignup";
 import PatientSignup from "../components/PatientSignup";
-
-const SignupPage = () => {
+const SignUpPage = () => {
   const [activeForm, setActiveForm] = useState("patient");
 
   const toggleForm = (form) => {
@@ -62,4 +61,4 @@ const SignupPage = () => {
   );
 };
 
-export default SignupPage;
+export default SignUpPage;
