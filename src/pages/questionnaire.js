@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Footer from "../components/Footer";
 
-const QuestionnaireForm = () => {
+const Questionnaire = () => {
   const [responses, setResponses] = useState({
     //Part 1: (Having a condition or not)
     //Options For Question 1
@@ -18,7 +18,7 @@ const QuestionnaireForm = () => {
     suicidalThoughts: "",
   });
 
-  //Tracking the Current Question 
+  //Tracking the Current Question
   const [currentQuestion, setCurrentQuestion] = useState(1);
 
   const changeEvent = (event) => {
@@ -34,17 +34,23 @@ const QuestionnaireForm = () => {
       setCurrentQuestion(5);
       return;
     }
-    if (currentQuestion === 2 && responses.symptoms === "Yes" && (
-      responses.depressedLonely ||
-      responses.lossofInterest ||
-      responses.repetitiveBehavior ||
-      responses.difficultyBreathing ||
-      responses.flashbacksNightmares
-    )) {
+    if (
+      currentQuestion === 2 &&
+      responses.symptoms === "Yes" &&
+      (responses.depressedLonely ||
+        responses.lossofInterest ||
+        responses.repetitiveBehavior ||
+        responses.difficultyBreathing ||
+        responses.flashbacksNightmares)
+    ) {
       setCurrentQuestion(4);
       return;
     }
-    if (currentQuestion === 2 && responses.none === true && responses.symptoms === "No") {
+    if (
+      currentQuestion === 2 &&
+      responses.none === true &&
+      responses.symptoms === "No"
+    ) {
       setCurrentQuestion(3);
       return;
     }
@@ -143,20 +149,35 @@ const QuestionnaireForm = () => {
       {currentQuestion === 2 && (
         <>
           <div>
-            <h3>Q2. Are you having any of the following symptoms lately; shortness of breath, constant worry,
-              fatigue/prolonged muscle tension, insomnia, being easily startled, or spending time on compulsive
-              behaviors?</h3>
+            <h3>
+              Q2. Are you having any of the following symptoms lately; shortness
+              of breath, constant worry, fatigue/prolonged muscle tension,
+              insomnia, being easily startled, or spending time on compulsive
+              behaviors?
+            </h3>
           </div>
           <div>
             <form>
               <label>
-                <input type="radio" name="symptoms" value="Yes" checked={responses.symptoms === "Yes"}
-                  onChange={changeEvent} />Yes
+                <input
+                  type="radio"
+                  name="symptoms"
+                  value="Yes"
+                  checked={responses.symptoms === "Yes"}
+                  onChange={changeEvent}
+                />
+                Yes
               </label>
               <br></br>
               <label>
-                <input type="radio" name="symptoms" value="No" checked={responses.symptoms === "No"}
-                  onChange={changeEvent} />No
+                <input
+                  type="radio"
+                  name="symptoms"
+                  value="No"
+                  checked={responses.symptoms === "No"}
+                  onChange={changeEvent}
+                />
+                No
               </label>
             </form>
           </div>
@@ -167,8 +188,11 @@ const QuestionnaireForm = () => {
         <>
           <div>
             <h3>Thank you for taking TheraMind's diagnostic questionnaire!</h3>
-            <p>Based on the response you have submitted you are not diagnosed with any of the following
-              mental health conditions (Stress, Anxiety, Depression, Trauma, OCD) and its subtypes.</p>
+            <p>
+              Based on the response you have submitted you are not diagnosed
+              with any of the following mental health conditions (Stress,
+              Anxiety, Depression, Trauma, OCD) and its subtypes.
+            </p>
           </div>
         </>
       )}
@@ -177,19 +201,33 @@ const QuestionnaireForm = () => {
       {currentQuestion === 4 && (
         <>
           <div>
-            <h3>Q3. Have you had any thought that it was better if you were dead, or are you planning on
-              ending your life?</h3>
+            <h3>
+              Q3. Have you had any thought that it was better if you were dead,
+              or are you planning on ending your life?
+            </h3>
           </div>
           <div>
             <form>
               <label>
-                <input type="radio" name="suicidalThoughts" value="Yes"
-                  checked={responses.suicidalThoughts === "Yes"} onChange={changeEvent} />Yes
+                <input
+                  type="radio"
+                  name="suicidalThoughts"
+                  value="Yes"
+                  checked={responses.suicidalThoughts === "Yes"}
+                  onChange={changeEvent}
+                />
+                Yes
               </label>
               <br></br>
               <label>
-                <input type="radio" name="suicidalThoughts" value="No"
-                  checked={responses.suicidalThoughts === "No"} onChange={changeEvent} />No
+                <input
+                  type="radio"
+                  name="suicidalThoughts"
+                  value="No"
+                  checked={responses.suicidalThoughts === "No"}
+                  onChange={changeEvent}
+                />
+                No
               </label>
             </form>
           </div>
@@ -200,17 +238,26 @@ const QuestionnaireForm = () => {
         <>
           <div>
             <h2 className="text-red-100">Suicidal Thoughts!</h2>
-            <h3>You have been diagnosed with Suicidal Thoughts, you need to contact an emergency hotline,
-              your life could be in danger and we care for you, so here are some of the emergency contacts
-              you can get help from.</h3>
+            <h3>
+              You have been diagnosed with Suicidal Thoughts, you need to
+              contact an emergency hotline, your life could be in danger and we
+              care for you, so here are some of the emergency contacts you can
+              get help from.
+            </h3>
             <p>
               <h3>Emergency Hotlines:</h3>
               Umang: (92) 0311 7786264 <br></br>
               Rozan: (92) 0304 111 1741 <br></br>
               Welfare Bureau: 1121
             </p>
-            <p>It is important to talk to someone right away. If you are in immediate danger, please dial 911.</p>
-            <p>If you need someone to talk to, consider reaching out to a helpline, counselor, or a trusted individual.</p>
+            <p>
+              It is important to talk to someone right away. If you are in
+              immediate danger, please dial 911.
+            </p>
+            <p>
+              If you need someone to talk to, consider reaching out to a
+              helpline, counselor, or a trusted individual.
+            </p>
             <p>Your safety and well-being are a priority.</p>
           </div>
         </>
@@ -219,27 +266,47 @@ const QuestionnaireForm = () => {
       {/* Button To Submit */}
       <div className="flex justify-between mt-4">
         {currentQuestion > 1 && currentQuestion < 3 && (
-          <button className="bg-gray-300 p-2 rounded" onClick={handlePrevious}>Back</button>
+          <button className="bg-gray-300 p-2 rounded" onClick={handlePrevious}>
+            Back
+          </button>
         )}
         {currentQuestion === 1 && (
-          <button className="bg-gray-300 p-2 rounded" onClick={handleNext}
-            disabled={!(responses.depressedLonely ||
-              responses.lossofInterest ||
-              responses.repetitiveBehavior ||
-              responses.difficultyBreathing ||
-              responses.flashbacksNightmares ||
-              responses.none
-            )}>Next</button>
+          <button
+            className="bg-gray-300 p-2 rounded"
+            onClick={handleNext}
+            disabled={
+              !(
+                responses.depressedLonely ||
+                responses.lossofInterest ||
+                responses.repetitiveBehavior ||
+                responses.difficultyBreathing ||
+                responses.flashbacksNightmares ||
+                responses.none
+              )
+            }
+          >
+            Next
+          </button>
         )}
 
         {currentQuestion === 2 && (
-          <button className="bg-gray-300 p-2 rounded" onClick={handleNext}
-            disabled={!responses.symptoms}>Next</button>
+          <button
+            className="bg-gray-300 p-2 rounded"
+            onClick={handleNext}
+            disabled={!responses.symptoms}
+          >
+            Next
+          </button>
         )}
 
         {currentQuestion === 4 && (
-          <button className="bg-gray-300 p-2 rounded" onClick={handleNext}
-            disabled={!responses.suicidalThoughts}>Next</button>
+          <button
+            className="bg-gray-300 p-2 rounded"
+            onClick={handleNext}
+            disabled={!responses.suicidalThoughts}
+          >
+            Next
+          </button>
         )}
       </div>
 
@@ -247,4 +314,4 @@ const QuestionnaireForm = () => {
     </>
   );
 };
-export default QuestionnaireForm;
+export default Questionnaire;
