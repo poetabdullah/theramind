@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Footer from '../components/Footer';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -77,5 +78,5 @@ const LoginPage = () => {
     </div>
   );
 };
-
+<Footer/>
 export default LoginPage;
