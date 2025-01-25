@@ -1,52 +1,50 @@
 import React, { useState } from "react";
-import Footer from '../components/Footer';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { db } from "../firebaseConfig"; // Firebase config import
+import { setDoc, doc } from "firebase/firestore"; // To store data in Firestore
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Logging in with", email, password);
+  const handleGoogleLogin = async () => {
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+    setLoading(true);
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Store user login details in Firestore under 'logged_in_users' collection
+      await setDoc(doc(db, "logged_in_users", user.uid), {
+        email: user.email,
+        name: user.displayName,
+        lastLogin: new Date(),
+      });
+
+      // Redirect to the home page
+      navigate("/"); // Redirect to index.js (or home)
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
-      {/* Centered Card Area */}
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6 text-orange-600">
           Login to TheraMind
         </h2>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="block w-full mb-4 p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="block w-full mb-4 p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-            required
-          />
-
-          <button
-            type="submit"
-            className="block w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-400"
-          >
-            Submit
-          </button>
-        </form>
-
         <div className="mt-6">
-          <button className="w-full py-3 px-6 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-200 flex items-center justify-center text-lg font-medium">
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full py-3 px-6 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-200 flex items-center justify-center text-lg font-medium"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 48 48"
@@ -78,5 +76,5 @@ const LoginPage = () => {
     </div>
   );
 };
-<Footer/>
+
 export default LoginPage;
