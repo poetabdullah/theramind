@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import './questionnaire.css';
+import "./Questionnaire.css";
 import Footer from "../components/Footer";
 
 const Questionnaire = () => {
@@ -73,15 +73,25 @@ const Questionnaire = () => {
           Diagnostic Questionnaire
         </h2>
       </div>
-      <div className="bg-white shadow-lg rounded-lg p-8 mt-6 w-full max-w-lg transition-transform
-      duration-300 ease-in-out transform hover:scale-105">
+      <div
+        className="bg-white shadow-lg rounded-lg p-8 mt-6 w-full max-w-lg transition-transform
+      duration-300 ease-in-out transform hover:scale-105"
+      >
         {/* Question 1 */}
         {currentQuestion === 1 && (
           <>
             <div className="text-xl font-semibold mb-4">
               <h3>Q1. Have you been feeling any of the following lately?</h3>
             </div>
-            <div shadow-md rounded-lg max-w-xl mx-auto flex justify-center items-center>
+            <div
+              shadow-md
+              rounded-lg
+              max-w-xl
+              mx-auto
+              flex
+              justify-center
+              items-center
+            >
               <form>
                 <label>
                   <input
@@ -153,10 +163,10 @@ const Questionnaire = () => {
           <>
             <div>
               <h3>
-                Q2. Are you having any of the following symptoms lately; shortness
-                of breath, constant worry, fatigue/prolonged muscle tension,
-                insomnia, being easily startled, or spending time on compulsive
-                behaviors?
+                Q2. Are you having any of the following symptoms lately;
+                shortness of breath, constant worry, fatigue/prolonged muscle
+                tension, insomnia, being easily startled, or spending time on
+                compulsive behaviors?
               </h3>
             </div>
             <div>
@@ -190,7 +200,9 @@ const Questionnaire = () => {
         {currentQuestion === 3 && (
           <>
             <div>
-              <h3>Thank you for taking TheraMind's diagnostic questionnaire!</h3>
+              <h3>
+                Thank you for taking TheraMind's diagnostic questionnaire!
+              </h3>
               <p>
                 Based on the response you have submitted you are not diagnosed
                 with any of the following mental health conditions (Stress,
@@ -205,8 +217,8 @@ const Questionnaire = () => {
           <>
             <div className="heading">
               <h3>
-                Q3. Have you had any thought that it was better if you were dead,
-                or are you planning on ending your life?
+                Q3. Have you had any thought that it was better if you were
+                dead, or are you planning on ending your life?
               </h3>
             </div>
             <div>
@@ -243,9 +255,9 @@ const Questionnaire = () => {
               <h2 className="text-red-100">Suicidal Thoughts!</h2>
               <h3>
                 You have been diagnosed with Suicidal Thoughts, you need to
-                contact an emergency hotline, your life could be in danger and we
-                care for you, so here are some of the emergency contacts you can
-                get help from.
+                contact an emergency hotline, your life could be in danger and
+                we care for you, so here are some of the emergency contacts you
+                can get help from.
               </h3>
               <p>
                 <h3>Emergency Hotlines:</h3>
@@ -269,7 +281,10 @@ const Questionnaire = () => {
         {/* Button To Submit */}
         <div className="flex justify-between mt-4">
           {currentQuestion > 1 && currentQuestion < 3 && (
-            <button className="bg-gray-300 p-2 rounded" onClick={handlePrevious}>
+            <button
+              className="bg-gray-300 p-2 rounded"
+              onClick={handlePrevious}
+            >
               Back
             </button>
           )}
