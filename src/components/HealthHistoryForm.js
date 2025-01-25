@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 
-const HealthHistoryForm = ({ onSubmit, error }) => {
+const HealthHistoryForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     mentalHealthConditions: [],
     familyHistory: "",
     significantTrauma: "",
     childhoodChallenges: "",
   });
+
+  const [error, setError] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,9 +26,34 @@ const HealthHistoryForm = ({ onSubmit, error }) => {
     }
   };
 
+  const validateForm = () => {
+    const newError = {};
+    if (formData.mentalHealthConditions.length === 0) {
+      newError.mentalHealthConditions =
+        "Please select at least one mental health condition.";
+    }
+    if (!formData.familyHistory) {
+      newError.familyHistory = "Please select an option for family history.";
+    }
+    if (!formData.significantTrauma) {
+      newError.significantTrauma =
+        "Please select an option for significant trauma.";
+    }
+    if (!formData.childhoodChallenges) {
+      newError.childhoodChallenges =
+        "Please select an option for childhood challenges.";
+    }
+
+    setError(newError);
+    return Object.keys(newError).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (validateForm()) {
+      // Pass only valid data to the parent component
+      onSubmit(formData);
+    }
   };
 
   return (
