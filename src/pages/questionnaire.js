@@ -265,54 +265,54 @@ const Questionnaire = () => {
             </div>
           </>
         )}
+
+        {/* Button To Submit */}
+        <div className="flex justify-between mt-4">
+          {currentQuestion > 1 && currentQuestion < 3 && (
+            <button className="bg-gray-300 p-2 rounded" onClick={handlePrevious}>
+              Back
+            </button>
+          )}
+          {currentQuestion === 1 && (
+            <button
+              className="bg-gray-300 p-2 rounded"
+              onClick={handleNext}
+              disabled={
+                !(
+                  responses.depressedLonely ||
+                  responses.lossofInterest ||
+                  responses.repetitiveBehavior ||
+                  responses.difficultyBreathing ||
+                  responses.flashbacksNightmares ||
+                  responses.none
+                )
+              }
+            >
+              Next
+            </button>
+          )}
+
+          {currentQuestion === 2 && (
+            <button
+              className="bg-gray-300 p-2 rounded"
+              onClick={handleNext}
+              disabled={!responses.symptoms}
+            >
+              Next
+            </button>
+          )}
+
+          {currentQuestion === 4 && (
+            <button
+              className="bg-gray-300 p-2 rounded"
+              onClick={handleNext}
+              disabled={!responses.suicidalThoughts}
+            >
+              Next
+            </button>
+          )}
+        </div>
       </div>
-      {/* Button To Submit */}
-      <div className="flex justify-between mt-4">
-        {currentQuestion > 1 && currentQuestion < 3 && (
-          <button className="bg-gray-300 p-2 rounded" onClick={handlePrevious}>
-            Back
-          </button>
-        )}
-        {currentQuestion === 1 && (
-          <button
-            className="bg-gray-300 p-2 rounded"
-            onClick={handleNext}
-            disabled={
-              !(
-                responses.depressedLonely ||
-                responses.lossofInterest ||
-                responses.repetitiveBehavior ||
-                responses.difficultyBreathing ||
-                responses.flashbacksNightmares ||
-                responses.none
-              )
-            }
-          >
-            Next
-          </button>
-        )}
-
-        {currentQuestion === 2 && (
-          <button
-            className="bg-gray-300 p-2 rounded"
-            onClick={handleNext}
-            disabled={!responses.symptoms}
-          >
-            Next
-          </button>
-        )}
-
-        {currentQuestion === 4 && (
-          <button
-            className="bg-gray-300 p-2 rounded"
-            onClick={handleNext}
-            disabled={!responses.suicidalThoughts}
-          >
-            Next
-          </button>
-        )}
-      </div>
-
       <Footer />
     </>
   );
