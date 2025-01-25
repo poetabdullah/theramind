@@ -53,13 +53,24 @@ const PatientSignUp = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      setUserData({
-        ...userData,
-        name: user.displayName || "",
-        email: user.email || "",
-      });
+      // Check if the user is already signed up (based on their email)
+      const docRef = doc(db, "patients", user.email);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        // If the user already exists, show an error
+        setError({ general: "You are already signed up." });
+        setStep(4); // Show already signed-up message
+      } else {
+        // Set user data
+        setUserData({
+          ...userData,
+          name: user.displayName || "",
+          email: user.email || "",
+        });
 
-      setStep(2); // Move to Step 2
+        // Proceed to Step 2 for entering patient details
+        setStep(2);
+      }
     } catch (err) {
       setError({ general: "Failed to sign up with Google. Please try again." });
       console.error(err);
@@ -79,9 +90,10 @@ const PatientSignUp = () => {
   };
 
   const handleStepThreeSubmit = async (historyData) => {
-    const finalData = { ...userData, ...historyData };
+    const finalData = { ...userData, ...historyData, createdAt: new Date() };
 
     try {
+      // Save the user data to Firestore with the timestamp
       await setDoc(doc(db, "patients", finalData.email), finalData);
       navigate("/"); // Redirect to homepage after successful registration
     } catch (err) {
