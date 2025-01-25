@@ -1,10 +1,9 @@
-//Questionnaire CSS
 .heading {
-	font-family: Helvetica, Arial, sans-serif;
-	font-size: 60px;
-	margin-top: 20px;
-	margin-bottom: 10px;
-	text-align: center;
-	background: linear-gradient(135deg, #7b1fa2 0%, #7c3aed 100%);
-	color: white;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 60px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+  background: linear-gradient(135deg, #7b1fa2 0%, #7c3aed 100%);
+  color: white;
 }
