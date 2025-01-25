@@ -1,15 +1,32 @@
-import React, { useState } from "react";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import React, { useState, useEffect } from "react";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { db } from "../firebaseConfig"; // Firebase config import
-import { setDoc, doc } from "firebase/firestore"; // To store data in Firestore
+import { setDoc, doc, getDoc } from "firebase/firestore"; // To store data in Firestore
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
+  const [userLoggedIn, setUserLoggedIn] = useState(false); // State to track if user is logged in
   const navigate = useNavigate(); // Initialize useNavigate hook
+  const auth = getAuth();
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserLoggedIn(true); // Set state to true if user is logged in
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the subscription when component unmounts
+  }, [auth]);
 
   const handleGoogleLogin = async () => {
-    const auth = getAuth();
     const provider = new GoogleAuthProvider();
     setLoading(true);
 
@@ -17,12 +34,27 @@ const LoginPage = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Store user login details in Firestore under 'logged_in_users' collection
-      await setDoc(doc(db, "logged_in_users", user.uid), {
-        email: user.email,
-        name: user.displayName,
-        lastLogin: new Date(),
-      });
+      // Check if the user is already logged in and stored in Firestore
+      const docRef = doc(db, "logged_in_users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        // Store user login details in Firestore under 'logged_in_users' collection
+        await setDoc(docRef, {
+          email: user.email,
+          name: user.displayName,
+          lastLogin: new Date(),
+        });
+      } else {
+        // Update the login timestamp if the user already exists in Firestore
+        await setDoc(
+          docRef,
+          {
+            lastLogin: new Date(),
+          },
+          { merge: true }
+        );
+      }
 
       // Redirect to the home page
       navigate("/"); // Redirect to index.js (or home)
@@ -32,6 +64,18 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  if (userLoggedIn) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold text-center mb-6 text-orange-600">
+            You have already been logged in.
+          </h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
