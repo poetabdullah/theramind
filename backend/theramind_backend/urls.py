@@ -17,8 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from .views import home
 
 urlpatterns = [
+    path("", home, name="home"),  # Root URL redirects to React app
     path("admin/", admin.site.urls),
-    path("api/", include("api.urls")),  # Include API app URLs
+    path("api/", include("api.urls")),  # Adjust as per your API setup
 ]
