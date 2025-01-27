@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Send } from "lucide-react";
 
-const ChatbotUI = () => {
+const TheraChat = () => {
   const [hideHeadline, setHideHeadline] = useState(false);
 
   return (
@@ -58,4 +58,4 @@ const ChatbotUI = () => {
   );
 };
 
-export default ChatbotUI;
+export default TheraChat;
