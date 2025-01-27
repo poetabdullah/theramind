@@ -15,14 +15,19 @@ import os
 import firebase_admin
 from firebase_admin import credentials
 
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 # Firebase Admin Setup
 FIREBASE_ADMIN_CREDENTIALS = os.path.join(BASE_DIR, "firebase_admin_credentials.json")
 firebase_cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIALS)
 firebase_admin.initialize_app(firebase_cred)
 # Above added code aims to connect the firestore database
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+
+# STATIC_URL Setup: If we plan to serve static files (e.g., for admin or documentation):
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 
 # Quick-start development settings - unsuitable for production
@@ -40,11 +45,12 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]  # Update the localhost
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
+    # Commented out built-in Django security stuff since Firebase handles authentication
+    # "django.contrib.admin",
+    # "django.contrib.auth",
+    # "django.contrib.contenttypes",
+    # "django.contrib.sessions",
+    # "django.contrib.messages",
     "django.contrib.staticfiles",
     "corsheaders",  # Added
     "rest_framework",  # Added
@@ -52,13 +58,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Commented out built-in Django security stuff since Firebase handles authentication
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
+    # "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware",
+    # "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # "django.contrib.messages.middleware.MessageMiddleware",
+    # "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",  # Added
 ]
 
@@ -87,13 +94,22 @@ CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development (added)
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+DATABASES = {}  # No traditional database settings since we are using Firestore
 
+# Add logging to track Firebase operations for debugging purposes
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
