@@ -74,7 +74,7 @@ export default function EducationMainPage() {
           Why Mental Health Education is Vital for Pakistan
         </h2>
         <p className="mt-4 text-gray-700">
-          In Pakistan, where mental health issues are often underreported and
+          In Pakistan, where mental health issues are often under-reported and
           misunderstood, mental health education plays a crucial role in
           fostering awareness and creating an environment where individuals can
           seek help without fear of judgment. Our mission is to spread knowledge
@@ -91,8 +91,8 @@ export default function EducationMainPage() {
         description="Read insightful articles written by mental health professionals, covering a wide range of topics such as anxiety, depression, and more."
         items={articles}
         buttonText="Explore More Articles"
-        buttonClass="bg-orange-500 text-white hover:bg-orange-600"
-        titleColor="text-orange-500" // Ensuring title color matches the orange theme
+        buttonClass="bg-orange-600 text-white hover:bg-orange-500"
+        titleColor="text-orange-600" // Ensuring title color matches the orange theme
       />
 
       {/* Patient Stories Section */}
@@ -101,8 +101,8 @@ export default function EducationMainPage() {
         description="Discover inspiring stories from individuals who have faced mental health challenges and found strength in their journey."
         items={patientStories}
         buttonText="Explore More Stories"
-        buttonClass="bg-purple-500 text-white hover:bg-purple-600"
-        titleColor="text-purple-500" // Ensuring title color matches the purple theme
+        buttonClass="bg-purple-600 text-white hover:bg-purple-500"
+        titleColor="text-purple-600" // Ensuring title color matches the purple theme
       />
     </div>
   );
