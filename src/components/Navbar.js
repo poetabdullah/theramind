@@ -79,8 +79,8 @@ const Navbar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/#contact" className="hover:text-orange-500">
-            Contact
+          <Link to="/EducationMain" className="hover:text-orange-500">
+            Education
           </Link>
         </li>
 
