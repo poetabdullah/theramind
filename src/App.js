@@ -11,6 +11,7 @@ import TheraChat from "./pages/TheraChat";
 import EducationMainPage from "./pages/EducationMainPage";
 import ArticlesListPage from "./pages/ArticlesListPage";
 import PatientStoriesListPage from "./pages/PatientStoriesListPage";
+import EducationDetailView from "./pages/EducationDetailView";
 
 const App = () => (
   <div>
@@ -25,6 +26,7 @@ const App = () => (
       <Route path="/EducationMain" element={<EducationMainPage />} />
       <Route path="/articles" element={<ArticlesListPage />} />
       <Route path="/patient-stories" element={<PatientStoriesListPage />} />
+      <Route path="/view-education" element={<EducationDetailView />} />
     </Routes>
   </div>
 );
