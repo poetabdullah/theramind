@@ -52,7 +52,7 @@ const EducationWritePage = () => {
       {/* Full-width simple layout */}
       <div className="max-w-3xl mx-auto">
         <h1 className="text-5xl font-bold text-purple-900 mb-8">
-          Write Your Article
+          Write Your Educational Content
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
