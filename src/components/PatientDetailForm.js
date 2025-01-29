@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 
-const PatientDetailForm = ({ onSubmit, error }) => {
+const PatientDetailForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     dob: "",
     location: "",
   });
+
+  const [errors, setErrors] = useState({}); // Local state to track validation errors
 
   // Calculate max and min valid dates for the date picker
   const today = new Date();
@@ -27,31 +29,40 @@ const PatientDetailForm = ({ onSubmit, error }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: null })); // Clear the error for the field being updated
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const validateForm = () => {
     const { dob, location } = formData;
-    const dobDate = new Date(dob);
-    const calculatedAge = today.getFullYear() - dobDate.getFullYear();
-
-    // Validation logic
     const validationErrors = {};
+
+    // Validate date of birth
     if (!dob) {
       validationErrors.dob = "Date of birth is required.";
-    } else if (calculatedAge < 16 || calculatedAge > 50) {
-      validationErrors.dob = "Patient must be between 16 and 50 years old.";
+    } else {
+      const dobDate = new Date(dob);
+      const calculatedAge = today.getFullYear() - dobDate.getFullYear();
+      if (calculatedAge < 16 || calculatedAge > 50) {
+        validationErrors.dob = "Patient must be between 16 and 50 years old.";
+      }
     }
 
+    // Validate location
     if (!location || location.length < 5) {
       validationErrors.location =
         "Location must be at least 5 characters long.";
     }
 
-    if (Object.keys(validationErrors).length > 0) {
-      onSubmit(validationErrors); // Pass errors to parent
-    } else {
-      onSubmit({ dob, location }); // Pass valid data to parent
+    setErrors(validationErrors); // Update errors in state
+    return Object.keys(validationErrors).length === 0; // Return true if no errors
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      // Pass valid data to parent component
+      onSubmit(formData);
     }
   };
 
@@ -68,12 +79,15 @@ const PatientDetailForm = ({ onSubmit, error }) => {
           type="date"
           value={formData.dob}
           onChange={handleChange}
-          className="block w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+          className={`block w-full p-3 border ${
+            errors.dob ? "border-red-500" : "border-gray-300"
+          } rounded-lg focus:outline-none focus:border-orange-500`}
           min={minDate}
           max={maxDate}
-          required
         />
-        {error?.dob && <p className="text-red-500 text-sm mt-2">{error.dob}</p>}
+        {errors.dob && (
+          <p className="text-red-500 text-sm mt-2">{errors.dob}</p>
+        )}
       </div>
 
       {/* Location Input */}
@@ -84,11 +98,12 @@ const PatientDetailForm = ({ onSubmit, error }) => {
           placeholder="Location"
           value={formData.location}
           onChange={handleChange}
-          className="block w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-          required
+          className={`block w-full p-3 border ${
+            errors.location ? "border-red-500" : "border-gray-300"
+          } rounded-lg focus:outline-none focus:border-orange-500`}
         />
-        {error?.location && (
-          <p className="text-red-500 text-sm mt-2">{error.location}</p>
+        {errors.location && (
+          <p className="text-red-500 text-sm mt-2">{errors.location}</p>
         )}
       </div>
 
