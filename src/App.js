@@ -7,7 +7,8 @@ import Questionnaire from "./pages/Questionnaire";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import PatientSignUp from "./pages/PatientSignUp";
-
+import TheraChat from "./pages/TheraChat"; // Corrected import
+import EducationMainPage from "./pages/EducationMainPage";
 const App = () => (
   <div>
     <Navbar />
@@ -17,6 +18,8 @@ const App = () => (
       <Route path="/questionnaire" element={<Questionnaire />} />
       <Route path="/signup" element={<PatientSignUp />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/therachat" element={<TheraChat />} />
+      <Route path="/EducationMain" element={<EducationMainPage />} />
     </Routes>
   </div>
 );
