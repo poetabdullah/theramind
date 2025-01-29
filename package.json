@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@popperjs/core": "^2.11.8",
+    "@tinymce/tinymce-react": "^5.1.1",
     "bootstrap": "^5.3.3",
     "cra-template": "1.2.0",
     "firebase": "^11.2.0",
