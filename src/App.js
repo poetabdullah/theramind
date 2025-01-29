@@ -7,8 +7,11 @@ import Questionnaire from "./pages/Questionnaire";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import PatientSignUp from "./pages/PatientSignUp";
-import TheraChat from "./pages/TheraChat"; // Corrected import
+import TheraChat from "./pages/TheraChat";
 import EducationMainPage from "./pages/EducationMainPage";
+import ArticlesListPage from "./pages/ArticlesListPage";
+import PatientStoriesListPage from "./pages/PatientStoriesListPage";
+
 const App = () => (
   <div>
     <Navbar />
@@ -20,6 +23,8 @@ const App = () => (
       <Route path="/login" element={<LoginPage />} />
       <Route path="/therachat" element={<TheraChat />} />
       <Route path="/EducationMain" element={<EducationMainPage />} />
+      <Route path="/articles" element={<ArticlesListPage />} />
+      <Route path="/patient-stories" element={<PatientStoriesListPage />} />
     </Routes>
   </div>
 );

@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { motion } from "framer-motion";
 import EducationCard from "../components/EducationCard";
+import { Link } from "react-router-dom";
 
 export default function EducationMainPage() {
   const articles = [
@@ -91,25 +92,35 @@ export default function EducationMainPage() {
         description="Read insightful articles written by mental health professionals, covering a wide range of topics such as anxiety, depression, and more."
         items={articles}
         buttonText="Explore More Articles"
+        buttonLink="/articles"
         buttonClass="bg-orange-600 text-white hover:bg-orange-500"
         titleColor="text-orange-600" // Ensuring title color matches the orange theme
       />
 
       {/* Patient Stories Section */}
       <Section
-        title="Real-Life Patient Stories"
+        title=" Explore Real-Life Patient Stories"
         description="Discover inspiring stories from individuals who have faced mental health challenges and found strength in their journey."
         items={patientStories}
         buttonText="Explore More Stories"
+        buttonLink="/patient-stories"
         buttonClass="bg-purple-600 text-white hover:bg-purple-500"
-        titleColor="text-purple-600" // Ensuring title color matches the purple theme
+        titleColor="text-purple-600"
       />
     </div>
   );
 }
 
 const Section = memo(
-  ({ title, description, items, buttonText, buttonClass, titleColor }) => (
+  ({
+    title,
+    description,
+    items,
+    buttonText,
+    buttonLink,
+    buttonClass,
+    titleColor,
+  }) => (
     <motion.div
       className="py-16 px-6"
       initial={{ opacity: 0 }}
@@ -119,8 +130,7 @@ const Section = memo(
       <h2 className={`text-3xl font-bold text-center mb-4 ${titleColor}`}>
         {title}
       </h2>
-      <p className="text-center text-gray-600 mb-6">{description}</p>{" "}
-      {/* Reduced bottom margin for consistency */}
+      <p className="text-center text-gray-600 mb-6">{description}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item) => (
           <EducationCard
@@ -135,11 +145,11 @@ const Section = memo(
         ))}
       </div>
       <div className="text-center mt-8">
-        {" "}
-        {/* Reduced top margin for better spacing */}
-        <button className={`${buttonClass} px-6 py-2 rounded-lg shadow-md`}>
-          {buttonText}
-        </button>
+        <Link to={buttonLink}>
+          <button className={`${buttonClass} px-6 py-2 rounded-lg shadow-md`}>
+            {buttonText}
+          </button>
+        </Link>
       </div>
     </motion.div>
   )
