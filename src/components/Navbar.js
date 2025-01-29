@@ -7,19 +7,21 @@ import { doc, getDoc } from "firebase/firestore";
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [loading, setLoading] = useState(true); // Track loading state
   const auth = getAuth();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Check if the user exists in Firestore (this assumes you use the patient's email as the doc ID)
+        // Check if the user exists in Firestore only after they are logged in
         const userDocRef = doc(db, "patients", currentUser.email);
         const docSnap = await getDoc(userDocRef);
-        setIsRegistered(docSnap.exists());
+        setIsRegistered(docSnap.exists()); // Update isRegistered after Firestore check
       } else {
-        setIsRegistered(false); // Not logged in
+        setIsRegistered(false); // Reset if user is not logged in
       }
+      setLoading(false); // Set loading to false once auth state has been checked
     });
 
     return () => unsubscribe(); // Cleanup on component unmount
@@ -34,6 +36,18 @@ const Navbar = () => {
       console.error("Error signing out:", error);
     }
   };
+
+  if (loading) {
+    return (
+      <nav className="flex justify-between items-center bg-purple-800 text-white py-4 px-6 sticky top-0 z-50">
+        <div className="text-2xl font-bold cursor-pointer hover:text-orange-500">
+          <Link to="/">TheraMind</Link>
+        </div>
+        {/* Show loading spinner or placeholder while checking auth state */}
+        <div className="text-white">Loading...</div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="flex justify-between items-center bg-purple-800 text-white py-4 px-6 sticky top-0 z-50">
@@ -57,8 +71,16 @@ const Navbar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/#contact" className="hover:text-orange-500">
-            Contact
+          <Link
+            to="/therachat"
+            className="text-white hover:text-orange-400 transition-colors duration-300"
+          >
+            TheraChat
+          </Link>
+        </li>
+        <li>
+          <Link to="/EducationMain" className="hover:text-orange-500">
+            Education
           </Link>
         </li>
 
