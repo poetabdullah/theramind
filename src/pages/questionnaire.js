@@ -107,6 +107,11 @@ const Questionnaire = () => {
       return;
     }
 
+    if (currentQuestion === 4 && responses.suicidalThoughts === "No") {
+      setCurrentQuestion(6);
+      return;
+    }
+
     if (currentQuestion < 5 + questions.length) {
       setCurrentQuestion((prev) => prev + 1);
     }
@@ -346,6 +351,15 @@ const Questionnaire = () => {
               </p>
             </div>
           )}
+
+          <div className="flex justify-between mt-6">
+            <button
+              className="bg-blue-500 p-2 rounded text-white hover:bg-blue-600"
+              onClick={handleNext}
+            >
+              Next
+            </button>
+          </div>
 
           {/* Next & Back Buttons */}
           <div className="flex justify-between mt-6">
