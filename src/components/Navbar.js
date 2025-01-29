@@ -71,10 +71,7 @@ const Navbar = () => {
           </Link>
         </li>
         <li>
-          <Link
-            to="/therachat"
-            className="text-white hover:text-orange-400 transition-colors duration-300"
-          >
+          <Link to="/TheraChat" className="hover:text-orange-500">
             TheraChat
           </Link>
         </li>
