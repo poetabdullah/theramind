@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import './questionnaire.css';
+import "./questionnaire.css";
 import { motion } from "framer-motion";
 import Footer from "../components/Footer";
 
@@ -25,12 +25,13 @@ const Questionnaire = () => {
 
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [diagnosis, setDiagnosis] = useState("");
+  const [selectedOptions, setSelectedOptions] = useState({});
 
   const questions = [
     {
       text: "Which of the following situations are you facing these days?",
       options: [
-        { label: "Overwhelmed/irritated by minor issues & daily life activities ", consition: "Stress" },
+        { label: "Overwhelmed/irritated by minor issues & daily life activities ", condition: "Stress" },
         { label: "Constantly feeling anxious and nervous about things and situations without a clear reason", condition: "Anxiety" },
         { label: "Feeling sad, depressed & lonely all the time", condition: "Depression" },
         { label: "Experienced a traumatic incident in life & having recurring thoughts about it", condition: "Trauma" },
@@ -77,11 +78,13 @@ const Questionnaire = () => {
     }));
   };
 
-  const handleOptionSelect = (condition) => {
+  const handleOptionSelect = (questionIndex, condition) => {
+    setSelectedOptions((prev) => ({
+      ...prev, [questionIndex]: condition
+    }));
     setConditionScores((prevScores) => ({
       ...prevScores,
       [condition]: prevScores[condition] + 1,
-
     }));
   };
 
@@ -104,7 +107,7 @@ const Questionnaire = () => {
       return;
     }
 
-    if (currentQuestion < questions.length) {
+    if (currentQuestion < 5 + questions.length) {
       setCurrentQuestion((prev) => prev + 1);
     }
     else {
@@ -113,8 +116,6 @@ const Questionnaire = () => {
       setDiagnosis(maxCondition);
     }
 
-    // Default behavior for other cases
-    setCurrentQuestion((prev) => prev + 1);
   };
 
   const handlePrevious = () => {
@@ -208,107 +209,143 @@ const Questionnaire = () => {
           )}
 
           {/* Question 2 */}
-          {currentQuestion === 2 && (
-            <div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-4">
-                Question 2: Are you having any of the following symptoms lately; shortness of breath,
-                constant worry, fatigue/prolonged muscle tension, insomnia, being easily startled, or
-                spending time on compulsive behaviors?
-              </h3>
-              <div className="flex flex-col space-y-3">
-                <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
-                  <input
-                    type="radio"
-                    name="symptoms"
-                    value="Yes"
-                    checked={responses.symptoms === "Yes"}
-                    onChange={changeEvent}
-                    className="form-radio h-5 w-5 text-blue-600"
-                  />Yes
-                </label>
+          {
+            currentQuestion === 2 && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-4">
+                  Question 2: Are you having any of the following symptoms lately; shortness of breath,
+                  constant worry, fatigue/prolonged muscle tension, insomnia, being easily startled, or
+                  spending time on compulsive behaviors?
+                </h3>
+                <div className="flex flex-col space-y-3">
+                  <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
+                    <input
+                      type="radio"
+                      name="symptoms"
+                      value="Yes"
+                      checked={responses.symptoms === "Yes"}
+                      onChange={changeEvent}
+                      className="form-radio h-5 w-5 text-blue-600"
+                    />Yes
+                  </label>
+                </div>
+                <div className="flex flex-col space-y-3 mt-3">
+                  <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
+                    <input
+                      type="radio"
+                      name="symptoms"
+                      value="No"
+                      checked={responses.symptoms === "No"}
+                      onChange={changeEvent}
+                      className="form-radio h-5 w-5 text-blue-600"
+                    />No
+                  </label>
+                </div>
               </div>
-              <div className="flex flex-col space-y-3 mt-3">
-                <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
-                  <input
-                    type="radio"
-                    name="symptoms"
-                    value="No"
-                    checked={responses.symptoms === "No"}
-                    onChange={changeEvent}
-                    className="form-radio h-5 w-5 text-blue-600"
-                  />No
-                </label>
-              </div>
-            </div>
-          )}
+            )
+          }
 
           {/* Question 3 */}
-          {currentQuestion === 3 && (
-            <div>
-              <h3>Thank you for taking TheraMind's diagnostic questionnaire!</h3>
-              <p>Based on the response you have submitted, you are not diagnosed with any of the following mental health conditions.</p>
-            </div>
-          )}
+          {
+            currentQuestion === 3 && (
+              <div>
+                <h3>Thank you for taking TheraMind's diagnostic questionnaire!</h3>
+                <p>Based on the response you have submitted, you are not diagnosed with any of the following mental health conditions.</p>
+              </div >
+            )
+          }
           {/* Question 4 */}
-          {currentQuestion === 4 && shouldShowQuestion4 && (
-            <div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-4">Have you had any thoughts of ending your life?</h3>
-              <div className="flex flex-col space-y-3">
-                <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
-                  <input
-                    type="radio"
-                    name="suicidalThoughts"
-                    value="Yes"
-                    checked={responses.suicidalThoughts === "Yes"}
-                    onChange={changeEvent}
-                    className="form-radio h-5 w-5 text-blue-600"
-                  />Yes
-                </label>
+          {
+            currentQuestion === 4 && shouldShowQuestion4 && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-4">Have you had any thoughts of ending your life?</h3>
+                <div className="flex flex-col space-y-3">
+                  <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
+                    <input
+                      type="radio"
+                      name="suicidalThoughts"
+                      value="Yes"
+                      checked={responses.suicidalThoughts === "Yes"}
+                      onChange={changeEvent}
+                      className="form-radio h-5 w-5 text-blue-600"
+                    />Yes
+                  </label>
+                </div>
+                <div className="flex flex-col space-y-3 mt-3">
+                  <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
+                    <input
+                      type="radio"
+                      name="suicidalThoughts"
+                      value="No"
+                      checked={responses.suicidalThoughts === "No"}
+                      onChange={changeEvent}
+                      className="form-radio h-5 w-5 text-blue-600"
+                    />No
+                  </label>
+                </div>
               </div>
-              <div className="flex flex-col space-y-3 mt-3">
-                <label className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200">
-                  <input
-                    type="radio"
-                    name="suicidalThoughts"
-                    value="No"
-                    checked={responses.suicidalThoughts === "No"}
-                    onChange={changeEvent}
-                    className="form-radio h-5 w-5 text-blue-600"
-                  />No
-                </label>
-              </div>
-            </div>
-          )}
+            )
+          }
 
           {/* Question 5 */}
-          {currentQuestion === 5 && responses.suicidalThoughts === "Yes" && (
-            <div>
-              <h2 className="text-red-800">Suicidal Thoughts!</h2>
-              <h3>
-                You have been diagnosed with Suicidal Thoughts, you need to
-                contact an emergency hotline, your life could be in danger and we
-                care for you, so here are some of the emergency contacts you can
-                get help from.
-              </h3>
-              <p>
-                <h3>Emergency Hotlines:</h3>
-                Umang: (92) 0311 7786264 <br></br>
-                Rozan: (92) 0304 111 1741 <br></br>
-                Welfare Bureau: 1121
-              </p>
-              <p>
-                It is important to talk to someone right away. If you are in
-                immediate danger, please dial 911.
-              </p>
-              <p>
-                If you need someone to talk to, consider reaching out to a
-                helpline, counselor, or a trusted individual.
-              </p>
-              <p>Your safety and well-being are a priority.</p>
-            </div>
+          {
+            currentQuestion === 5 && responses.suicidalThoughts === "Yes" && (
+              <div>
+                <h2 className="text-red-800">Suicidal Thoughts!</h2>
+                <h3>
+                  You have been diagnosed with Suicidal Thoughts, you need to
+                  contact an emergency hotline, your life could be in danger and
+                  we care for you, so here are some of the emergency contacts you
+                  can get help from.
+                </h3>
+                <p>
+                  <h3>Emergency Hotlines:</h3>
+                  Umang: (92) 0311 7786264 <br></br>
+                  Rozan: (92) 0304 111 1741 <br></br>
+                  Welfare Bureau: 1121
+                </p>
+                <p>
+                  It is important to talk to someone right away. If you are in
+                  immediate danger, please dial 911.
+                </p>
+                <p>
+                  If you need someone to talk to, consider reaching out to a
+                  helpline, counselor, or a trusted individual.
+                </p>
+                <p>Your safety and well-being are a priority.</p>
+              </div>
 
-          )}
+            )
+          }
           {/* Question 6 */}
+          {currentQuestion > 5 && currentQuestion - 6 < questions.length && (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-4">
+                Question {currentQuestion} : {questions[currentQuestion - 6].text}
+              </h3>
+              <div className="grid grid-cols-1 gap-4">
+                {questions[currentQuestion - 6].options.map((option, index) => (
+                  <label key={index} className="bg-blue-100 p-2 rounded-full hover:bg-green-200 text-left">
+                    <input type="radio" name={`question-${currentQuestion - 6}`} value={option.condition}
+                      checked={selectedOptions[currentQuestion - 6] === option.condition}
+                      onChange={() => handleOptionSelect(currentQuestion - 6, option.condition)}
+                      className="form-radio h-5 w-5 text-blue-600" />
+                    <span>{option.label}</span>
+                  </label>
+
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentQuestion > 5 + questions.length && (
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-700 mb-4">Diagnosis</h3>
+              <p className="text-lg text-gray-600">
+                Based on your responses, you may be experiencing symptoms of: <b>{diagnosis}</b>
+              </p>
+            </div>
+          )}
 
           {/* Next & Back Buttons */}
           <div className="flex justify-between mt-6">
@@ -325,10 +362,10 @@ const Questionnaire = () => {
               Next
             </button>
           </div>
-        </motion.div>
-      </main>
+        </motion.div >
+      </main >
       <Footer />
-    </div>
+    </div >
   );
 };
 
