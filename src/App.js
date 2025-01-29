@@ -12,6 +12,7 @@ import EducationMainPage from "./pages/EducationMainPage";
 import ArticlesListPage from "./pages/ArticlesListPage";
 import PatientStoriesListPage from "./pages/PatientStoriesListPage";
 import EducationDetailView from "./pages/EducationDetailView";
+import EducationWritePage from "./pages/EducationWritePage";
 
 const App = () => (
   <div>
@@ -27,6 +28,7 @@ const App = () => (
       <Route path="/articles" element={<ArticlesListPage />} />
       <Route path="/patient-stories" element={<PatientStoriesListPage />} />
       <Route path="/view-education" element={<EducationDetailView />} />
+      <Route path="/write-education" element={<EducationWritePage />} />
     </Routes>
   </div>
 );
