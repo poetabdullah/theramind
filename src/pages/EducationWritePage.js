@@ -1,27 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { db, auth } from "../firebaseConfig"; // Firestore setup
+import { collection, doc, setDoc, getDoc, addDoc } from "firebase/firestore";
 
 const EducationWritePage = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState(null); // "doctor" or "patient"
 
-  // Predefined tags
-  const availableTags = [
-    "Mental Health",
-    "Anxiety",
-    "Stress",
-    "Depression",
-    "Wellness",
-    "Self-Care",
-    "Therapy",
-    "Mindfulness",
-  ];
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const loggedInUserDoc = await getDoc(
+        doc(db, "logged_in_users", user.uid)
+      );
+      if (loggedInUserDoc.exists()) {
+        const userData = loggedInUserDoc.data();
+        if (userData.role === "doctor") {
+          setUserRole("doctor");
+        } else {
+          setUserRole("patient");
+        }
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   const handleTitleChange = (e) => setTitle(e.target.value);
-  const handleContentChange = (e) => setContent(e.target.value);
+
+  const handleContentChange = (e) => {
+    const text = e.target.value;
+    const paragraphs = text.split(/\n+/).filter((para) => para.trim() !== ""); // Split on new lines
+    setContent(paragraphs);
+  };
 
   const handleTagToggle = (tag) => {
     if (selectedTags.includes(tag)) {
@@ -31,58 +48,83 @@ const EducationWritePage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission (e.g., to a backend or Firestore)
-    setTimeout(() => {
-      console.log({ title, content, selectedTags });
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("User not logged in");
+
+      const articleData = {
+        title,
+        content, // Stored as an array of paragraphs
+        selectedTags,
+        author_name: user.displayName || "Anonymous",
+        user_id: user.uid,
+        date_time: new Date(),
+        last_updated: new Date(),
+      };
+
+      const collectionName =
+        userRole === "doctor" ? "articles" : "patient_stories";
+      await addDoc(collection(db, collectionName), articleData);
+
+      navigate(`/${collectionName}`); // Redirect to relevant list page
+    } catch (error) {
+      console.error("Error submitting:", error);
+    } finally {
       setIsSubmitting(false);
-      navigate("/articles"); // Redirect after submission
-    }, 1500);
+    }
   };
 
   const handleCancel = () => {
-    navigate("/articles"); // Redirect to articles list
+    navigate("/articles");
   };
 
   return (
     <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen py-12 px-4">
-      {/* Full-width simple layout */}
       <div className="max-w-3xl mx-auto">
         <h1 className="text-5xl font-bold text-purple-900 mb-8">
-          Write Your Educational Content
+          {userRole === "doctor"
+            ? "Write an Article"
+            : "Write Your Patient Story"}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title input */}
           <input
             type="text"
             value={title}
             onChange={handleTitleChange}
-            placeholder="Article Title"
+            placeholder="Title"
             className="w-full text-4xl font-semibold text-purple-900 bg-transparent border-b-2 border-gray-400 outline-none focus:ring-0 focus:border-purple-500 placeholder-gray-400"
             required
           />
 
-          {/* Content area */}
           <textarea
-            value={content}
+            value={content.join("\n")} // Join paragraphs for textarea
             onChange={handleContentChange}
-            placeholder="Write your article content here..."
+            placeholder="Write your content here..."
             rows="15"
             className="w-full text-lg text-gray-800 bg-transparent border-b-2 border-gray-400 outline-none focus:ring-0 focus:border-purple-500 placeholder-gray-400"
             required
           />
 
-          {/* Tag selection */}
           <div className="space-y-4">
             <div className="text-lg font-medium text-purple-900">
               Select Tags
             </div>
             <div className="flex flex-wrap gap-3">
-              {availableTags.map((tag) => (
+              {[
+                "Mental Health",
+                "Anxiety",
+                "Stress",
+                "Depression",
+                "Wellness",
+                "Self-Care",
+                "Therapy",
+                "Mindfulness",
+              ].map((tag) => (
                 <button
                   key={tag}
                   type="button"
@@ -105,7 +147,6 @@ const EducationWritePage = () => {
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-4">
             <button
               type="button"
