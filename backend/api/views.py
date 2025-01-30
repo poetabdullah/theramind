@@ -7,11 +7,13 @@ from .serializers import ArticleSerializer, PatientStorySerializer
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from ..utils.firestore import add_document
 from datetime import datetime
 from firebase_admin import firestore
-from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from utils.firestore import add_document
 
 
 db = firestore.client()  # Firestore database connection
@@ -97,3 +99,205 @@ def submit_content(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+class CustomPagination(PageNumberPagination):
+    page_size = 10  # Show 10 items per page
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+
+@api_view(["GET"])
+def get_articles(request):
+    """Retrieve paginated articles, with optional filtering by tag."""
+    tag = request.GET.get("tag", None)
+
+    articles_ref = db.collection("articles").order_by(
+        "date_time", direction=firestore.Query.DESCENDING
+    )
+
+    if tag:
+        articles_ref = articles_ref.where(
+            "tags", "array_contains", tag
+        )  # Filter by tag
+
+    docs = articles_ref.stream()
+
+    articles = []
+    for doc in docs:
+        article_data = doc.to_dict()
+        article_data["id"] = doc.id
+        articles.append(article_data)
+    print("Articles:", articles)
+
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(articles, request)
+    return paginator.get_paginated_response(result_page)
+
+
+@api_view(["GET"])
+def get_patient_stories(request):
+    """Retrieve paginated patient stories, with optional filtering by tag."""
+    tag = request.GET.get("tag", None)
+
+    stories_ref = db.collection("patient_stories").order_by(
+        "date_time", direction=firestore.Query.DESCENDING
+    )
+
+    if tag:
+        stories_ref = stories_ref.where("tags", "array_contains", tag)  # Filter by tag
+
+    docs = stories_ref.stream()
+
+    stories = []
+    for doc in docs:
+        story_data = doc.to_dict()
+        story_data["id"] = doc.id
+        stories.append(story_data)
+    print("Patient Stories:", stories)
+
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(stories, request)
+    return paginator.get_paginated_response(result_page)
+
+
+@api_view(["GET"])
+def get_article(request, article_id):
+    """Retrieve a single article by ID."""
+    article_ref = db.collection("articles").document(article_id)
+    article = article_ref.get()
+
+    if article.exists:
+        return Response(article.to_dict())
+    return Response({"error": "Article not found"}, status=404)
+
+
+@api_view(["GET"])
+def get_patient_story(request, story_id):
+    """Retrieve a single patient story by ID."""
+    story_ref = db.collection("patient_stories").document(story_id)
+    story = story_ref.get()
+
+    if story.exists:
+        return Response(story.to_dict())
+    return Response({"error": "Story not found"}, status=404)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_article(request):
+    """Create a new article (Authenticated users only)."""
+    data = request.data
+    new_article_ref = db.collection("articles").document()
+
+    article_data = {
+        "title": data.get("title"),
+        "content": data.get("content"),
+        "author_name": request.user.username,  # Get from authenticated user
+        "date_time": firestore.SERVER_TIMESTAMP,
+        "tags": data.get("tags", []),
+    }
+
+    new_article_ref.set(article_data)
+    return Response(
+        {"message": "Article created successfully", "id": new_article_ref.id}
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_patient_story(request):
+    """Create a new patient story (Authenticated users only)."""
+    data = request.data
+    new_story_ref = db.collection("patient_stories").document()
+
+    story_data = {
+        "title": data.get("title"),
+        "content": data.get("content"),
+        "author_name": request.user.username,  # Get from authenticated user
+        "date_time": firestore.SERVER_TIMESTAMP,
+        "tags": data.get("tags", []),
+    }
+
+    new_story_ref.set(story_data)
+    return Response({"message": "Story created successfully", "id": new_story_ref.id})
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_article(request, article_id):
+    """Update an article (only by the author)."""
+    article_ref = db.collection("articles").document(article_id)
+    article = article_ref.get()
+
+    if not article.exists:
+        return Response({"error": "Article not found"}, status=404)
+
+    article_data = article.to_dict()
+
+    if article_data["author_name"] != request.user.username:
+        return Response({"error": "You are not the author of this article"}, status=403)
+
+    updated_data = request.data
+    article_ref.update(updated_data)
+
+    return Response({"message": "Article updated successfully"})
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_patient_story(request, story_id):
+    """Update a patient story (only by the author)."""
+    story_ref = db.collection("patient_stories").document(story_id)
+    story = story_ref.get()
+
+    if not story.exists:
+        return Response({"error": "Story not found"}, status=404)
+
+    story_data = story.to_dict()
+
+    if story_data["author_name"] != request.user.username:
+        return Response({"error": "You are not the author of this story"}, status=403)
+
+    updated_data = request.data
+    story_ref.update(updated_data)
+
+    return Response({"message": "Story updated successfully"})
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_article(request, article_id):
+    """Delete an article (only by the author)."""
+    article_ref = db.collection("articles").document(article_id)
+    article = article_ref.get()
+
+    if not article.exists:
+        return Response({"error": "Article not found"}, status=404)
+
+    article_data = article.to_dict()
+
+    if article_data["author_name"] != request.user.username:
+        return Response({"error": "You are not the author of this article"}, status=403)
+
+    article_ref.delete()
+    return Response({"message": "Article deleted successfully"})
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_patient_story(request, story_id):
+    """Delete a patient story (only by the author)."""
+    story_ref = db.collection("patient_stories").document(story_id)
+    story = story_ref.get()
+
+    if not story.exists:
+        return Response({"error": "Story not found"}, status=404)
+
+    story_data = story.to_dict()
+
+    if story_data["author_name"] != request.user.username:
+        return Response({"error": "You are not the author of this story"}, status=403)
+
+    story_ref.delete()
+    return Response({"message": "Story deleted successfully"})
