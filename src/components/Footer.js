@@ -93,7 +93,7 @@ const Footer = () => {
           <div className="flex items-center gap-6">
             {/* X Logo */}
             <a
-              href="#"
+              href="https://twitter.com/AbdulaImran"
               className="text-gray-300 hover:text-orange-400"
               aria-label="X"
             >
@@ -110,7 +110,7 @@ const Footer = () => {
             </a>
             {/* Instagram Logo */}
             <a
-              href="#"
+              href="http://instagram.com/poet.abdullah/"
               className="text-gray-300 hover:text-orange-400"
               aria-label="Instagram"
             >
@@ -128,7 +128,7 @@ const Footer = () => {
 
             {/* Facebook Logo */}
             <a
-              href="#"
+              href="https://www.facebook.com/abdullahimranarshad/"
               className="text-gray-300 hover:text-orange-400"
               aria-label="Facebook"
             >
