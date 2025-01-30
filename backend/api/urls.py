@@ -1,7 +1,12 @@
+# backend/api/urls.py
 from django.urls import path
-from .views import create_user, get_user
+from .views import ArticleDetailView, PatientStoryDetailView
 
 urlpatterns = [
-    # path("create_user/", create_user, name="create_user"),
-    # path("get_user/<str:user_id>/", get_user, name="get_user"),
+    path("article/<int:pk>/", ArticleDetailView.as_view(), name="article-detail"),
+    path(
+        "patient-story/<int:pk>/",
+        PatientStoryDetailView.as_view(),
+        name="patient-story-detail",
+    ),
 ]
