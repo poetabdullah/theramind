@@ -27,7 +27,10 @@ const App = () => (
       <Route path="/EducationMain" element={<EducationMainPage />} />
       <Route path="/articles" element={<ArticlesListPage />} />
       <Route path="/patient-stories" element={<PatientStoriesListPage />} />
-      <Route path="/view-education" element={<EducationDetailView />} />
+      <Route
+        path="/view-education/:type/:id"
+        element={<EducationDetailView />}
+      />
       <Route path="/write-education" element={<EducationWritePage />} />
     </Routes>
   </div>
