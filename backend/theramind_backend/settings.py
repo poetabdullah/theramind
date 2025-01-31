@@ -67,6 +67,10 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # Added
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Add your frontend origin
+]
+
 ROOT_URLCONF = "theramind_backend.urls"
 
 TEMPLATES = [
@@ -92,7 +96,11 @@ CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development (added)
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {}  # No traditional database settings since we are using Firestore
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.dummy"  # Dummy engine since Firestore is NoSQL
+    }
+}
 
 # Add logging to track Firebase operations for debugging purposes
 LOGGING = {
