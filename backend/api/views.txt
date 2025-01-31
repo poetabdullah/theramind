@@ -110,30 +110,31 @@ class CustomPagination(PageNumberPagination):
 @api_view(["GET"])
 def get_articles(request):
     """Retrieve paginated articles, with optional filtering by tag."""
-    print(f"Received request: {request.GET}")
     tag = request.GET.get("tag", None)
-    page = int(request.GET.get("page", 1))
-    page_size = int(request.GET.get("page_size", 10))
 
     articles_ref = db.collection("articles").order_by(
         "date_time", direction=firestore.Query.DESCENDING
     )
 
     if tag:
-        articles_ref = articles_ref.where("tags", "array_contains", tag)
+        articles_ref = articles_ref.where("selectedTags", "array_contains", tag)
 
     docs = articles_ref.stream()
-    articles = [doc.to_dict() | {"id": doc.id} for doc in docs]
+    articles = []
 
-    total_pages = (len(articles) + page_size - 1) // page_size  # Manual pagination
-    start_index = (page - 1) * page_size
-    end_index = start_index + page_size
+    for doc in docs:
+        article_data = doc.to_dict()
+        article_data["id"] = doc.id
+        articles.append(article_data)
+
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(articles, request)
 
     return Response(
         {
-            "results": articles[start_index:end_index],
-            "total_pages": total_pages,
-            "current_page": page,
+            "results": result_page,
+            "total_pages": paginator.page.paginator.num_pages,
+            "current_page": paginator.page.number,
         }
     )
 
@@ -141,30 +142,31 @@ def get_articles(request):
 @api_view(["GET"])
 def get_patient_stories(request):
     """Retrieve paginated patient stories, with optional filtering by tag."""
-    print(f"Received request: {request.GET}")
     tag = request.GET.get("tag", None)
-    page = int(request.GET.get("page", 1))
-    page_size = int(request.GET.get("page_size", 10))
 
     stories_ref = db.collection("patient_stories").order_by(
         "date_time", direction=firestore.Query.DESCENDING
     )
 
     if tag:
-        stories_ref = stories_ref.where("tags", "array_contains", tag)
+        stories_ref = stories_ref.where("selectedTags", "array_contains", tag)
 
     docs = stories_ref.stream()
-    stories = [doc.to_dict() | {"id": doc.id} for doc in docs]
+    stories = []
 
-    total_pages = (len(stories) + page_size - 1) // page_size  # Manual pagination
-    start_index = (page - 1) * page_size
-    end_index = start_index + page_size
+    for doc in docs:
+        story_data = doc.to_dict()
+        story_data["id"] = doc.id
+        stories.append(story_data)
+
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(stories, request)
 
     return Response(
         {
-            "results": stories[start_index:end_index],
-            "total_pages": total_pages,
-            "current_page": page,
+            "results": result_page,
+            "total_pages": paginator.page.paginator.num_pages,
+            "current_page": paginator.page.number,
         }
     )
 
@@ -187,9 +189,7 @@ def get_patient_story(request, story_id):
     story = story_ref.get()
 
     if story.exists:
-        return Response(
-            story.to_dict()
-        )  # Ensure this is returning a dictionary in JSON format
+        return Response(story.to_dict())
     return Response({"error": "Story not found"}, status=404)
 
 
@@ -204,7 +204,6 @@ def create_article(request):
         "title": data.get("title"),
         "content": data.get("content"),
         "author_name": request.user.username,  # Get from authenticated user
-        "author_email": request.user.email,  # Add the email field
         "date_time": firestore.SERVER_TIMESTAMP,
         "tags": data.get("tags", []),
     }
@@ -226,7 +225,6 @@ def create_patient_story(request):
         "title": data.get("title"),
         "content": data.get("content"),
         "author_name": request.user.username,  # Get from authenticated user
-        "author_email": request.user.email,  # Add the email field
         "date_time": firestore.SERVER_TIMESTAMP,
         "tags": data.get("tags", []),
     }
@@ -313,3 +311,50 @@ def delete_patient_story(request, story_id):
 
     story_ref.delete()
     return Response({"message": "Story deleted successfully"})
+
+
+
+
+
+urls.py
+
+# urls.py
+from django.urls import path
+from .views import (
+    get_articles,
+    get_patient_stories,
+    get_article,
+    get_patient_story,
+    create_article,
+    create_patient_story,
+    update_article,
+    update_patient_story,
+    delete_article,
+    delete_patient_story,
+)
+
+urlpatterns = [
+    # List views with pagination and optional tag filtering
+    path("articles/", get_articles, name="get-articles"),
+    path("patient-stories/", get_patient_stories, name="get-patient-stories"),
+    # Detail views
+    path("articles/<str:article_id>/", get_article, name="get-article"),
+    path("stories/<str:story_id>/", get_patient_story, name="get-patient-story"),
+    # Create new content (authenticated users only)
+    path("articles/create/", create_article, name="create-article"),
+    path("stories/create/", create_patient_story, name="create-patient-story"),
+    # Update content (author only)
+    path("articles/<str:article_id>/update/", update_article, name="update-article"),
+    path(
+        "stories/<str:story_id>/update/",
+        update_patient_story,
+        name="update-patient-story",
+    ),
+    # Delete content (author only)
+    path("articles/<str:article_id>/delete/", delete_article, name="delete-article"),
+    path(
+        "stories/<str:story_id>/delete/",
+        delete_patient_story,
+        name="delete-patient-story",
+    ),
+]

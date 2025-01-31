@@ -19,18 +19,16 @@ const App = () => (
     <Navbar />
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/Meditation" element={<Meditation />} />
+      <Route path="/meditation" element={<Meditation />} />
       <Route path="/questionnaire" element={<Questionnaire />} />
       <Route path="/signup" element={<PatientSignUp />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/therachat" element={<TheraChat />} />
-      <Route path="/EducationMain" element={<EducationMainPage />} />
+      <Route path="/education-main" element={<EducationMainPage />} />
       <Route path="/articles" element={<ArticlesListPage />} />
       <Route path="/patient-stories" element={<PatientStoriesListPage />} />
-      <Route
-        path="/view-education/:type/:id"
-        element={<EducationDetailView />}
-      />
+      <Route path="/stories/:id" component={EducationDetailView} />
+      <Route path="/articles/:id" component={EducationDetailView} />
       <Route path="/write-education" element={<EducationWritePage />} />
     </Routes>
   </div>
