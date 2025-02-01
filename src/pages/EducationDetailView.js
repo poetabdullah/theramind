@@ -86,7 +86,7 @@ const EducationDetailView = () => {
         )}
       </div>
 
-      {/* Conditionally render Edit and Delete buttons if logged-in user is the author */}
+      {/* Conditionally render Edit and Delete buttons if logged-in user is the author, so that only the author has authority to delete or edit the content */}
       {loggedInUser?.email === data.author_email && (
         <div className="mt-6 flex space-x-4">
           <button
