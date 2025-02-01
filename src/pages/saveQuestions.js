@@ -1,4 +1,4 @@
-import { db } from "./firebase";
+import { db } from "../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 
 const saveQuestionsToFirestore = async () => {
@@ -39,12 +39,12 @@ const saveQuestionsToFirestore = async () => {
         { name: "suicidalthoughts", label: "No" },
       ],
       category: "suicidalthoughtsornot",
-    }
+    },
   ];
   for (const question of questions) {
     await setDoc(doc(db, "questions", question.id), question);
   }
   console.log("Questions saved separately in Firestore!");
-}
+};
 
 saveQuestionsToFirestore();
