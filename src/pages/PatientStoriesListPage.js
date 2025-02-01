@@ -57,7 +57,7 @@ const PatientStoriesListPage = () => {
                   content={story.content?.[0] || "No content available"} // Ensure content is handled safely
                   author={story.author_name}
                   date={new Date(story.date_time).toLocaleDateString()}
-                  tags={story.tags || []} // Ensure tags is always an array
+                  tags={story.selectedTags || []} // Ensure tags is always an array
                   link={`/stories/${story.id}`}
                 />
               ))}

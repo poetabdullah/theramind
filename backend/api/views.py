@@ -8,15 +8,29 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
+
 from firebase_admin import firestore
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+
 from utils.firestore import add_document
 
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import credentials, initialize_app
+from google.oauth2 import service_account
+from django.views.decorators.csrf import csrf_exempt
 
-db = firestore.client()  # Firestore database connection
+
+if not firebase_admin._apps:
+    credentials = service_account.Credentials.from_service_account_file(
+        "C:/Users/user/VSCodeJSProjects/React/theramind/backend/firebase_admin_credentials.json"
+    )
+    firebase_admin.initialize_app(credentials)
+
+db = firestore.client()
 
 
 class ArticleDetailView(APIView):
@@ -181,30 +195,35 @@ def get_article(request, article_id):
 
 
 @api_view(["GET"])
+@csrf_exempt
 def get_patient_story(request, story_id):
     """Retrieve a single patient story by ID."""
-    story_ref = db.collection("patient_stories").document(story_id)
-    story = story_ref.get()
+    try:
+        story_ref = db.collection("patient_stories").document(story_id)
+        story = story_ref.get()
 
-    if story.exists:
-        return Response(
-            story.to_dict()
-        )  # Ensure this is returning a dictionary in JSON format
-    return Response({"error": "Story not found"}, status=404)
+        if story.exists:
+            data = story.to_dict()
+            response = JsonResponse(data)
+            response["Access-Control-Allow-Origin"] = "http://localhost:3000"
+            response["Access-Control-Allow-Credentials"] = "true"
+            return response
+        return JsonResponse({"error": "Story not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def create_article(request):
-    """Create a new article (Authenticated users only)."""
+    """Create a new article."""
     data = request.data
     new_article_ref = db.collection("articles").document()
 
     article_data = {
         "title": data.get("title"),
         "content": data.get("content"),
-        "author_name": request.user.username,  # Get from authenticated user
-        "author_email": request.user.email,  # Add the email field
+        "author_name": data.get("author_name"),
+        "author_email": data.get("author_email"),
         "date_time": firestore.SERVER_TIMESTAMP,
         "tags": data.get("tags", []),
     }
@@ -216,17 +235,16 @@ def create_article(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def create_patient_story(request):
-    """Create a new patient story (Authenticated users only)."""
+    """Create a new patient story."""
     data = request.data
     new_story_ref = db.collection("patient_stories").document()
 
     story_data = {
         "title": data.get("title"),
         "content": data.get("content"),
-        "author_name": request.user.username,  # Get from authenticated user
-        "author_email": request.user.email,  # Add the email field
+        "author_name": data.get("author_name"),
+        "author_email": data.get("author_email"),
         "date_time": firestore.SERVER_TIMESTAMP,
         "tags": data.get("tags", []),
     }
@@ -236,19 +254,13 @@ def create_patient_story(request):
 
 
 @api_view(["PUT"])
-@permission_classes([IsAuthenticated])
 def update_article(request, article_id):
-    """Update an article (only by the author)."""
+    """Update an article."""
     article_ref = db.collection("articles").document(article_id)
     article = article_ref.get()
 
     if not article.exists:
         return Response({"error": "Article not found"}, status=404)
-
-    article_data = article.to_dict()
-
-    if article_data["author_name"] != request.user.username:
-        return Response({"error": "You are not the author of this article"}, status=403)
 
     updated_data = request.data
     article_ref.update(updated_data)
@@ -257,19 +269,13 @@ def update_article(request, article_id):
 
 
 @api_view(["PUT"])
-@permission_classes([IsAuthenticated])
 def update_patient_story(request, story_id):
-    """Update a patient story (only by the author)."""
+    """Update a patient story."""
     story_ref = db.collection("patient_stories").document(story_id)
     story = story_ref.get()
 
     if not story.exists:
         return Response({"error": "Story not found"}, status=404)
-
-    story_data = story.to_dict()
-
-    if story_data["author_name"] != request.user.username:
-        return Response({"error": "You are not the author of this story"}, status=403)
 
     updated_data = request.data
     story_ref.update(updated_data)
@@ -278,38 +284,31 @@ def update_patient_story(request, story_id):
 
 
 @api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
 def delete_article(request, article_id):
-    """Delete an article (only by the author)."""
+    """Delete an article."""
     article_ref = db.collection("articles").document(article_id)
     article = article_ref.get()
 
     if not article.exists:
         return Response({"error": "Article not found"}, status=404)
 
-    article_data = article.to_dict()
-
-    if article_data["author_name"] != request.user.username:
-        return Response({"error": "You are not the author of this article"}, status=403)
-
     article_ref.delete()
     return Response({"message": "Article deleted successfully"})
 
 
 @api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
 def delete_patient_story(request, story_id):
-    """Delete a patient story (only by the author)."""
+    """Delete a patient story."""
     story_ref = db.collection("patient_stories").document(story_id)
     story = story_ref.get()
 
     if not story.exists:
         return Response({"error": "Story not found"}, status=404)
 
-    story_data = story.to_dict()
-
-    if story_data["author_name"] != request.user.username:
-        return Response({"error": "You are not the author of this story"}, status=403)
-
     story_ref.delete()
     return Response({"message": "Story deleted successfully"})
+
+
+@api_view(["GET"])
+def test_cors(request):
+    return Response({"message": "CORS is working!"})
