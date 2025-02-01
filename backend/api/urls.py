@@ -11,6 +11,9 @@ from .views import (
     update_patient_story,
     delete_article,
     delete_patient_story,
+    get_article,
+    get_patient_story,
+    test_cors,
 )
 
 urlpatterns = [
@@ -31,4 +34,15 @@ urlpatterns = [
         delete_patient_story,
         name="delete_patient_story",
     ),
+    # Corrected paths for article and story retrieval
+    path("articles/<str:article_id>/", get_article, name="get_article"),
+    path("stories/<str:story_id>/", get_patient_story, name="get_patient_story"),
+    # Corrected delete paths with the /delete/ suffix
+    path("articles/<str:article_id>/delete/", delete_article, name="delete_article"),
+    path(
+        "stories/<str:story_id>/delete/",
+        delete_patient_story,
+        name="delete_patient_story",
+    ),
+    path("test-cors/", test_cors, name="test-cors"),
 ]
