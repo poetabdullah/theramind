@@ -57,19 +57,64 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Added
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",  # Added
 ]
 
+from django.http import JsonResponse
+
+
+def add_cors_headers(get_response):
+    def middleware(request):
+        response = get_response(request)
+        response["Access-Control-Allow-Origin"] = (
+            "http://localhost:3000"  # Allow your frontend URL
+        )
+        response["Access-Control-Allow-Credentials"] = (
+            "true"  # Allow cookies and credentials
+        )
+        response["Access-Control-Allow-Methods"] = (
+            "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+        )
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        return response
+
+    return middleware
+
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Add your frontend origin
+    "http://localhost:3000",
 ]
+CORS_ALLOW_CREDENTIALS = True
+
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 
 ROOT_URLCONF = "theramind_backend.urls"
 
@@ -91,7 +136,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "theramind_backend.wsgi.application"
 
-CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development (added)
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -116,6 +160,7 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

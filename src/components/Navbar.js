@@ -105,7 +105,7 @@ const Navbar = () => {
                 TheraChat
               </Link>
               <Link
-                to="/EducationMain"
+                to="/education-main"
                 className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
                 Education
