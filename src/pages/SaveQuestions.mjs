@@ -1,4 +1,4 @@
-import { db } from "./firebase";
+import { db } from "../firebaseConfig.js";
 import { doc, setDoc } from "firebase/firestore";
 
 const saveQuestionsToFirestore = async () => {
