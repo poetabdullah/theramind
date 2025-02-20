@@ -96,6 +96,48 @@ const saveQuestionsToFirestore = async () => {
       ],
       category: "whichconditionpt4",
     },
+    //Question # 10: Specific Questionnaire - OCD: Checking OCD
+    {
+      id: "question8",
+      text: "I check things more often than necessary",
+      type: "radio",
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 },
+      ],
+      category: "checkingocdpt1",
+    },
+    //Question # 11: 
+    {
+      id: "question9",
+      text: "I repeatedly check doors, windows, drawers, etc.",
+      type: "radio",
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 },
+      ],
+      category: "checkingocdpt2",
+    },
+    //Question # 11: 
+    {
+      id: "question10",
+      text: "After turning them off, I repeatedly check the gas and water tabs and light switches.",
+      type: "radio",
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 },
+      ],
+      category: "checkingocdpt3",
+    },
   ];
   for (const question of questions) {
     await setDoc(doc(db, "questions", question.id), question);
