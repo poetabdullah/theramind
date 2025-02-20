@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PageBanner from "../components/PageBanner";
 import ListViewCard from "../components/ListViewCard";
+import Footer from "../components/Footer";
 
 const ArticlesListPage = () => {
   const [articles, setArticles] = useState([]);
@@ -91,6 +92,7 @@ const ArticlesListPage = () => {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

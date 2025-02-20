@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PageBanner from "../components/PageBanner";
 import ListViewCard from "../components/ListViewCard";
+import Footer from "../components/Footer";
 
 const PatientStoriesListPage = () => {
   const [stories, setStories] = useState([]); // Ensure it's initialized as an empty array
@@ -87,6 +88,7 @@ const PatientStoriesListPage = () => {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

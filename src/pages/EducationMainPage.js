@@ -4,6 +4,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import EducationCard from "../components/EducationCard";
 import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
 
 export default function EducationMainPage() {
   const [articles, setArticles] = useState([]);
@@ -119,6 +120,7 @@ export default function EducationMainPage() {
           type="story"
         />
       )}
+      <Footer />
     </div>
   );
 }
@@ -167,7 +169,7 @@ const Section = memo(
                 author={item.author_name}
                 date={new Date(item.date_time).toLocaleDateString()}
                 tags={Object.values(item.selectedTags || {})}
-                type={type} // ✅ Pass type to determine correct navigation
+                type={type} // Pass type to determine correct navigation
                 onClick={() =>
                   navigate(
                     `/${type === "article" ? "articles" : "stories"}/${item.id}`

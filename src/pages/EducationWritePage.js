@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../firebaseConfig"; // Firestore setup
 import { collection, doc, setDoc, getDoc, addDoc } from "firebase/firestore";
+import Footer from "../components/Footer";
 
 const EducationWritePage = () => {
   const navigate = useNavigate();
@@ -21,11 +22,7 @@ const EducationWritePage = () => {
       );
       if (loggedInUserDoc.exists()) {
         const userData = loggedInUserDoc.data();
-        if (userData.role === "doctor") {
-          setUserRole("doctor");
-        } else {
-          setUserRole("patient");
-        }
+        setUserRole(userData.role === "doctor" ? "doctor" : "patient");
       }
     };
 
@@ -35,8 +32,9 @@ const EducationWritePage = () => {
   const handleTitleChange = (e) => setTitle(e.target.value);
 
   const handleContentChange = (e) => {
-    const text = e.target.value;
-    const paragraphs = text.split(/\n+/).filter((para) => para.trim() !== ""); // Split on new lines
+    const paragraphs = e.target.value
+      .split(/\n+/)
+      .filter((para) => para.trim() !== "");
     setContent(paragraphs);
   };
 
@@ -58,7 +56,7 @@ const EducationWritePage = () => {
 
       const articleData = {
         title,
-        content, // Stored as an array of paragraphs
+        content,
         selectedTags,
         author_name: user.displayName || "Anonymous",
         user_id: user.uid,
@@ -70,7 +68,7 @@ const EducationWritePage = () => {
         userRole === "doctor" ? "articles" : "patient_stories";
       await addDoc(collection(db, collectionName), articleData);
 
-      navigate(`/${collectionName}`); // Redirect to relevant list page
+      navigate(`/${collectionName}`);
     } catch (error) {
       console.error("Error submitting:", error);
     } finally {
@@ -83,8 +81,8 @@ const EducationWritePage = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen py-12 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen flex flex-col">
+      <div className="max-w-3xl mx-auto flex-grow py-12 px-4">
         <h1 className="text-5xl font-bold text-purple-900 mb-8">
           {userRole === "doctor"
             ? "Write an Article"
@@ -102,7 +100,7 @@ const EducationWritePage = () => {
           />
 
           <textarea
-            value={content.join("\n")} // Join paragraphs for textarea
+            value={content.join("\n")}
             onChange={handleContentChange}
             placeholder="Write your content here..."
             rows="15"
@@ -169,6 +167,9 @@ const EducationWritePage = () => {
           </div>
         </form>
       </div>
+
+      {/* Footer at the bottom */}
+      <Footer />
     </div>
   );
 };

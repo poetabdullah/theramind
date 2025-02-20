@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import Footer from "../components/Footer";
 
 const EducationDetailView = () => {
   const { id } = useParams();
@@ -95,8 +96,8 @@ const EducationDetailView = () => {
   }
 
   return (
-    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen py-12 px-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen flex flex-col">
+      <div className="max-w-3xl mx-auto flex-grow py-12 px-6">
         <h1 className="text-5xl font-bold text-purple-900 leading-tight mb-6">
           {data.title}
         </h1>
@@ -147,6 +148,8 @@ const EducationDetailView = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };
