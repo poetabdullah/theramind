@@ -111,14 +111,15 @@ const EducationDetailView = () => {
 
         {data.selectedTags && (
           <div className="flex flex-wrap gap-2 mb-8">
-            {data.selectedTags.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-purple-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
+            {data.selectedTags &&
+              Object.values(data.selectedTags).map((tag, index) => (
+                <span
+                  key={index}
+                  className="bg-purple-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
           </div>
         )}
 

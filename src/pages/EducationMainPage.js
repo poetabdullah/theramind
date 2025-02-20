@@ -1,53 +1,51 @@
-import React, { memo } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { motion } from "framer-motion";
-import EducationCard from "../components/EducationCard";
+import axios from "axios";
 import { Link } from "react-router-dom";
+import EducationCard from "../components/EducationCard";
+import { useNavigate } from "react-router-dom";
 
 export default function EducationMainPage() {
-  const articles = [
-    {
-      id: 1,
-      title: "Understanding Anxiety",
-      content: "Learn about the signs, symptoms, and ways to manage anxiety...",
-      author: "Dr. Smith",
-      date: "2025-01-20",
-      tags: ["Mental Health", "Anxiety"],
-    },
-    {
-      id: 2,
-      title: "Coping with Depression",
-      content:
-        "Discover strategies to cope with depression and improve your mood...",
-      author: "Dr. Jones",
-      date: "2025-01-22",
-      tags: ["Depression", "Wellness"],
-    },
-  ];
+  const [articles, setArticles] = useState([]);
+  const [patientStories, setPatientStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const patientStories = [
-    {
-      id: 1,
-      title: "My Journey with Anxiety",
-      content:
-        "This is my story of dealing with anxiety and overcoming challenges...",
-      author: "Jane Doe",
-      date: "2025-01-18",
-      tags: ["Personal Story", "Anxiety"],
-    },
-    {
-      id: 2,
-      title: "Finding Hope",
-      content:
-        "Sharing my experience with mental health and how I found hope again...",
-      author: "John Smith",
-      date: "2025-01-21",
-      tags: ["Inspiration", "Mental Health"],
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const apiUrl =
+          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+
+        const [articlesRes, storiesRes] = await Promise.all([
+          axios.get(`${apiUrl}/get_articles/`),
+          axios.get(`${apiUrl}/get_patient_stories/`),
+        ]);
+
+        console.log("Raw Articles Response:", articlesRes.data);
+
+        // ✅ Extract articles from 'results' array
+        const articlesData = articlesRes.data.results || [];
+        const storiesData = storiesRes.data.results || [];
+
+        console.log("Extracted Articles:", articlesData);
+
+        setArticles(Array.isArray(articlesData) ? articlesData : []);
+        setPatientStories(Array.isArray(storiesData) ? storiesData : []);
+      } catch (err) {
+        console.error("API Fetch Error:", err.response?.data || err.message);
+        setError("Failed to load content. Please check the backend API.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="bg-white">
-      {/* Banner Section with Framer Motion */}
+      {/* Banner Section */}
       <motion.div
         className="bg-gradient-to-r from-purple-600 to-orange-500 text-white py-20 text-center"
         initial={{ opacity: 0 }}
@@ -86,27 +84,41 @@ export default function EducationMainPage() {
         </p>
       </motion.div>
 
+      {/* Loading and Error Handling */}
+      {loading && (
+        <p className="text-center text-gray-600">Loading content...</p>
+      )}
+      {error && <p className="text-center text-red-600">{error}</p>}
+
       {/* Articles Section */}
-      <Section
-        title="Explore Expert-Led Articles"
-        description="Read insightful articles written by mental health professionals, covering a wide range of topics such as anxiety, depression, and more."
-        items={articles}
-        buttonText="Explore More Articles"
-        buttonLink="/articles"
-        buttonClass="bg-orange-600 text-white hover:bg-orange-500"
-        titleColor="text-orange-600" // Ensuring title color matches the orange theme
-      />
+      {!loading && !error && (
+        <Section
+          title="Explore Expert-Led Articles"
+          description="Read insightful articles written by mental health professionals, covering a wide range of topics such as anxiety, depression, and more."
+          items={articles}
+          emptyMessage="No articles available yet. Stay tuned for expert insights."
+          buttonText="Explore More Articles"
+          buttonLink="/articles"
+          buttonClass="bg-orange-600 text-white hover:bg-orange-500"
+          titleColor="text-orange-600"
+          type="article"
+        />
+      )}
 
       {/* Patient Stories Section */}
-      <Section
-        title=" Explore Real-Life Patient Stories"
-        description="Discover inspiring stories from individuals who have faced mental health challenges and found strength in their journey."
-        items={patientStories}
-        buttonText="Explore More Stories"
-        buttonLink="/patient-stories"
-        buttonClass="bg-purple-600 text-white hover:bg-purple-500"
-        titleColor="text-purple-600"
-      />
+      {!loading && !error && (
+        <Section
+          title="Explore Real-Life Patient Stories"
+          description="Discover inspiring stories from individuals who have faced mental health challenges and found strength in their journey."
+          items={patientStories}
+          emptyMessage="No patient stories available yet. Check back soon!"
+          buttonText="Explore More Stories"
+          buttonLink="/patient-stories"
+          buttonClass="bg-purple-600 text-white hover:bg-purple-500"
+          titleColor="text-purple-600"
+          type="story"
+        />
+      )}
     </div>
   );
 }
@@ -116,41 +128,64 @@ const Section = memo(
     title,
     description,
     items,
+    emptyMessage,
     buttonText,
     buttonLink,
     buttonClass,
     titleColor,
-  }) => (
-    <motion.div
-      className="py-16 px-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1, delay: 0.7 }}
-    >
-      <h2 className={`text-3xl font-bold text-center mb-4 ${titleColor}`}>
-        {title}
-      </h2>
-      <p className="text-center text-gray-600 mb-6">{description}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((item) => (
-          <EducationCard
-            key={item.id}
-            title={item.title}
-            content={item.content}
-            author={item.author}
-            date={item.date}
-            tags={item.tags}
-            onClick={() => console.log(`Navigate to ${item.id}`)}
-          />
-        ))}
-      </div>
-      <div className="text-center mt-8">
-        <Link to={buttonLink}>
-          <button className={`${buttonClass} px-6 py-2 rounded-lg shadow-md`}>
-            {buttonText}
-          </button>
-        </Link>
-      </div>
-    </motion.div>
-  )
+    type,
+  }) => {
+    const navigate = useNavigate();
+
+    return (
+      <motion.div
+        className="py-16 px-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.7 }}
+      >
+        <h2 className={`text-3xl font-bold text-center mb-4 ${titleColor}`}>
+          {title}
+        </h2>
+        <p className="text-center text-gray-600 mb-6">{description}</p>
+
+        {/* Handle case when no articles/stories are available */}
+        {items.length === 0 ? (
+          <p className="text-center text-gray-500">{emptyMessage}</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item) => (
+              <EducationCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                content={
+                  Array.isArray(item.content) && item.content.length > 0
+                    ? `${item.content.slice(0, 3).join(" ")}...`
+                    : "No content preview available."
+                }
+                author={item.author_name}
+                date={new Date(item.date_time).toLocaleDateString()}
+                tags={Object.values(item.selectedTags || {})}
+                type={type} // ✅ Pass type to determine correct navigation
+                onClick={() =>
+                  navigate(
+                    `/${type === "article" ? "articles" : "stories"}/${item.id}`
+                  )
+                }
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="text-center mt-8">
+          <Link to={buttonLink}>
+            <button className={`${buttonClass} px-6 py-2 rounded-lg shadow-md`}>
+              {buttonText}
+            </button>
+          </Link>
+        </div>
+      </motion.div>
+    );
+  }
 );
