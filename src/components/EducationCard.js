@@ -1,13 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const EducationCard = ({ title, author, date, tags, content, link }) => {
+const EducationCard = ({ id, title, author, date, tags, content, type }) => {
   const navigate = useNavigate();
+
+  // Determine correct URL based on type
+  const detailPageUrl =
+    type === "article" ? `/articles/${id}` : `/stories/${id}`;
 
   return (
     <div
       className="bg-white shadow-lg rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-1 transform transition duration-300 cursor-pointer border border-gray-100"
-      onClick={() => navigate(link)}
+      onClick={() => navigate(detailPageUrl)}
     >
       <h3 className="text-xl font-bold text-purple-800 mb-3">{title}</h3>
       <p className="text-sm text-gray-500 mb-3">
