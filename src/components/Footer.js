@@ -42,6 +42,12 @@ const Footer = () => {
               >
                 TheraChat
               </Link>
+              <Link
+                to="/contact-us"
+                className="block text-gray-300 hover:text-orange-400 no-underline"
+              >
+                Contact Us
+              </Link>
             </nav>
           </div>
 

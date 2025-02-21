@@ -110,6 +110,12 @@ const Navbar = () => {
               >
                 Education
               </Link>
+              <Link
+                to="/contact-us"
+                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+              >
+                Contact Us
+              </Link>
             </div>
 
             {/* Desktop Auth Buttons */}
@@ -154,17 +160,15 @@ const Navbar = () => {
 
           {/* Mobile Menu Overlay */}
           <div
-            className={`${
-              menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
-            } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
+            className={`${menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
+              } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
             onClick={() => setMenuOpen(false)}
           />
 
           {/* Mobile Menu Drawer */}
           <div
-            className={`${
-              menuOpen ? "translate-x-0" : "translate-x-full"
-            } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
+            className={`${menuOpen ? "translate-x-0" : "translate-x-full"
+              } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
           >
             <div className="flex justify-end p-4">
               <button
@@ -210,6 +214,13 @@ const Navbar = () => {
                 onClick={() => setMenuOpen(false)}
               >
                 Education
+              </Link>
+              <Link
+                to="/ContactUs"
+                className="block text-blue-400 hover:text-orange-400 py-2 text-lg no-underline"
+                onClick={() => setMenuOpen(false)}
+              >
+                Contact Us
               </Link>
 
               {!user ? (
