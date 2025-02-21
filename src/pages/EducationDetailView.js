@@ -124,12 +124,10 @@ const EducationDetailView = () => {
           </div>
         )}
 
-        <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed text-justify">
-          {data.content &&
-            data.content.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-        </div>
+        <div
+          className="prose prose-lg max-w-none text-gray-800 leading-relaxed text-justify"
+          dangerouslySetInnerHTML={{ __html: data.content }}
+        />
 
         {loggedInUser && loggedInUser.email === data.author_email && (
           <div className="mt-8 flex space-x-4">

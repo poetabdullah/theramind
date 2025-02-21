@@ -52,11 +52,7 @@ const ArticlesListPage = () => {
                 <ListViewCard
                   key={article.id}
                   title={article.title}
-                  content={
-                    Array.isArray(article.content)
-                      ? article.content[0]
-                      : article.content || "No content available"
-                  }
+                  content={article.content || "No content available"}
                   author={article.author_name}
                   date={new Date(article.date_time).toLocaleDateString()}
                   tags={article.tags || []}
