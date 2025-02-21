@@ -1,50 +1,49 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../firebaseConfig"; // Firestore setup
-import { collection, doc, setDoc, getDoc, addDoc } from "firebase/firestore";
+import { db, auth } from "../firebaseConfig";
+import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import Footer from "../components/Footer";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { onAuthStateChanged } from "firebase/auth";
 
 const EducationWritePage = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState([]);
+  const [content, setContent] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userRole, setUserRole] = useState(null); // "doctor" or "patient"
+  const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserRole = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const loggedInUserDoc = await getDoc(
-        doc(db, "logged_in_users", user.uid)
-      );
-      if (loggedInUserDoc.exists()) {
-        const userData = loggedInUserDoc.data();
-        setUserRole(userData.role === "doctor" ? "doctor" : "patient");
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        navigate("/login");
+        return;
       }
-    };
 
-    fetchUserRole();
-  }, []);
+      try {
+        const patientDoc = await getDoc(doc(db, "patients", user.email));
+        const doctorDoc = await getDoc(doc(db, "doctors", user.email));
 
-  const handleTitleChange = (e) => setTitle(e.target.value);
+        if (doctorDoc.exists()) {
+          setUserRole("doctor");
+        } else if (patientDoc.exists()) {
+          setUserRole("patient");
+        } else {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    });
 
-  const handleContentChange = (e) => {
-    const paragraphs = e.target.value
-      .split(/\n+/)
-      .filter((para) => para.trim() !== "");
-    setContent(paragraphs);
-  };
-
-  const handleTagToggle = (tag) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
-    } else if (selectedTags.length < 3) {
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,8 +66,7 @@ const EducationWritePage = () => {
       const collectionName =
         userRole === "doctor" ? "articles" : "patient_stories";
       await addDoc(collection(db, collectionName), articleData);
-
-      navigate(`/${collectionName}`);
+      navigate("/education-main");
     } catch (error) {
       console.error("Error submitting:", error);
     } finally {
@@ -76,12 +74,16 @@ const EducationWritePage = () => {
     }
   };
 
-  const handleCancel = () => {
-    navigate("/articles");
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-2xl">
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen flex flex-col">
+    <div className="bg-gradient-to-b from-purple-200 to-purple-50 min-h-screen flex flex-col">
       <div className="max-w-3xl mx-auto flex-grow py-12 px-4">
         <h1 className="text-5xl font-bold text-purple-900 mb-8">
           {userRole === "doctor"
@@ -93,19 +95,17 @@ const EducationWritePage = () => {
           <input
             type="text"
             value={title}
-            onChange={handleTitleChange}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
             className="w-full text-4xl font-semibold text-purple-900 bg-transparent border-b-2 border-gray-400 outline-none focus:ring-0 focus:border-purple-500 placeholder-gray-400"
             required
           />
 
-          <textarea
-            value={content.join("\n")}
-            onChange={handleContentChange}
+          <ReactQuill
+            value={content}
+            onChange={setContent}
             placeholder="Write your content here..."
-            rows="15"
-            className="w-full text-lg text-gray-800 bg-transparent border-b-2 border-gray-400 outline-none focus:ring-0 focus:border-purple-500 placeholder-gray-400"
-            required
+            className="bg-purple-200 p-4 rounded-md shadow-md text-lg text-purple-900 border border-purple-300"
           />
 
           <div className="space-y-4">
@@ -126,15 +126,20 @@ const EducationWritePage = () => {
                 <button
                   key={tag}
                   type="button"
-                  onClick={() => handleTagToggle(tag)}
-                  className={`${
+                  onClick={() =>
+                    setSelectedTags((prev) =>
+                      prev.includes(tag)
+                        ? prev.filter((t) => t !== tag)
+                        : prev.length < 3
+                        ? [...prev, tag]
+                        : prev
+                    )
+                  }
+                  className={`px-4 py-2 rounded-full text-sm transition-colors ${
                     selectedTags.includes(tag)
                       ? "bg-purple-600 text-white"
-                      : "bg-gray-200 text-purple-900"
-                  } px-4 py-2 rounded-full text-sm hover:bg-purple-500 transition-colors`}
-                  disabled={
-                    selectedTags.length >= 3 && !selectedTags.includes(tag)
-                  }
+                      : "bg-purple-300 text-purple-900"
+                  } hover:bg-purple-700`}
                 >
                   {tag}
                 </button>
@@ -148,18 +153,18 @@ const EducationWritePage = () => {
           <div className="flex justify-end gap-4">
             <button
               type="button"
-              onClick={handleCancel}
-              className="text-lg text-gray-500 hover:text-gray-700 transition-colors"
+              onClick={() => navigate("/education-main")}
+              className="bg-purple-300 text-purple-900 py-3 px-6 rounded-lg hover:bg-purple-400 transition duration-300 text-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`${
+              className={`py-3 px-8 rounded-lg transition duration-300 text-lg ${
                 isSubmitting
-                  ? "opacity-50 cursor-not-allowed"
-                  : "bg-orange-500 text-white"
-              } py-3 px-8 rounded-lg hover:bg-orange-600 transition duration-300 text-lg`}
+                  ? "opacity-50 cursor-not-allowed bg-purple-400"
+                  : "bg-purple-600 text-white hover:bg-purple-700"
+              }`}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Submitting..." : "Publish"}
@@ -168,7 +173,6 @@ const EducationWritePage = () => {
         </form>
       </div>
 
-      {/* Footer at the bottom */}
       <Footer />
     </div>
   );

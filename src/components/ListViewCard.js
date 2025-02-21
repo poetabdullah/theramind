@@ -1,12 +1,22 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const ListViewCard = ({ id, title, author, date, tags, content, link }) => {
+const ListViewCard = ({
+  id,
+  title,
+  author,
+  date,
+  tags,
+  content,
+  link,
+  type,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Determine color scheme based on page
-  const isArticlesPage = location.pathname.includes("/articles");
+  // Determine color scheme based on page type
+  const isArticlesPage =
+    location.pathname.includes("/articles") || type === "article";
   const tagBgColor = isArticlesPage
     ? "bg-orange-100 text-orange-600"
     : "bg-purple-100 text-purple-600";
@@ -21,14 +31,15 @@ const ListViewCard = ({ id, title, author, date, tags, content, link }) => {
     >
       {/* Tags Section */}
       <div className="flex flex-wrap gap-2 mb-2">
-        {tags.map((tag, index) => (
-          <span
-            key={index}
-            className={`${tagBgColor} text-xs font-semibold py-1 px-3 rounded-full`}
-          >
-            {tag}
-          </span>
-        ))}
+        {Array.isArray(tags) &&
+          tags.map((tag, index) => (
+            <span
+              key={index}
+              className={`${tagBgColor} text-xs font-semibold py-1 px-3 rounded-full`}
+            >
+              {tag}
+            </span>
+          ))}
       </div>
 
       {/* Title Section */}
@@ -37,11 +48,14 @@ const ListViewCard = ({ id, title, author, date, tags, content, link }) => {
       {/* Author & Date */}
       <p className="text-sm text-gray-500 mb-3">
         By <span className={`${authorTextColor} font-medium`}>{author}</span> ·{" "}
-        {new Date(date).toLocaleDateString()}
+        {date ? new Date(date).toLocaleDateString() : "Unknown Date"}
       </p>
 
       {/* Content Preview */}
-      <p className="text-gray-700 text-sm line-clamp-3">{content}</p>
+      <div
+        className="text-gray-700 text-sm line-clamp-3"
+        dangerouslySetInnerHTML={{ __html: content || "No content available." }}
+      ></div>
     </div>
   );
 };
