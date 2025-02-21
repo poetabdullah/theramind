@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import Footer from "../components/Footer";
 
 const EducationDetailView = () => {
   const { id } = useParams();
@@ -95,8 +96,8 @@ const EducationDetailView = () => {
   }
 
   return (
-    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen py-12 px-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen flex flex-col">
+      <div className="max-w-3xl mx-auto flex-grow py-12 px-6">
         <h1 className="text-5xl font-bold text-purple-900 leading-tight mb-6">
           {data.title}
         </h1>
@@ -111,14 +112,15 @@ const EducationDetailView = () => {
 
         {data.selectedTags && (
           <div className="flex flex-wrap gap-2 mb-8">
-            {data.selectedTags.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-purple-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
+            {data.selectedTags &&
+              Object.values(data.selectedTags).map((tag, index) => (
+                <span
+                  key={index}
+                  className="bg-purple-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
           </div>
         )}
 
@@ -146,6 +148,8 @@ const EducationDetailView = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };
