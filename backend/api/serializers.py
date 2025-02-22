@@ -3,10 +3,6 @@ from rest_framework import serializers
 from .models import Article, PatientStory
 
 
-from rest_framework import serializers
-from .models import Article
-
-
 class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
@@ -19,10 +15,6 @@ class ArticleSerializer(serializers.ModelSerializer):
             "date_time",
             "tags",
         ]
-
-
-from rest_framework import serializers
-from .models import PatientStory
 
 
 class PatientStorySerializer(serializers.ModelSerializer):

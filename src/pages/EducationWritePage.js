@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { db, auth } from "../firebaseConfig";
-import { collection, doc, getDoc, addDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  updateDoc,
+  addDoc,
+  getDocs,
+} from "firebase/firestore";
 import Footer from "../components/Footer";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -9,11 +16,18 @@ import { onAuthStateChanged } from "firebase/auth";
 
 const EducationWritePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEditing = location.state?.isEditing || false;
+  const docId = location.state?.id || null;
+  const type = location.state?.type || "";
+
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(""); // Default empty string for ReactQuill
   const [selectedTags, setSelectedTags] = useState([]);
+  const [tags, setTags] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [authorEmail, setAuthorEmail] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,6 +36,8 @@ const EducationWritePage = () => {
         navigate("/login");
         return;
       }
+
+      setAuthorEmail(user.email);
 
       try {
         const patientDoc = await getDoc(doc(db, "patients", user.email));
@@ -45,6 +61,52 @@ const EducationWritePage = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const tagsCollection = collection(db, "tags");
+        const tagDocs = await getDocs(tagsCollection);
+        const fetchedTags = tagDocs.docs.map((doc) => doc.data().tag_name);
+        setTags(fetchedTags);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      }
+    };
+
+    fetchTags();
+  }, []);
+
+  // Fetch existing article if editing
+  useEffect(() => {
+    console.log("Received location state:", location.state); // Debugging log
+
+    if (isEditing && docId) {
+      const fetchArticle = async () => {
+        try {
+          const collectionName =
+            type === "stories" ? "patient_stories" : "articles"; // Match Firestore naming
+          const docRef = doc(db, collectionName, docId);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setTitle(data.title || "");
+            setContent(data.content || "");
+            setSelectedTags(
+              data.selectedTags ? Object.values(data.selectedTags) : []
+            );
+          } else {
+            console.error("Document does not exist");
+          }
+        } catch (error) {
+          console.error("Error fetching article:", error);
+        }
+      };
+
+      fetchArticle();
+    }
+  }, [isEditing, docId, type]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -53,19 +115,32 @@ const EducationWritePage = () => {
       const user = auth.currentUser;
       if (!user) throw new Error("User not logged in");
 
-      const articleData = {
-        title,
-        content,
-        selectedTags,
-        author_name: user.displayName || "Anonymous",
-        user_id: user.uid,
-        date_time: new Date(),
-        last_updated: new Date(),
-      };
-
       const collectionName =
         userRole === "doctor" ? "articles" : "patient_stories";
-      await addDoc(collection(db, collectionName), articleData);
+
+      if (isEditing && docId) {
+        // Updating an existing article
+        const docRef = doc(db, collectionName, docId);
+        await updateDoc(docRef, {
+          title,
+          content,
+          selectedTags,
+          last_updated: new Date(),
+        });
+      } else {
+        // Creating a new article
+        await addDoc(collection(db, collectionName), {
+          title,
+          content,
+          selectedTags,
+          author_name: user.displayName || "Anonymous",
+          author_email: user.email,
+          user_id: user.uid,
+          date_time: new Date(),
+          last_updated: new Date(),
+        });
+      }
+
       navigate("/education-main");
     } catch (error) {
       console.error("Error submitting:", error);
@@ -86,7 +161,9 @@ const EducationWritePage = () => {
     <div className="bg-gradient-to-b from-purple-200 to-purple-50 min-h-screen flex flex-col">
       <div className="max-w-3xl mx-auto flex-grow py-12 px-4">
         <h1 className="text-5xl font-bold text-purple-900 mb-8">
-          {userRole === "doctor"
+          {isEditing
+            ? "Edit Content"
+            : userRole === "doctor"
             ? "Write an Article"
             : "Write Your Patient Story"}
         </h1>
@@ -113,16 +190,7 @@ const EducationWritePage = () => {
               Select Tags
             </div>
             <div className="flex flex-wrap gap-3">
-              {[
-                "Mental Health",
-                "Anxiety",
-                "Stress",
-                "Depression",
-                "Wellness",
-                "Self-Care",
-                "Therapy",
-                "Mindfulness",
-              ].map((tag) => (
+              {tags.map((tag) => (
                 <button
                   key={tag}
                   type="button"
@@ -145,34 +213,16 @@ const EducationWritePage = () => {
                 </button>
               ))}
             </div>
-            <div className="text-sm text-gray-500 mt-2">
-              You can select up to 3 tags.
-            </div>
           </div>
 
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => navigate("/education-main")}
-              className="bg-purple-300 text-purple-900 py-3 px-6 rounded-lg hover:bg-purple-400 transition duration-300 text-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className={`py-3 px-8 rounded-lg transition duration-300 text-lg ${
-                isSubmitting
-                  ? "opacity-50 cursor-not-allowed bg-purple-400"
-                  : "bg-purple-600 text-white hover:bg-purple-700"
-              }`}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Publish"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="bg-purple-600 text-white py-3 px-8 rounded-lg"
+          >
+            {isEditing ? "Update" : "Publish"}
+          </button>
         </form>
       </div>
-
       <Footer />
     </div>
   );
