@@ -58,93 +58,74 @@ const Contact = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-orange-50">
       <header className="text-center py-4">
-        <h2 className="text-3xl font-bold text-purple-600 mt-2">
+        <motion.h2 className="text-3xl font-bold text-purple-700 mt-2"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}>
           Feel Free To Contact Our Team
-        </h2>
+        </motion.h2>
+        <p className="text-gray-800">We are here for you, please let us know how we can help you. Whether you have a question, <br></br>or want to give us a feedback or simply want to interact, feel free to contact our team.</p>
       </header>
       <main className="flex-grow flex items-center justify-center mb-5">
         <motion.div
-          className="bg-white shadow-lg rounded-lg p-4 mt-4 w-full max-w-xl"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -50 }}
+          className=".service-item bg-white shadow-lg rounded-lg p-4 mt-2 w-full max-w-xl"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
         >
           {success && (
             <div
               className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4"
               role="alert"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
             >
               <p className="font-bold">Your response is invaluable to us!</p>
               <p>Thanks for contacting us, we will get back to you shortly.</p>
             </div>
           )}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label htmlFor="name" className="block text-gray-800 font-semibold">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-lg"
-              />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-            </div>
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-gray-800 font-semibold">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-lg"
-              />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            </div>
-            <div className="mb-4">
-              <label htmlFor="subject" className="block text-gray-800 font-semibold">
-                Subject
-              </label>
-              <input
-                type="text"
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-lg"
-              />
-              {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
-            </div>
-            <div className="mb-4">
-              <label htmlFor="message" className="block text-gray-800 font-semibold">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {Object.entries({ name: "Name", email: "Email", subject: "Subject" }).map(([key, label]) => (
+              <div key={key} className="relative">
+                <label className="block text-purple-600 font-semibold">
+                  {label}
+                </label>
+                <motion.input
+                  type={key === "email" ? "email" : "text"}
+                  name={key}
+                  value={formData[key]}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:ouline-none transition duration-300"
+                  whileFocus={{ scale: 1.02 }}
+                />
+                {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key]}</p>}
+              </div>
+            )
+            )}
+            <div className="relative">
+              <label className="block text-purple-600 font-semibold">
                 Message
               </label>
-              <textarea
-                id="message"
+              <motion.textarea
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
-                className="w-full p-2 border rounded-lg"
-              ></textarea>
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none transition duration-300"
+              ></motion.textarea>
               {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
             </div>
-            <button
+            <motion.button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-700 to-indigo-800 text-white font-semibold p-2 rounded-lg on-hover:bg-orange-700 opacity-50"
+              className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold p-2 rounded-lg hover:scale-105 transition duration-300"
+              whileHover={{ scale: 1.05 }}
             >
               {loading ? "Sending..." : "Send Message"}
-            </button>
+            </motion.button>
           </form>
-          
         </motion.div>
       </main>
       <Footer />
