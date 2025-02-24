@@ -144,6 +144,7 @@ const Contact = () => {
               {loading ? "Sending..." : "Send Message"}
             </button>
           </form>
+          
         </motion.div>
       </main>
       <Footer />
