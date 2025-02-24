@@ -1,10 +1,10 @@
 import React, { useEffect, useState, memo } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import EducationCard from "../components/EducationCard";
-import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
+import DOMPurify from "dompurify";
 
 export default function EducationMainPage() {
   const [articles, setArticles] = useState([]);
@@ -23,13 +23,8 @@ export default function EducationMainPage() {
           axios.get(`${apiUrl}/get_patient_stories/`),
         ]);
 
-        console.log("Raw Articles Response:", articlesRes.data);
-
-        // ✅ Extract articles from 'results' array
         const articlesData = articlesRes.data.results || [];
         const storiesData = storiesRes.data.results || [];
-
-        console.log("Extracted Articles:", articlesData);
 
         setArticles(Array.isArray(articlesData) ? articlesData : []);
         setPatientStories(Array.isArray(storiesData) ? storiesData : []);
@@ -151,32 +146,30 @@ const Section = memo(
         </h2>
         <p className="text-center text-gray-600 mb-6">{description}</p>
 
-        {/* Handle case when no articles/stories are available */}
         {items.length === 0 ? (
           <p className="text-center text-gray-500">{emptyMessage}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item) => (
-              <EducationCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                content={
-                  Array.isArray(item.content) && item.content.length > 0
-                    ? `${item.content.slice(0, 3).join(" ")}...`
-                    : "No content preview available."
-                }
-                author={item.author_name}
-                date={new Date(item.date_time).toLocaleDateString()}
-                tags={Object.values(item.selectedTags || {})}
-                type={type} // Pass type to determine correct navigation
-                onClick={() =>
-                  navigate(
-                    `/${type === "article" ? "articles" : "stories"}/${item.id}`
-                  )
-                }
-              />
-            ))}
+            {items.map((item) => {
+              const previewText = item.content
+                ? DOMPurify.sanitize(item.content)
+                    .replace(/<[^>]+>/g, "")
+                    .substring(0, 150) + "..."
+                : "No content preview available.";
+
+              return (
+                <EducationCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  content={previewText}
+                  author={item.author_name}
+                  date={new Date(item.date_time).toLocaleDateString()}
+                  tags={Object.values(item.selectedTags || {})}
+                  type={type}
+                />
+              );
+            })}
           </div>
         )}
 
