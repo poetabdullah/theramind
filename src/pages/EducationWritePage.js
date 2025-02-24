@@ -77,6 +77,43 @@ const EducationWritePage = () => {
     fetchTags();
   }, []);
 
+  useEffect(() => {
+    const fetchDocumentData = async () => {
+      if (isEditing && docId) {
+        try {
+          const collectionName =
+            type === "article" ? "articles" : "patient_stories";
+          const docRef = doc(db, collectionName, docId);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            console.log("Fetched Data:", data); // Debugging Log
+            setTitle(data.title || "");
+            setContent(data.content || "");
+            setSelectedTags(data.selectedTags || []);
+          } else {
+            console.error("Document not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching document:", error);
+        }
+      }
+    };
+
+    fetchDocumentData();
+  }, [isEditing, docId, type]);
+
+  const handleTagClick = (tag) => {
+    setSelectedTags((prevTags) =>
+      prevTags.includes(tag)
+        ? prevTags.filter((t) => t !== tag) // Remove tag if already selected
+        : prevTags.length < 3
+        ? [...prevTags, tag] // Add tag if limit is not reached
+        : prevTags
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -187,15 +224,7 @@ const EducationWritePage = () => {
                 <button
                   key={tag}
                   type="button"
-                  onClick={() =>
-                    setSelectedTags((prev) =>
-                      prev.includes(tag)
-                        ? prev.filter((t) => t !== tag)
-                        : prev.length < 3
-                        ? [...prev, tag]
-                        : prev
-                    )
-                  }
+                  onClick={() => handleTagClick(tag)}
                   className={`px-4 py-2 rounded-full text-sm transition-colors ${
                     selectedTags.includes(tag)
                       ? "bg-purple-600 text-white"
@@ -210,8 +239,8 @@ const EducationWritePage = () => {
 
           <button
             type="submit"
-            className="bg-purple-600 text-white py-3 px-8 rounded-lg transition-all duration-200 ease-in-out hover:bg-purple-700 hover:shadow-lg"
             disabled={isSubmitting}
+            className="bg-purple-600 text-white py-3 px-8 rounded-lg hover:bg-purple-700"
           >
             {isEditing ? "Update" : "Publish"}
           </button>
