@@ -22,13 +22,14 @@ const EducationWritePage = () => {
   const type = location.state?.type || "";
 
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState(""); // Default empty string for ReactQuill
+  const [content, setContent] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [tags, setTags] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [authorEmail, setAuthorEmail] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -76,40 +77,31 @@ const EducationWritePage = () => {
     fetchTags();
   }, []);
 
-  // Fetch existing article if editing
-  useEffect(() => {
-    console.log("Received location state:", location.state); // Debugging log
-
-    if (isEditing && docId) {
-      const fetchArticle = async () => {
-        try {
-          const collectionName =
-            type === "stories" ? "patient_stories" : "articles"; // Match Firestore naming
-          const docRef = doc(db, collectionName, docId);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setTitle(data.title || "");
-            setContent(data.content || "");
-            setSelectedTags(
-              data.selectedTags ? Object.values(data.selectedTags) : []
-            );
-          } else {
-            console.error("Document does not exist");
-          }
-        } catch (error) {
-          console.error("Error fetching article:", error);
-        }
-      };
-
-      fetchArticle();
-    }
-  }, [isEditing, docId, type]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError("");
+
+    if (title.length < 10 || title.length > 100) {
+      setError("Title must be between 10 and 100 characters.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (
+      content.replace(/<[^>]*>/g, "").length < 1500 ||
+      content.replace(/<[^>]*>/g, "").length > 9000
+    ) {
+      setError("Content must be between 1500 and 9000 characters.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (selectedTags.length < 1 || selectedTags.length > 3) {
+      setError("You must select at least 1 tag and at most 3 tags.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const user = auth.currentUser;
@@ -119,7 +111,6 @@ const EducationWritePage = () => {
         userRole === "doctor" ? "articles" : "patient_stories";
 
       if (isEditing && docId) {
-        // Updating an existing article
         const docRef = doc(db, collectionName, docId);
         await updateDoc(docRef, {
           title,
@@ -128,7 +119,6 @@ const EducationWritePage = () => {
           last_updated: new Date(),
         });
       } else {
-        // Creating a new article
         await addDoc(collection(db, collectionName), {
           title,
           content,
@@ -144,6 +134,7 @@ const EducationWritePage = () => {
       navigate("/education-main");
     } catch (error) {
       console.error("Error submitting:", error);
+      setError("An error occurred while submitting. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -167,6 +158,8 @@ const EducationWritePage = () => {
             ? "Write an Article"
             : "Write Your Patient Story"}
         </h1>
+
+        {error && <div className="text-red-600 mb-4">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <input
@@ -217,7 +210,8 @@ const EducationWritePage = () => {
 
           <button
             type="submit"
-            className="bg-purple-600 text-white py-3 px-8 rounded-lg"
+            className="bg-purple-600 text-white py-3 px-8 rounded-lg transition-all duration-200 ease-in-out hover:bg-purple-700 hover:shadow-lg"
+            disabled={isSubmitting}
           >
             {isEditing ? "Update" : "Publish"}
           </button>

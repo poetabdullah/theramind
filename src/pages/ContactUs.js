@@ -1,61 +1,61 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import Footer from "../components/Footer";
-import { db } from "../firebaseConfig.js";
-import { collection, addDoc } from "firebase/firestore";
+    import React, { useState } from "react";
+    import { motion } from "framer-motion";
+    import Footer from "../components/Footer";
+    import { db } from "../firebaseConfig.js";
+    import { collection, addDoc } from "firebase/firestore";
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleChange = (event) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value });
-    setErrors({ ...errors, [event.target.name]: "" });
-  };
-
-  const validate = () => {
-    let errors = {};
-
-    if (!formData.name.trim()) errors.name = "Name is required";
-    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
-      errors.email = "Please enter a valid email address";
-    if (!formData.subject.trim()) errors.subject = "Subject is required";
-    if (!formData.message.trim()) errors.message = "Message is required";
-
-    setErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!validate()) return;
-
-    setLoading(true);
-    try {
-      await addDoc(collection(db, "contactMessages"), {
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-        timestamp: new Date(),
+    const Contact = () => {
+      const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
       });
 
-      setSuccess(true);
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    } catch (error) {
-      console.error("Error adding document: ", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const [errors, setErrors] = useState({});
+      const [loading, setLoading] = useState(false);
+      const [success, setSuccess] = useState(false);
+
+      const handleChange = (event) => {
+        setFormData({ ...formData, [event.target.name]: event.target.value });
+        setErrors({ ...errors, [event.target.name]: "" });
+      };
+
+      const validate = () => {
+        let errors = {};
+
+        if (!formData.name.trim()) errors.name = "Name is required";
+        if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
+          errors.email = "Please enter a valid email address";
+        if (!formData.subject.trim()) errors.subject = "Subject is required";
+        if (!formData.message.trim()) errors.message = "Message is required";
+
+        setErrors(errors);
+        return Object.keys(errors).length === 0;
+      };
+
+      const handleSubmit = async (event) => {
+        event.preventDefault();
+        if (!validate()) return;
+
+        setLoading(true);
+        try {
+          await addDoc(collection(db, "contactMessages"), {
+            name: formData.name,
+            email: formData.email,
+            subject: formData.subject,
+            message: formData.message,
+            timestamp: new Date(),
+          });
+
+          setSuccess(true);
+          setFormData({ name: "", email: "", subject: "", message: "" });
+        } catch (error) {
+          console.error("Error adding document: ", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -144,7 +144,7 @@ const Contact = () => {
               {loading ? "Sending..." : "Send Message"}
             </button>
           </form>
-
+          
         </motion.div>
       </main>
       <Footer />
@@ -152,4 +152,4 @@ const Contact = () => {
   );
 };
 
-export default Contact;
+    export default Contact;
