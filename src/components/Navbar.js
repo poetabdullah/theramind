@@ -116,6 +116,12 @@ const Navbar = () => {
               >
                 Contact Us
               </Link>
+              <Link
+                to="/about-us"
+                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+              >
+                About Us
+              </Link>
             </div>
 
             {/* Desktop Auth Buttons */}
