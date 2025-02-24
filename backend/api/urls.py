@@ -28,16 +28,8 @@ urlpatterns = [
         update_patient_story,
         name="update_patient_story",
     ),
-    path("delete_article/<str:article_id>/", delete_article, name="delete_article"),
-    path(
-        "delete_patient_story/<str:story_id>/",
-        delete_patient_story,
-        name="delete_patient_story",
-    ),
-    # Corrected paths for article and story retrieval
     path("articles/<str:article_id>/", get_article, name="get_article"),
     path("stories/<str:story_id>/", get_patient_story, name="get_patient_story"),
-    # Corrected delete paths with the /delete/ suffix
     path("articles/<str:article_id>/delete/", delete_article, name="delete_article"),
     path(
         "stories/<str:story_id>/delete/",

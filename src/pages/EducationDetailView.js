@@ -14,6 +14,8 @@ const EducationDetailView = () => {
   const [error, setError] = useState(null);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false); // ✅ New state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,33 +31,19 @@ const EducationDetailView = () => {
     });
 
     const fetchData = async () => {
-      if (!id) {
-        setError("No content ID provided");
-        setLoading(false);
-        return;
-      }
-
       const apiUrl =
         process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const url = `${apiUrl}/${type}/${id}`;
 
       try {
-        const response = await axios({
-          method: "get",
-          url: url,
+        const response = await axios.get(url, {
           withCredentials: true,
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Origin: "http://localhost:3000",
           },
         });
-
-        if (response.data) {
-          setData(response.data);
-        } else {
-          setError("No content found");
-        }
+        setData(response.data || null);
       } catch (err) {
         setError(err.response?.data?.error || "Error fetching content");
       } finally {
@@ -64,28 +52,39 @@ const EducationDetailView = () => {
     };
 
     fetchData();
-
     return () => unsubscribe();
   }, [id, type]);
 
-  const handleEdit = () => navigate(`/edit/${type}/${id}`);
+  const handleEdit = () => {
+    navigate("/write-education", {
+      state: {
+        isEditing: true,
+        id,
+        type,
+        title: data.title,
+        content: data.content,
+        selectedTags: data.selectedTags ? Object.values(data.selectedTags) : [],
+      },
+    });
+  };
 
   const handleDelete = async () => {
     const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
-
     try {
-      await axios.delete(`${apiUrl}/${type}/${id}/delete`);
-      navigate(`/${type}`);
+      await axios.delete(`${apiUrl}/${type}/${id}/delete/`, {
+        withCredentials: true,
+      });
+
+      setDeleteSuccess(true);
+      setTimeout(() => {
+        setShowDeleteModal(false); // Close modal after 2 seconds
+        navigate("/education-main"); // Redirect
+      }, 2000);
     } catch (err) {
+      console.error("Delete error:", err.response?.data || err.message);
       setError(err.response?.data?.error || "Error deleting content");
     }
   };
-
-  if (error) {
-    return (
-      <div className="text-center py-10 text-purple-600 text-xl">{error}</div>
-    );
-  }
 
   if (loading || !data) {
     return (
@@ -95,13 +94,15 @@ const EducationDetailView = () => {
     );
   }
 
+  const isAuthor =
+    loggedInUser?.email?.toLowerCase() === data?.author_email?.toLowerCase();
+
   return (
     <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen flex flex-col">
       <div className="max-w-3xl mx-auto flex-grow py-12 px-6">
         <h1 className="text-5xl font-bold text-purple-900 leading-tight mb-6">
           {data.title}
         </h1>
-
         <p className="text-lg text-gray-700 mb-6 italic">
           By{" "}
           <span className="text-orange-600 font-semibold">
@@ -109,29 +110,23 @@ const EducationDetailView = () => {
           </span>{" "}
           &middot; {new Date(data.date_time).toLocaleDateString()}
         </p>
-
         {data.selectedTags && (
           <div className="flex flex-wrap gap-2 mb-8">
-            {data.selectedTags &&
-              Object.values(data.selectedTags).map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-purple-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
+            {Object.values(data.selectedTags).map((tag, index) => (
+              <span
+                key={index}
+                className="bg-purple-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         )}
-
-        <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed text-justify">
-          {data.content &&
-            data.content.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-        </div>
-
-        {loggedInUser && loggedInUser.email === data.author_email && (
+        <div
+          className="prose prose-lg max-w-none text-gray-800 leading-relaxed text-justify"
+          dangerouslySetInnerHTML={{ __html: data.content }}
+        />
+        {isAuthor && (
           <div className="mt-8 flex space-x-4">
             <button
               onClick={handleEdit}
@@ -140,7 +135,7 @@ const EducationDetailView = () => {
               Edit
             </button>
             <button
-              onClick={handleDelete}
+              onClick={() => setShowDeleteModal(true)}
               className="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-600 transition text-lg shadow-md"
             >
               Delete
@@ -148,7 +143,37 @@ const EducationDetailView = () => {
           </div>
         )}
       </div>
-
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            {deleteSuccess ? (
+              <p className="text-lg text-green-600 font-semibold">
+                Content deleted successfully! Redirecting...
+              </p>
+            ) : (
+              <>
+                <p className="text-lg text-gray-700 mb-4">
+                  Are you sure you want to delete this?
+                </p>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={handleDelete}
+                    className="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-600 transition"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="bg-gray-300 py-2 px-6 rounded-lg hover:bg-gray-400 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <Footer />
     </div>
   );
