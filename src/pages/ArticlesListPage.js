@@ -1,8 +1,8 @@
-// ArticlesListPage.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PageBanner from "../components/PageBanner";
 import ListViewCard from "../components/ListViewCard";
+import Footer from "../components/Footer";
 
 const ArticlesListPage = () => {
   const [articles, setArticles] = useState([]);
@@ -14,25 +14,21 @@ const ArticlesListPage = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`/api/get_articles/?page=${page}`)
+      .get(`http://127.0.0.1:8000/api/get_articles/?page=${page}`)
       .then((response) => {
-        setArticles(response.data.results || []); // Ensure 'results' is always an array
+        setArticles(response.data.results || []);
         setTotalPages(response.data.total_pages);
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching articles:", error);
-        // Handle the case when no articles are found (404 status)
-        if (error.response?.status === 404) {
-          setError("No articles found.");
-        } else {
-          setError(error.response?.data?.message || "Error fetching articles.");
-        }
+        setError(error.response?.data?.message || "Error fetching articles.");
         setLoading(false);
       });
   }, [page]);
 
   if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -47,9 +43,6 @@ const ArticlesListPage = () => {
           Latest Articles
         </h2>
 
-        {error && <p className="text-red-500">{error}</p>}
-
-        {/* If there are no articles */}
         {articles.length === 0 ? (
           <p>No articles available at the moment.</p>
         ) : (
@@ -59,10 +52,10 @@ const ArticlesListPage = () => {
                 <ListViewCard
                   key={article.id}
                   title={article.title}
-                  content={article.content?.[0] || "No content available"}
+                  content={article.content || "No content available"}
                   author={article.author_name}
                   date={new Date(article.date_time).toLocaleDateString()}
-                  tags={article.tags}
+                  tags={article.tags || []}
                   link={`/articles/${article.id}`}
                   titleColor="text-orange-700"
                   tagColor="bg-orange-200 text-orange-700"
@@ -70,32 +63,32 @@ const ArticlesListPage = () => {
                 />
               ))}
             </div>
+
+            <div className="flex justify-center space-x-2 mt-6">
+              <button
+                onClick={() => setPage((prevPage) => Math.max(prevPage - 1, 1))}
+                disabled={page === 1}
+                className="bg-orange-600 text-white px-4 py-2 rounded disabled:bg-orange-300"
+              >
+                Prev
+              </button>
+              <span className="self-center text-lg">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setPage((prevPage) => Math.min(prevPage + 1, totalPages))
+                }
+                disabled={page === totalPages}
+                className="bg-orange-600 text-white px-4 py-2 rounded disabled:bg-orange-300"
+              >
+                Next
+              </button>
+            </div>
           </>
         )}
-
-        {/* Pagination controls */}
-        <div className="flex justify-center space-x-2 mt-6">
-          <button
-            onClick={() => setPage((prevPage) => Math.max(prevPage - 1, 1))}
-            disabled={page === 1}
-            className="bg-orange-600 text-white px-4 py-2 rounded disabled:bg-orange-300"
-          >
-            Prev
-          </button>
-          <span className="self-center text-lg">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setPage((prevPage) => Math.min(prevPage + 1, totalPages))
-            }
-            disabled={page === totalPages}
-            className="bg-orange-600 text-white px-4 py-2 rounded disabled:bg-orange-300"
-          >
-            Next
-          </button>
-        </div>
       </div>
+      <Footer />
     </div>
   );
 };
