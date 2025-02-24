@@ -1,11 +1,11 @@
-// PatientStoriesListPage.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PageBanner from "../components/PageBanner";
 import ListViewCard from "../components/ListViewCard";
+import Footer from "../components/Footer";
 
 const PatientStoriesListPage = () => {
-  const [stories, setStories] = useState([]); // Ensure it's initialized as an empty array
+  const [stories, setStories] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ const PatientStoriesListPage = () => {
     axios
       .get(`http://127.0.0.1:8000/api/get_patient_stories/?page=${page}`)
       .then((response) => {
-        setStories(response.data.results || []); // Ensure 'results' is always an array
+        setStories(response.data.results || []);
         setTotalPages(response.data.total_pages);
         setLoading(false);
       })
@@ -54,10 +54,10 @@ const PatientStoriesListPage = () => {
                 <ListViewCard
                   key={story.id}
                   title={story.title}
-                  content={story.content?.[0] || "No content available"} // Ensure content is handled safely
+                  content={story.content || "No content available"}
                   author={story.author_name}
                   date={new Date(story.date_time).toLocaleDateString()}
-                  tags={story.selectedTags || []} // Ensure tags is always an array
+                  tags={story.selectedTags || []}
                   link={`/stories/${story.id}`}
                 />
               ))}
@@ -87,6 +87,7 @@ const PatientStoriesListPage = () => {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
