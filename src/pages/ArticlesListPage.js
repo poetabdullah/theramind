@@ -3,6 +3,7 @@ import axios from "axios";
 import PageBanner from "../components/PageBanner";
 import ListViewCard from "../components/ListViewCard";
 import Footer from "../components/Footer";
+import TagSearchBar from "../components/TagSearchBar";
 
 const ArticlesListPage = () => {
   const [articles, setArticles] = useState([]);
@@ -37,6 +38,10 @@ const ArticlesListPage = () => {
         subtitle="Gain insights from mental health professionals covering anxiety, depression, and well-being."
         background="bg-gradient-to-r from-orange-800 via-orange-600 to-orange-400"
       />
+
+      <div className="max-w-5xl mx-auto py-6 px-6">
+        <TagSearchBar themeColor="orange" />
+      </div>
 
       <div className="max-w-5xl mx-auto py-12 px-6">
         <h2 className="text-3xl font-semibold text-orange-600 mb-6">
