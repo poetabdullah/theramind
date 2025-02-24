@@ -81,12 +81,6 @@ const Navbar = () => {
             {/* Nav Links */}
             <div className="flex items-center justify-center flex-1 space-x-12">
               <Link
-                to="/#about"
-                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
-              >
-                About
-              </Link>
-              <Link
                 to="/Questionnaire"
                 className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
@@ -166,15 +160,17 @@ const Navbar = () => {
 
           {/* Mobile Menu Overlay */}
           <div
-            className={`${menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
-              } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
+            className={`${
+              menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
+            } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
             onClick={() => setMenuOpen(false)}
           />
 
           {/* Mobile Menu Drawer */}
           <div
-            className={`${menuOpen ? "translate-x-0" : "translate-x-full"
-              } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
+            className={`${
+              menuOpen ? "translate-x-0" : "translate-x-full"
+            } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
           >
             <div className="flex justify-end p-4">
               <button
