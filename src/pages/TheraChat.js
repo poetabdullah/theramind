@@ -29,7 +29,7 @@ const TheraChat = () => {
       {/* Header */}
       {!hideHeadline && (
         <div className="absolute top-6 text-center w-full">
-          <h1 className="text-3xl font-semibold text-indigo-600">
+          <h1 className="text-3xl font-semibold text-purple-700">
             How can I assist you today?
           </h1>
         </div>
@@ -48,8 +48,8 @@ const TheraChat = () => {
             <div
               className={`${
                 msg.sender === "user"
-                  ? "bg-indigo-500 text-white"
-                  : "bg-purple-600 text-white"
+                  ? "bg-gradient-to-r from-indigo-800 to-indigo-500 text-white"
+                  : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
               } rounded-xl p-4 shadow-lg max-w-lg`}
             >
               {msg.text}
@@ -62,18 +62,18 @@ const TheraChat = () => {
       <div className="w-full max-w-3xl px-4 py-4 flex items-center space-x-3 mx-auto">
         <input
           type="text"
-          className="flex-1 bg-white text-gray-900 border border-indigo-400 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 text-sm shadow-md"
+          className="flex-1 bg-white text-gray-900 border border-purple-500 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder-gray-500 text-sm shadow-md"
           placeholder="Type your question..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
         <button
-          className="bg-gradient-to-r from-purple-600 to-indigo-500 text-white rounded-full p-3 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-transform transform hover:scale-105"
+          className="group bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full p-3 shadow-lg focus:outline-none transition-all transform hover:scale-105 focus:ring-4 focus:ring-purple-500/50 focus:ring-offset-2"
           aria-label="Send message"
           onClick={sendMessage}
         >
-          <Send className="w-5 h-5" />
+          <Send className="w-5 h-5 text-white group-hover:text-indigo-200 transition-colors duration-200" />
         </button>
       </div>
 
