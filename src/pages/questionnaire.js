@@ -1,317 +1,130 @@
-import React, { useState }  from 'react';
+import React, { useState, useEffect } from "react";
+import "./questionnaire.css";
+import { motion } from "framer-motion";
+>>>>>>> 237a6952b57d2ced7db01b40ec4067bd7cdd9681
 import Footer from "../components/Footer";
+import { db } from "../firebaseConfig.js";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 const Questionnaire = () => {
-  const [responses, setResponses] = useState({
-    //Part 1: (Having a condition or not)
-    //Options For Question 1
-    depressedLonely: false,
-    lossofInterest: false,
-    repetitiveBehavior: false,
-    difficultyBreathing: false,
-    flashbacksNightmares: false,
-    none: false,
-    //Options For Question 2
-    symptoms: "",
-    //Part 2: (Suicidal Thoughts)
-    // Options For Question 3
-    suicidalThoughts: "",
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [responses, setResponses] = useState({});
+  const [diagnosis, setDiagnosis] = useState("");
+  const [noConditionDiagnosed, setNoConditionDiagnosed] = useState(false);
+  const [suicidalThoughts, setSuicidalThoughts] = useState(false);
+  const [conditionScores, setConditionScores] = useState({
+    stress: 0,
+    anxiety: 0,
+    depression: 0,
+    trauma: 0,
+    ocd: 0,
   });
 
-  //Tracking the Current Question
-  const [currentQuestion, setCurrentQuestion] = useState(1);
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      const q = query(collection(db, "questions"), orderBy("questionNumber", "asc"));
+      const querySnapshot = await getDocs(q);
+      const fetchedQuestions = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setQuestions(fetchedQuestions);
+    };
+    fetchQuestions();
+  }, []);
+
+  useEffect(() => {
+    // Interrupt for No Condition Diagnosed
+    if (currentQuestionIndex === 2 && responses["question1"] === "none" && responses["question2"] === "No") {
+      setNoConditionDiagnosed(true);
+    } else if (currentQuestionIndex === 2 && responses["question1"] !== "none" && responses["question2"] !== "No") {
+      setNoConditionDiagnosed(false);
+    }
+
+    // Interrupt for Suicidal Thoughts
+    if (currentQuestionIndex === 3 && responses["question3"] === "Yes") {
+      setSuicidalThoughts(true);
+    } else {
+      setSuicidalThoughts(false);
+    }
+  }, [currentQuestionIndex, responses]);
 
   const changeEvent = (event) => {
-    const { name, value, checked, type } = event.target;
-    setResponses((previousResponses) => ({
-      ...previousResponses,
-      [name]: type === "checkbox" ? checked : value,
+    const { name, value } = event.target;
+    setResponses((prevResponses) => ({
+      ...prevResponses,
+      [name]: value,
     }));
   };
 
   const handleNext = () => {
-    if (currentQuestion === 4 && responses.suicidalThoughts === "Yes") {
-      setCurrentQuestion(5);
-      return;
+    if (noConditionDiagnosed || suicidalThoughts) {
+      return; // Stop navigation if an interrupt is triggered
     }
-    if (
-      currentQuestion === 2 &&
-      responses.symptoms === "Yes" &&
-      (responses.depressedLonely ||
-        responses.lossofInterest ||
-        responses.repetitiveBehavior ||
-        responses.difficultyBreathing ||
-        responses.flashbacksNightmares)
-    ) {
-      setCurrentQuestion(4);
-      return;
-    }
-    if (
-      currentQuestion === 2 &&
-      responses.none === true &&
-      responses.symptoms === "No"
-    ) {
-      setCurrentQuestion(3);
-      return;
-    }
-    if (currentQuestion === 4 && responses.suicidalThoughts === "No") {
-      setCurrentQuestion(3);
-      return;
-    }
-    setCurrentQuestion((prev) => prev + 1);
+    setCurrentQuestionIndex((prev) => prev + 1);
   };
 
   const handlePrevious = () => {
-    setCurrentQuestion((prev) => prev - 1);
+    setNoConditionDiagnosed(false);
+    setSuicidalThoughts(false);
+    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
   };
 
   return (
-    <>
-      <div>
-        <h2 className="text-customPurple shadow-md rounded-lg max-w-xl mx-auto">
-          Questionnaire
-        </h2>
-      </div>
-      {/* Question 1 */}
-      {currentQuestion === 1 && (
-        <>
-          <div className="heading">
-            <h3>Q1. Have you been feeling any of the following lately?</h3>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <header className="text-center py-4">
+        <h2 className="text-3xl font-bold text-purple-600 mt-2">Diagnostic Questionnaire</h2>
+      </header>
+      <main className="flex-grow flex items-center justify-center mb-5">
+        <motion.div className="bg-white shadow-lg rounded-lg p-4 mt-4 w-full max-w-xl">
+          {questions.length > 0 && currentQuestionIndex < questions.length ? (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-4">
+                {questions[currentQuestionIndex]?.text}
+              </h3>
+              <div className="grid grid-cols-1 gap-4">
+                {questions[currentQuestionIndex]?.options.map((option, index) => (
+                  <label
+                    key={index} // Ensures unique key
+                    className="flex items-center space-x-2 bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-green-200"
+                  >
+                    <input
+                      type="radio"
+                      name={`question_${questions[currentQuestionIndex]?.id}`} // Ensures all options in the same question share the same name
+                      value={option.name}
+                      checked={responses[`question_${questions[currentQuestionIndex]?.id}`] === option.name}
+                      onChange={changeEvent}
+                      className="form-radio h-5 w-5 text-blue-600"
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-700 mb-4">Diagnosis</h3>
+              <p className="text-lg text-gray-600">
+                Based on your responses, you may be experiencing symptoms of: <b>{diagnosis}</b>
+              </p>
+            </div>
+          )}
+          <div className="flex justify-between mt-6">
+            {currentQuestionIndex > 0 && (
+              <button className="bg-blue-500 p-2 rounded text-white hover:bg-blue-600" onClick={handlePrevious}>
+                Back
+              </button>
+            )}
+            <button className="bg-blue-500 p-2 rounded text-white hover:bg-blue-600" onClick={handleNext}>
+              Next
+            </button>
           </div>
-          <div>
-            <form>
-              <label>
-                <input
-                  type="checkbox"
-                  name="depressedLonely"
-                  checked={responses.depressedLonely}
-                  onChange={changeEvent}
-                />
-                Feeling depressed & lonely
-              </label>
-              <br></br>
-              <label>
-                <input
-                  type="checkbox"
-                  name="lossofInterest"
-                  checked={responses.lossofInterest}
-                  onChange={changeEvent}
-                />
-                Loss of interest in activities
-              </label>
-              <br></br>
-              <label>
-                <input
-                  type="checkbox"
-                  name="repetitiveBehavior"
-                  checked={responses.repetitiveBehavior}
-                  onChange={changeEvent}
-                />
-                Repetitive behaviors
-              </label>
-              <br></br>
-              <label>
-                <input
-                  type="checkbox"
-                  name="difficultyBreathing"
-                  checked={responses.difficultyBreathing}
-                  onChange={changeEvent}
-                />
-                Difficulty concentrating
-              </label>
-              <br></br>
-              <label>
-                <input
-                  type="checkbox"
-                  name="flashbacksNightmares"
-                  checked={responses.flashbacksNightmares}
-                  onChange={changeEvent}
-                />
-                Flashbacks/nightmares
-              </label>
-              <br></br>
-              <label>
-                <input
-                  type="checkbox"
-                  name="none"
-                  checked={responses.none}
-                  onChange={changeEvent}
-                />
-                None of the above
-              </label>
-              <br></br>
-            </form>
-          </div>
-        </>
-      )}
-
-      {/* Question 1 */}
-      {currentQuestion === 2 && (
-        <>
-          <div className="heading">
-            <h3>
-              Q2. Are you having any of the following symptoms lately; shortness
-              of breath, constant worry, fatigue/prolonged muscle tension,
-              insomnia, being easily startled, or spending time on compulsive
-              behaviors?
-            </h3>
-          </div>
-          <div>
-            <form>
-              <label>
-                <input
-                  type="radio"
-                  name="symptoms"
-                  value="Yes"
-                  checked={responses.symptoms === "Yes"}
-                  onChange={changeEvent}
-                />
-                Yes
-              </label>
-              <br></br>
-              <label>
-                <input
-                  type="radio"
-                  name="symptoms"
-                  value="No"
-                  checked={responses.symptoms === "No"}
-                  onChange={changeEvent}
-                />
-                No
-              </label>
-            </form>
-          </div>
-        </>
-      )}
-
-      {currentQuestion === 3 && (
-        <>
-          <div>
-            <h3>Thank you for taking TheraMind's diagnostic questionnaire!</h3>
-            <p>
-              Based on the response you have submitted you are not diagnosed
-              with any of the following mental health conditions (Stress,
-              Anxiety, Depression, Trauma, OCD) and its subtypes.
-            </p>
-          </div>
-        </>
-      )}
-
-      {/* Question 4 */}
-      {currentQuestion === 4 && (
-        <>
-          <div className="heading">
-            <h3>
-              Q3. Have you had any thought that it was better if you were dead,
-              or are you planning on ending your life?
-            </h3>
-          </div>
-          <div>
-            <form>
-              <label>
-                <input
-                  type="radio"
-                  name="suicidalThoughts"
-                  value="Yes"
-                  checked={responses.suicidalThoughts === "Yes"}
-                  onChange={changeEvent}
-                />
-                Yes
-              </label>
-              <br></br>
-              <label>
-                <input
-                  type="radio"
-                  name="suicidalThoughts"
-                  value="No"
-                  checked={responses.suicidalThoughts === "No"}
-                  onChange={changeEvent}
-                />
-                No
-              </label>
-            </form>
-          </div>
-        </>
-      )}
-
-      {currentQuestion === 5 && responses.suicidalThoughts === "Yes" && (
-        <>
-          <div>
-            <h2 className="text-red-100">Suicidal Thoughts!</h2>
-            <h3>
-              You have been diagnosed with Suicidal Thoughts, you need to
-              contact an emergency hotline, your life could be in danger and we
-              care for you, so here are some of the emergency contacts you can
-              get help from.
-            </h3>
-            <p>
-              <h3>Emergency Hotlines:</h3>
-              Umang: (92) 0311 7786264 <br></br>
-              Rozan: (92) 0304 111 1741 <br></br>
-              Welfare Bureau: 1121
-            </p>
-            <p>
-              It is important to talk to someone right away. If you are in
-              immediate danger, please dial 911.
-            </p>
-            <p>
-              If you need someone to talk to, consider reaching out to a
-              helpline, counselor, or a trusted individual.
-            </p>
-            <p>Your safety and well-being are a priority.</p>
-          </div>
-        </>
-      )}
-
-      {/* Button To Submit */}
-      <div className="flex justify-between mt-4">
-        {currentQuestion > 1 && currentQuestion < 3 && (
-          <button className="bg-gray-300 p-2 rounded" onClick={handlePrevious}>
-            Back
-          </button>
-        )}
-        {currentQuestion === 1 && (
-          <button
-            className="bg-gray-300 p-2 rounded"
-            onClick={handleNext}
-            disabled={
-              !(
-                responses.depressedLonely ||
-                responses.lossofInterest ||
-                responses.repetitiveBehavior ||
-                responses.difficultyBreathing ||
-                responses.flashbacksNightmares ||
-                responses.none
-              )
-            }
-          >
-            Next
-          </button>
-        )}
-
-        {currentQuestion === 2 && (
-          <button
-            className="bg-gray-300 p-2 rounded"
-            onClick={handleNext}
-            disabled={!responses.symptoms}
-          >
-            Next
-          </button>
-        )}
-
-        {currentQuestion === 4 && (
-          <button
-            className="bg-gray-300 p-2 rounded"
-            onClick={handleNext}
-            disabled={!responses.suicidalThoughts}
-          >
-            Next
-          </button>
-        )}
-      </div>
-
+        </motion.div>
+      </main>
       <Footer />
-    </>
+    </div>
   );
 };
+
 export default Questionnaire;
