@@ -4,18 +4,43 @@ import HomePage from "./pages/HomePage";
 import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
 import Questionnaire from "./pages/Questionnaire";
+import ContactUs from "./pages/ContactUs";
+import AboutUs from "./pages/AboutUs";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import PatientSignUp from "./pages/PatientSignUp";
+import TheraChat from "./pages/TheraChat";
+import EducationMainPage from "./pages/EducationMainPage";
+import ArticlesListPage from "./pages/ArticlesListPage";
+import PatientStoriesListPage from "./pages/PatientStoriesListPage";
+import EducationDetailView from "./pages/EducationDetailView";
+import EducationWritePage from "./pages/EducationWritePage";
 
 const App = () => (
   <div>
     <Navbar />
     <Routes>
       <Route path="/" element={<HomePage />} />
+<<<<<<< HEAD
       <Route path="/Meditation" element={<Meditation />} />
       <Route path="/Questionnaire" element={<Questionnaire />} />
       <Route path="/signup" element={<SignUpPage />} />
+=======
+      <Route path="/meditation" element={<Meditation />} />
+      <Route path="/questionnaire" element={<Questionnaire />} />
+      <Route path="/contact-us" element={<ContactUs />} />
+      <Route path="/about-us" element={<AboutUs />} />
+
+      <Route path="/signup" element={<PatientSignUp />} />
+>>>>>>> 237a6952b57d2ced7db01b40ec4067bd7cdd9681
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/therachat" element={<TheraChat />} />
+      <Route path="/education-main" element={<EducationMainPage />} />
+      <Route path="/articles" element={<ArticlesListPage />} />
+      <Route path="/patient-stories" element={<PatientStoriesListPage />} />
+      <Route path="/stories/:id" element={<EducationDetailView />} />
+      <Route path="/articles/:id" element={<EducationDetailView />} />
+      <Route path="/write-education" element={<EducationWritePage />} />
     </Routes>
   </div>
 );

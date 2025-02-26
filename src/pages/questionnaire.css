@@ -1,0 +1,14 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+//Questionnaire CSS
+.heading {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 60px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+  background: linear-gradient(135deg, #7b1fa2 0%, #7c3aed 100%);
+  color: white;
+}
