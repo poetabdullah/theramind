@@ -17,6 +17,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "none", label: "None of the above" },
       ],
       category: "conditionornotpt1",
+      questionNumber: 1
     },
     //Question # 2
     {
@@ -28,6 +29,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "no_symptoms", label: "No" },
       ],
       category: "conditionornotpt2",
+      questionNumber: 2
     },
     //Question # 4
     {
@@ -39,6 +41,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "no_suicidalthoughts", label: "No" },
       ],
       category: "suicidalthoughtsornot",
+      questionNumber: 3
     },
     //Question # 6
     {
@@ -53,6 +56,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "OCD", label: "Obsessing over some particular things & feeling the need to make things “just right”" },
       ],
       category: "whichconditionpt1",
+      questionNumber: 4
     },
     //Question # 7
     {
@@ -67,6 +71,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "OCD", label: "Feeling irritated when things are not going a certain way" },
       ],
       category: "whichconditionpt2",
+      questionNumber: 5
     },
     //Question # 8
     {
@@ -81,6 +86,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "OCD", label: "Feeling the urge to make things symmetrical & clean" },
       ],
       category: "whichconditionpt3",
+      questionNumber: 6
     },
     //Question # 9
     {
@@ -95,6 +101,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "OCD", label: "Excess cleaning, constantly arranging & repeatedly checking things" },
       ],
       category: "whichconditionpt4",
+      questionNumber: 7
     },
     //Question # 10: Specific Questionnaire - OCD: Checking OCD
     {
@@ -109,6 +116,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "checkingocdpt1",
+      questionNumber: 8
     },
     //Question # 11: 
     {
@@ -123,6 +131,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "checkingocdpt2",
+      questionNumber: 9
     },
     //Question # 11: 
     {
@@ -137,6 +146,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "checkingocdpt3",
+      questionNumber: 10
     },
     //Question # 12: Specific Questionnaire - OCD: Symmetry/Ordering OCD
     {
@@ -151,6 +161,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "symmetryocdpt1",
+      questionNumber: 11
     },
     //Question # 13
     {
@@ -165,6 +176,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "symmetryocdpt2",
+      questionNumber: 12
     },
     //Question # 14
     {
@@ -179,6 +191,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "symmetryocdpt3",
+      questionNumber: 13
     },
     //Question # 15: Specific Questionnaire - OCD: Contamination OCD
     {
@@ -193,6 +206,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "contaminationocdpt1",
+      questionNumber: 14
     },
     //Question # 16
     {
@@ -207,6 +221,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "contaminationocdpt2",
+      questionNumber: 15
     },
     //Question # 17
     {
@@ -221,6 +236,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "contaminationocdpt3",
+      questionNumber: 16
     },
     //Question # 18: Specific Questionnaire - Stress: Acute Stress 
     {
@@ -235,6 +251,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "acutestresspt1",
+      questionNumber: 17
     },
     //Question # 19 
     {
@@ -249,6 +266,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "acutestresspt2",
+      questionNumber: 18
     },
     //Question # 20 
     {
@@ -263,6 +281,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "acutestresspt3",
+      questionNumber: 19
     },
     //Question # 21
     {
@@ -277,6 +296,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "acutestresspt4",
+      questionNumber: 20
     },
     //Question # 22
     {
@@ -291,6 +311,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "acutestresspt5",
+      questionNumber: 21
     },
     //Question # 23: Specific Questionnaire - Stress: Chronic Stress 
     {
@@ -305,6 +326,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt1",
+      questionNumber: 22
     },
     //Question # 24
     {
@@ -319,6 +341,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt2",
+      questionNumber: 23
     },
     //Question # 25
     {
@@ -333,6 +356,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt3",
+      questionNumber: 24
     },
     //Question # 26
     {
@@ -347,6 +371,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt4",
+      questionNumber: 25
     },
     //Question # 27
     {
@@ -361,6 +386,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt5",
+      questionNumber: 26
     },
     //Question # 28: Specific Questionnaire - Stress: Episodic Chronic Stress 
     {
@@ -375,6 +401,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt1",
+      questionNumber: 27
     },
     //Question # 29
     {
@@ -389,6 +416,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt2",
+      questionNumber: 28
     },
     //Question # 30
     {
@@ -403,6 +431,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt3",
+      questionNumber: 29
     },
     //Question # 31
     {
@@ -417,6 +446,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt4",
+      questionNumber: 30
     },
     //Question # 32
     {
@@ -431,6 +461,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt5",
+      questionNumber: 31
     },
     //Question # 33: Specific Questionnaire - Depression: Major Depressive Disorder 
     {
@@ -442,6 +473,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "majordepressivedisorderpt1",
+      questionNumber: 32
     },
     //Question # 34
     {
@@ -453,55 +485,21 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "majordepressivedisorderpt2",
+      questionNumber: 33
     },
     //Question # 35
     {
       id: "question34",
-      text: " In the past 2 weeks how often have you experienced the following:",
+      text: "In the past 2 weeks how often have you experienced the following: feeling hopeless, sense of worthlessness, trouble focusing or indecisiveness.",
       type: "radio",
-      subquestions: [
-        {
-          id: "q34_1",
-          text: "I. Losing interest in activities and feeling hopeless",
-          options: [
-            { label: "Not at all", score: 0 },
-            { label: "Several days", score: 1 },
-            { label: "More than half the days", score: 2 },
-            { label: "Nearly every day", score: 3 }
-          ]
-        },
-        {
-          id: "q34_2",
-          text: "II. Feeling a sense of worthlessness or excessive guilt",
-          options: [
-            { label: "Not at all", score: 0 },
-            { label: "Several days", score: 1 },
-            { label: "More than half the days", score: 2 },
-            { label: "Nearly every day", score: 3 }
-          ]
-        },
-        {
-          id: "q34_3",
-          text: "III. Overwhelmed by small tasks and trouble focusing",
-          options: [
-            { label: "Not at all", score: 0 },
-            { label: "Several days", score: 1 },
-            { label: "More than half the days", score: 2 },
-            { label: "Nearly every day", score: 3 }
-          ]
-        },
-        {
-          id: "q34_4",
-          text: "IV. Indecisiveness, inability to solve problems",
-          options: [
-            { label: "Not at all", score: 0 },
-            { label: "Several days", score: 1 },
-            { label: "More than half the days", score: 2 },
-            { label: "Nearly every day", score: 3 }
-          ]
-        },
+      options: [
+        { label: "Not at all", score: 0 },
+        { label: "Several days", score: 1 },
+        { label: "More than half the days", score: 2 },
+        { label: "Nearly every day", score: 3 }
       ],
       category: "majordepressivedisorderpt3",
+      questionNumber: 34
     },
     //Question # 36
     {
@@ -513,6 +511,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "majordepressivedisorderpt4",
+      questionNumber: 35
     },
     //Question # 37: Specific Questionnaire - Depression: Postpartum Depression
     {
@@ -524,55 +523,19 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "postpartumdepressionpt1",
+      questionNumber: 36
     },
     //Question # 38
     {
       id: "question37",
-      text: "Since the birth of your child, have you experienced the following:",
+      text: "Since the birth of your child, have you experienced the following: feeling overwhelmed about the ability to care for your baby, crying for no reason, difficulty in bonding or guilt or shame about how you feel as a mother?",
       type: "radio",
-      subquestions: [
-        {
-          id: "q37_1",
-          text: "I. Feeling overwhelmed and anxious about your ability to care for the baby",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 }
-          ]
-        },
-        {
-          id: "q37_2",
-          text: "II. Crying for no clear reason",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 }
-          ]
-        },
-        {
-          id: "q37_3",
-          text: "III. Feeling disconnected from your baby, difficulty in bonding",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 }
-          ]
-        },
-        {
-          id: "q37_4",
-          text: "IV. Lack of interest in activities you previously enjoyed",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 }
-          ]
-        },
-        {
-          id: "q37_5",
-          text: "V. Guilt or shame about how you feel as a mother",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 }
-          ]
-        },
+      options: [
+        { label: "Yes", score: 1 },
+        { label: "No", score: 0 }
       ],
       category: "postpartumdepressionpt2",
+      questionNumber: 37
     },
     //Question # 39
     {
@@ -584,6 +547,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "postpartumdepressionpt3",
+      questionNumber: 38
     },
     //Question # 40: Specific Questionnaire - Depression: Atypical Depression
     {
@@ -595,6 +559,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "atypicaldepressionpt1",
+      questionNumber: 39
     },
     //Question # 41
     {
@@ -606,6 +571,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "atypicaldepressionpt2",
+      questionNumber: 40
     },
     //Question # 42
     {
@@ -617,45 +583,21 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "atypicaldepressionpt3",
+      questionNumber: 41
     },
     //Question # 43
     {
       id: "question42",
-      text: "In the past 2 weeks, how often have you experienced the following:",
+      text: "In the past 2 weeks, how often have you experienced the following: increased appetite or cravings, overly sensitive to rejection & criticism or a sense of heaviness in arms or legs?",
       type: "radio",
-      subquestions: [
-        {
-          id: "q42_1",
-          text: "I. Increased appetite or cravings, particularly for carbohydrates",
-          options: [
-            { label: "Not at all", score: 0 },
-            { label: "Several days", score: 1 },
-            { label: "More than half the days", score: 2 },
-            { label: "Nearly every day", score: 3 }
-          ]
-        },
-        {
-          id: "q42_2",
-          text: "II. Sense of heaviness in your arms or legs that makes it hard to move",
-          options: [
-            { label: "Not at all", score: 0 },
-            { label: "Several days", score: 1 },
-            { label: "More than half the days", score: 2 },
-            { label: "Nearly every day", score: 3 }
-          ]
-        },
-        {
-          id: "q42_3",
-          text: "III. Overly sensitive to rejection or criticism from others",
-          options: [
-            { label: "Not at all", score: 0 },
-            { label: "Several days", score: 1 },
-            { label: "More than half the days", score: 2 },
-            { label: "Nearly every day", score: 3 }
-          ]
-        },
+      options: [
+        { label: "Not at all", score: 0 },
+        { label: "Several days", score: 1 },
+        { label: "More than half the days", score: 2 },
+        { label: "Nearly every day", score: 3 }
       ],
       category: "atypicaldepressionpt4",
+      questionNumber: 42
     },
     //Question # 44: Specific Questionnaire - Anxiety: Generalized Anxiety Disorder 
     {
@@ -670,6 +612,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "generalizedanxietydisorderpt1",
+      questionNumber: 43
     },
     //Question # 45
     {
@@ -684,70 +627,22 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "generalizedanxietydisorderpt2",
+      questionNumber: 44
     },
     //Question # 46
     {
       id: "question45",
-      text: "How often have you experienced the following symptoms in the past 6 months?",
+      text: "How often have you experienced the following symptoms in the past 6 months? Feeling on edge, having muscle tension, irritability, difficulty concentrating or difficulty sleeping.",
       type: "radio",
-      subquestions: [
-        {
-          id: "q45_1",
-          text: "I. Restlessness or feeling on edge:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q45_2",
-          text: "II. Being easily fatigued & having muscle tension:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q45_3",
-          text: "III. Difficulty concentrating & going blank:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q45_4",
-          text: "IV. Irritability:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q45_5",
-          text: "V. Sleep disturbances (difficulty falling asleep, staying asleep, or unsatisfying sleep):",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 }
       ],
       category: "generalizedanxietydisorderpt3",
+      questionNumber: 45
     },
     //Question # 47: Specific Questionnaire - Anxiety: Panic Disorder 
     {
@@ -762,70 +657,22 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "panicdisorderpt1",
+      questionNumber: 46
     },
     //Question # 48
     {
       id: "question47",
-      text: "During a panic attack, do you experience the following symptoms?",
+      text: "During a panic attack, do you experience the following symptoms? accelerated heart rate, sweating, trembling, feeling dizzy or nausea or fear of dying.",
       type: "radio",
-      subquestions: [
-        {
-          id: "q47_1",
-          text: "I. Heart palpitations, accelerated heart rate, or shortness of breath:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q47_2",
-          text: "II. Sweating, trembling, or shaking:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q47_3",
-          text: "III. Feeling dizzy, unsteady, or lightheaded:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q47_4",
-          text: "IV. Nausea or abdominal distress:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q47_5",
-          text: "V. Fear of going crazy or dying:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 }
       ],
       category: "panicdisorderpt2",
+      questionNumber: 47
     },
     //Question # 49 
     {
@@ -840,6 +687,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "panicdisorderpt3",
+      questionNumber: 48
     },
     //Question # 50
     {
@@ -854,6 +702,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "panicdisorderpt4",
+      questionNumber: 49
     },
     //Question # 51: Specific Questionnaire - Anxiety: Separation Anxiety Disorder
     {
@@ -868,6 +717,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "separationanxietydisorderpt1",
+      questionNumber: 50
     },
     //Question # 52
     {
@@ -882,37 +732,22 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "separationanxietydisorderpt2",
+      questionNumber: 51
     },
     //Question # 53
     {
       id: "question52",
-      text: "When separated from loved ones, do you experience any of the following?",
+      text: "When separated from loved ones, do you experience any of the following? Headaches, nausea, having nightmares of separation or difficulty focusing on daily activities due to the fear of separation.",
       type: "radio",
-      subquestions: [
-        {
-          id: "q52_1",
-          text: "I. Nausea, stomach aches or headaches:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q53_2",
-          text: "II. Difficulty sleeping without being near a loved one or do you have nightmares of separation:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 }
       ],
       category: "separationanxietydisorderpt3",
+      questionNumber: 52
     },
     //Question # 54
     {
@@ -927,6 +762,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "separationanxietydisorderpt4",
+      questionNumber: 53
     },
     //Question # 55: Specific Questionnaire - Trauma: Singe Event Trauma
     {
@@ -941,37 +777,21 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt1",
+      questionNumber: 54
     },
     //Question # 56
     {
       id: "question55",
-      text: "If yes, do you frequently re-experience this event through:",
-      type: "radio",
-      subquestions: [
-        {
-          id: "q55_1",
-          text: "I. Intrusive thoughts or memories:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q55_2",
-          text: "II. Nightmares or flashbacks (feeling like the event is happening again):",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
+      text: "If yes, do you frequently re-experience this event through: intrusive thoughts, flashbacks (feeling like the event is happening again) or feeling distress when reminded of that event.",
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 }
       ],
       category: "singleventtraumaept2",
+      questionNumber: 55
     },
     //Question # 57
     {
@@ -986,6 +806,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt3",
+      questionNumber: 56
     },
     //Question # 58
     {
@@ -1000,6 +821,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt4",
+      questionNumber: 57
     },
     //Question # 59
     {
@@ -1014,6 +836,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt5",
+      questionNumber: 58
     },
     //Question # 60: Specific Questionnaire - Trauma: Complex Trauma
     {
@@ -1028,6 +851,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "complextraumapt1",
+      questionNumber: 59
     },
     //Question # 61
     {
@@ -1042,6 +866,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "complextraumapt2",
+      questionNumber: 60
     },
     //Question # 62
     {
@@ -1056,6 +881,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "complextraumapt3",
+      questionNumber: 61
     },
     //Question # 63
     {
@@ -1070,48 +896,22 @@ const saveQuestionsToFirestore = async () => {
         { label: "Extremely", score: 4 },
       ],
       category: "complextraumapt4",
+      questionNumber: 62
     },
     //Question # 64
     {
       id: "question63",
-      text: "Do you often feel:",
+      text: "Do you often feel: emotionally numb, intense feeling of guilt, shame & worthlessness or difficulty seeing a future for yourself.",
       type: "radio",
-      subquestions: [
-        {
-          id: "q63_1",
-          text: "I. Emotionally numb or disconnected from your emotions:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q63_2",
-          text: "II. Intense feelings of guilt, shame & worthlessness:",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
-        {
-          id: "q63_3",
-          text: "III. A sense of hopelessness or difficulty seeing a future for yourself?",
-          options: [
-            { label: "Not likely at all", score: 0 },
-            { label: "A little", score: 1 },
-            { label: "Moderately", score: 2 },
-            { label: "A lot", score: 3 },
-            { label: "Extremely", score: 4 }
-          ]
-        },
+      options: [
+        { label: "Not likely at all", score: 0 },
+        { label: "A little", score: 1 },
+        { label: "Moderately", score: 2 },
+        { label: "A lot", score: 3 },
+        { label: "Extremely", score: 4 }
       ],
       category: "complextraumaept5",
+      questionNumber: 63
     },
     //Question # 65: Specific Questionnaire - Trauma: Developmental Trauma
     {
@@ -1123,6 +923,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "developmentaltraumapt1",
+      questionNumber: 64
     },
     //Question # 66
     {
@@ -1134,72 +935,31 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "developmentaltraumapt2",
+      questionNumber: 65
     },
     //Question # 67
     {
       id: "question66",
-      text: "Do you have difficulty with:",
+      text: "Do you have difficulty with: Trusting others, forming secure attachments or feeling safe.",
       type: "radio",
-      subquestions: [
-        {
-          id: "q66_1",
-          text: "I. Trusting others?",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 },
-          ]
-        },
-        {
-          id: "q66_2",
-          text: "II. Forming secure attachments or close relationships?",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 },
-          ]
-        },
-        {
-          id: "q66_3",
-          text: "III. Feeling safe or grounded?",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 },
-          ]
-        },
+      options: [
+        { label: "Yes", score: 1 },
+        { label: "No", score: 0 },
       ],
       category: "developmentaltraumapt3",
+      questionNumber: 66
     },
     //Question # 68
     {
       id: "question67",
-      text: "Do you struggle with:",
+      text: "Do you struggle with: Regulating your emotions, healthily managing stress or avoiding relationships entirely.",
       type: "radio",
-      subquestions: [
-        {
-          id: "q67_1",
-          text: "I. Recognizing or regulating your emotions?",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 },
-          ]
-        },
-        {
-          id: "q67_2",
-          text: "II. Healthily managing stress?",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 },
-          ]
-        },
-        {
-          id: "q67_3",
-          text: "III. Being overly dependent on or avoiding relationships entirely?",
-          options: [
-            { label: "Yes", score: 1 },
-            { label: "No", score: 0 },
-          ]
-        },
+      options: [
+        { label: "Yes", score: 1 },
+        { label: "No", score: 0 },
       ],
       category: "developmentaltraumapt4",
+      questionNumber: 67
     },
     //Question # 69
     {
@@ -1211,6 +971,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "developmentaltraumapt5",
+      questionNumber: 68
     },
     //Question # 70
     {
@@ -1222,6 +983,7 @@ const saveQuestionsToFirestore = async () => {
         { label: "No", score: 0 },
       ],
       category: "developmentaltraumapt6",
+      questionNumber: 69
     },
   ];
   for (const question of questions) {
