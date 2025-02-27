@@ -59,7 +59,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link
               to="/"
-              className="text-2xl font-bold text-blue-400 hover:text-orange-400 transition-colors duration-200 no-underline"
+              className="text-2xl font-bold text-orange-300 hover:text-orange-400 transition-colors duration-200 no-underline"
               onClick={() => setMenuOpen(false)}
             >
               TheraMind
@@ -69,7 +69,7 @@ const Navbar = () => {
           {/* Menu Button (Mobile) */}
           <div className="flex lg:hidden">
             <button
-              className="text-blue-400 hover:text-orange-400 p-2"
+              className="text-orange-300 hover:text-orange-400 p-2"
               onClick={() => setMenuOpen(!menuOpen)}
             >
               {menuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -82,37 +82,37 @@ const Navbar = () => {
             <div className="flex items-center justify-center flex-1 space-x-12">
               <Link
                 to="/Questionnaire"
-                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
                 Questionnaire
               </Link>
               <Link
                 to="/meditation"
-                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
                 Meditation
               </Link>
               <Link
                 to="/TheraChat"
-                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
                 TheraChat
               </Link>
               <Link
                 to="/education-main"
-                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
                 Education
               </Link>
               <Link
                 to="/contact-us"
-                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
                 Contact Us
               </Link>
               <Link
                 to="/about-us"
-                className="text-blue-400 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
               >
                 About Us
               </Link>
@@ -123,13 +123,13 @@ const Navbar = () => {
               <div className="flex items-center space-x-4 ml-12">
                 <Link
                   to="/signup"
-                  className="bg-pink-500 text-white px-6 py-2.5 rounded-lg hover:bg-pink-600 transition-colors duration-200 text-base font-medium no-underline"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-base font-medium no-underline"
                 >
                   Sign Up
                 </Link>
                 <Link
                   to="/login"
-                  className="bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 transition-colors duration-200 text-base font-medium no-underline"
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2.5 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-colors duration-200 text-base font-medium no-underline"
                 >
                   Login
                 </Link>
@@ -144,12 +144,12 @@ const Navbar = () => {
                       className="w-10 h-10 rounded-full border-2 border-white"
                     />
                   )}
-                  <span className="text-blue-400 font-medium">
+                  <span className="text-orange-300 font-medium">
                     {user.displayName}
                   </span>
                   <button
                     onClick={handleLogout}
-                    className="bg-red-500 text-white px-6 py-2.5 rounded-lg hover:bg-red-600 transition-colors duration-200 font-medium"
+                    className="bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-purple-800 hover:to-indigo-800 transition-colors duration-200 font-medium"
                   >
                     Logout
                   </button>
@@ -174,7 +174,7 @@ const Navbar = () => {
           >
             <div className="flex justify-end p-4">
               <button
-                className="text-blue-400 hover:text-orange-400 p-2"
+                className="text-orange-300 hover:text-orange-400 p-2"
                 onClick={() => setMenuOpen(false)}
               >
                 <X size={24} />
@@ -184,42 +184,42 @@ const Navbar = () => {
             <div className="px-4 py-2 space-y-6">
               <Link
                 to="/#about"
-                className="block text-blue-400 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 About
               </Link>
               <Link
                 to="/Questionnaire"
-                className="block text-blue-400 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Questionnaire
               </Link>
               <Link
                 to="/meditation"
-                className="block text-blue-400 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Meditation
               </Link>
               <Link
                 to="/TheraChat"
-                className="block text-blue-400 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 TheraChat
               </Link>
               <Link
                 to="/EducationMain"
-                className="block text-blue-400 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Education
               </Link>
               <Link
                 to="/ContactUs"
-                className="block text-blue-400 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Contact Us
@@ -229,14 +229,14 @@ const Navbar = () => {
                 <div className="space-y-4 pt-6 pb-8">
                   <Link
                     to="/signup"
-                    className="block bg-pink-500 text-white px-6 py-2.5 rounded-lg hover:bg-pink-600 transition-colors duration-200 text-center font-medium no-underline"
+                    className="block bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-center font-medium no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
                     Sign Up
                   </Link>
                   <Link
                     to="/login"
-                    className="block bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 transition-colors duration-200 text-center font-medium no-underline"
+                    className="block bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2.5 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-colors duration-200 text-center font-medium no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
                     Login
@@ -253,13 +253,13 @@ const Navbar = () => {
                           className="w-10 h-10 rounded-full border-2 border-white"
                         />
                       )}
-                      <span className="text-blue-400 font-medium">
+                      <span className="text-orange-300 font-medium">
                         {user.displayName}
                       </span>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="w-full bg-red-500 text-white px-6 py-2.5 rounded-lg hover:bg-red-600 transition-colors duration-200 font-medium"
+                      className="w-full bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-purple-800 hover:to-indigo-800 transition-colors duration-200 font-medium"
                     >
                       Logout
                     </button>
