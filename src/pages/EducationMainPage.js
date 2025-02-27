@@ -162,12 +162,11 @@ export default function EducationMainPage() {
         >
           {/* Card 1: Expert Articles */}
           <motion.div
-            className="bg-white bg-opacity-70 backdrop-blur-sm p-6 shadow-lg border border-purple-100 rounded-3xl"
+            className="bg-white p-6 shadow-lg border border-purple-100 rounded-3xl"
             whileHover={{
               scale: 1.02,
               boxShadow:
                 "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-              backgroundColor: "rgba(255, 255, 255, 0.85)",
             }}
             transition={{ duration: 0.3 }}
           >
@@ -200,12 +199,11 @@ export default function EducationMainPage() {
 
           {/* Card 2: Patient Stories */}
           <motion.div
-            className="bg-white bg-opacity-70 backdrop-blur-sm p-6 shadow-lg border border-purple-100 rounded-3xl"
+            className="bg-white p-6 shadow-lg border border-purple-100 rounded-3xl"
             whileHover={{
               scale: 1.02,
               boxShadow:
                 "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-              backgroundColor: "rgba(255, 255, 255, 0.85)",
             }}
             transition={{ duration: 0.3 }}
           >
@@ -238,12 +236,11 @@ export default function EducationMainPage() {
 
           {/* Card 3: Advocacy */}
           <motion.div
-            className="bg-white bg-opacity-70 backdrop-blur-sm p-6 shadow-lg border border-purple-100 rounded-3xl"
+            className="bg-white p-6 shadow-lg border border-purple-100 rounded-3xl"
             whileHover={{
               scale: 1.02,
               boxShadow:
                 "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-              backgroundColor: "rgba(255, 255, 255, 0.85)",
             }}
             transition={{ duration: 0.3 }}
           >
