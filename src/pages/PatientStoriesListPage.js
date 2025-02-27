@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
 import PageBanner from "../components/PageBanner";
 import ListViewCard from "../components/ListViewCard";
 import Footer from "../components/Footer";
@@ -13,6 +14,7 @@ const PatientStoriesListPage = () => {
   const [error, setError] = useState(null);
   const [selectedTags, setSelectedTags] = useState([]);
   const [noResults, setNoResults] = useState(false);
+  const [animationCompleted, setAnimationCompleted] = useState(false);
 
   useEffect(() => {
     fetchStories();
@@ -61,17 +63,38 @@ const PatientStoriesListPage = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <PageBanner
-        title="Read Real Patient Stories"
-        subtitle="Discover experiences shared by individuals on their mental health journeys."
-        background="bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400"
-      />
+      <motion.div
+        className="text-white py-20 text-center transition-all duration-1000 bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400"
+        initial={{
+          background: "conic-gradient(from 0deg, #800080, #4b0082, #800080)",
+        }}
+        animate={{
+          background: animationCompleted
+            ? "linear-gradient(to right, #4b0082, #800080)"
+            : [
+                "conic-gradient(from 0deg, #800080, #4b0082, #800080)",
+                "conic-gradient(from 120deg, #4b0082, #800080, #4b0082)",
+                "conic-gradient(from 240deg, #800080, #4b0082, #800080)",
+                "linear-gradient(to right, #4b0082, #800080)",
+              ],
+        }}
+        transition={{ duration: 4, ease: "easeInOut" }}
+        onAnimationComplete={() => setAnimationCompleted(true)}
+      >
+        <h1 className="text-5xl font-extrabold tracking-wide leading-snug drop-shadow-lg">
+          Read Real Patient Stories
+        </h1>
+        <p className="mt-6 text-lg md:text-xl max-w-xl mx-auto font-light">
+          Discover experiences shared by individuals on their mental health
+          journeys.
+        </p>
+      </motion.div>
 
       <div className="max-w-5xl mx-auto py-6 px-6">
         <TagSearchBar
           themeColor="purple"
           onSearch={setSelectedTags}
-          selectedTags={selectedTags} // Ensures tags persist
+          selectedTags={selectedTags}
         />
 
         {selectedTags.length > 0 && (
@@ -116,36 +139,6 @@ const PatientStoriesListPage = () => {
                 />
               ))}
             </div>
-
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8 space-x-4">
-                <button
-                  onClick={prevPage}
-                  disabled={page === 1}
-                  className={`px-4 py-2 rounded-lg ${
-                    page === 1
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-purple-500 text-white"
-                  }`}
-                >
-                  Previous
-                </button>
-                <span className="text-purple-600 font-semibold">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={nextPage}
-                  disabled={page === totalPages}
-                  className={`px-4 py-2 rounded-lg ${
-                    page === totalPages
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-purple-500 text-white"
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
