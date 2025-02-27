@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [educationDropdownOpen, setEducationDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const auth = getAuth();
 
   useEffect(() => {
@@ -39,6 +41,20 @@ const Navbar = () => {
     });
     return () => unsubscribe();
   }, [auth]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setEducationDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -100,12 +116,45 @@ const Navbar = () => {
                   >
                     TheraChat
                   </Link>
-                  <Link
-                    to="/education-main"
-                    className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
+
+                  {/* Education Dropdown */}
+                  <div
+                    className="relative group"
+                    ref={dropdownRef}
+                    onMouseEnter={() => setEducationDropdownOpen(true)}
+                    onMouseLeave={() => setEducationDropdownOpen(false)}
                   >
-                    Education
-                  </Link>
+                    <button className="flex items-center text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg">
+                      Education
+                      <ChevronDown size={18} className="ml-1" />
+                    </button>
+
+                    <div
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
+                        educationDropdownOpen
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible -translate-y-2"
+                      }`}
+                    >
+                      <div className="py-1">
+                        <Link
+                          to="articles"
+                          className="block px-4 py-2 text-orange-300 hover:bg-violet-800 hover:text-orange-500 transition-colors duration-200 no-underline"
+                          onClick={() => setEducationDropdownOpen(false)}
+                        >
+                          Articles
+                        </Link>
+                        <Link
+                          to="patient-stories"
+                          className="block px-4 py-2 text-orange-300 hover:bg-violet-800 hover:text-orange-500 transition-colors duration-200 no-underline"
+                          onClick={() => setEducationDropdownOpen(false)}
+                        >
+                          Patient Stories
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+
                   <Link
                     to="/contact-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
@@ -127,12 +176,45 @@ const Navbar = () => {
                   >
                     Meditation
                   </Link>
-                  <Link
-                    to="/education-main"
-                    className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
+
+                  {/* Education Dropdown for non-logged-in users */}
+                  <div
+                    className="relative group"
+                    ref={dropdownRef}
+                    onMouseEnter={() => setEducationDropdownOpen(true)}
+                    onMouseLeave={() => setEducationDropdownOpen(false)}
                   >
-                    Education
-                  </Link>
+                    <button className="flex items-center text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg">
+                      Education
+                      <ChevronDown size={18} className="ml-1" />
+                    </button>
+
+                    <div
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
+                        educationDropdownOpen
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible -translate-y-2"
+                      }`}
+                    >
+                      <div className="py-1">
+                        <Link
+                          to="articles"
+                          className="block px-4 py-2 text-orange-300 hover:bg-violet-800 hover:text-orange-500 transition-colors duration-200 no-underline"
+                          onClick={() => setEducationDropdownOpen(false)}
+                        >
+                          Articles
+                        </Link>
+                        <Link
+                          to="patient-stories"
+                          className="block px-4 py-2 text-orange-300 hover:bg-violet-800 hover:text-orange-500 transition-colors duration-200 no-underline"
+                          onClick={() => setEducationDropdownOpen(false)}
+                        >
+                          Patient Stories
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+
                   <Link
                     to="/contact-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
@@ -236,13 +318,30 @@ const Navbar = () => {
                   >
                     TheraChat
                   </Link>
-                  <Link
-                    to="/EducationMain"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Education
-                  </Link>
+
+                  {/* Education Dropdown for Mobile */}
+                  <div className="py-2">
+                    <p className="text-orange-300 text-lg font-medium">
+                      Education
+                    </p>
+                    <div className="ml-4 mt-2 space-y-2">
+                      <Link
+                        to="articles"
+                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Articles
+                      </Link>
+                      <Link
+                        to="patient-stories"
+                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Patient Stories
+                      </Link>
+                    </div>
+                  </div>
+
                   <Link
                     to="/ContactUs"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
@@ -267,13 +366,30 @@ const Navbar = () => {
                   >
                     Meditation
                   </Link>
-                  <Link
-                    to="/EducationMain"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Education
-                  </Link>
+
+                  {/* Education Dropdown for Mobile */}
+                  <div className="py-2">
+                    <p className="text-orange-300 text-lg font-medium">
+                      Education
+                    </p>
+                    <div className="ml-4 mt-2 space-y-2">
+                      <Link
+                        to="articles"
+                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Articles
+                      </Link>
+                      <Link
+                        to="patient-stories"
+                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Patient Stories
+                      </Link>
+                    </div>
+                  </div>
+
                   <Link
                     to="/ContactUs"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
