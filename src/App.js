@@ -15,6 +15,7 @@ import ArticlesListPage from "./pages/ArticlesListPage";
 import PatientStoriesListPage from "./pages/PatientStoriesListPage";
 import EducationDetailView from "./pages/EducationDetailView";
 import EducationWritePage from "./pages/EducationWritePage";
+import SplashScreen from "./pages/SplashScreen";
 
 const App = () => (
   <div>
@@ -25,7 +26,6 @@ const App = () => (
       <Route path="/questionnaire" element={<Questionnaire />} />
       <Route path="/contact-us" element={<ContactUs />} />
       <Route path="/about-us" element={<AboutUs />} />
-
       <Route path="/signup" element={<PatientSignUp />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/therachat" element={<TheraChat />} />
@@ -35,6 +35,7 @@ const App = () => (
       <Route path="/stories/:id" element={<EducationDetailView />} />
       <Route path="/articles/:id" element={<EducationDetailView />} />
       <Route path="/write-education" element={<EducationWritePage />} />
+      <Route path="/splash-screen" element={<SplashScreen />} />
     </Routes>
   </div>
 );
