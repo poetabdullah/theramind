@@ -59,7 +59,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link
               to="/"
-              className="text-2xl font-bold text-orange-300 hover:text-orange-400 transition-colors duration-200 no-underline"
+              className="text-2xl font-bold text-orange-300 hover:text-orange-500 transition-colors duration-200 no-underline"
               onClick={() => setMenuOpen(false)}
             >
               TheraMind
@@ -69,7 +69,7 @@ const Navbar = () => {
           {/* Menu Button (Mobile) */}
           <div className="flex lg:hidden">
             <button
-              className="text-orange-300 hover:text-orange-400 p-2"
+              className="text-orange-300 hover:text-orange-500 p-2"
               onClick={() => setMenuOpen(!menuOpen)}
             >
               {menuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -82,37 +82,37 @@ const Navbar = () => {
             <div className="flex items-center justify-center flex-1 space-x-12">
               <Link
                 to="/Questionnaire"
-                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
               >
                 Questionnaire
               </Link>
               <Link
                 to="/meditation"
-                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
               >
                 Meditation
               </Link>
               <Link
-                to="/TheraChat"
-                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                to="/splash-screen"
+                className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
               >
                 TheraChat
               </Link>
               <Link
                 to="/education-main"
-                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
               >
                 Education
               </Link>
               <Link
                 to="/contact-us"
-                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
               >
                 Contact Us
               </Link>
               <Link
                 to="/about-us"
-                className="text-orange-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
+                className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
               >
                 About Us
               </Link>
@@ -174,7 +174,7 @@ const Navbar = () => {
           >
             <div className="flex justify-end p-4">
               <button
-                className="text-orange-300 hover:text-orange-400 p-2"
+                className="text-orange-300 hover:text-orange-500 p-2"
                 onClick={() => setMenuOpen(false)}
               >
                 <X size={24} />
@@ -184,42 +184,42 @@ const Navbar = () => {
             <div className="px-4 py-2 space-y-6">
               <Link
                 to="/#about"
-                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 About
               </Link>
               <Link
                 to="/Questionnaire"
-                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Questionnaire
               </Link>
               <Link
                 to="/meditation"
-                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Meditation
               </Link>
               <Link
                 to="/TheraChat"
-                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 TheraChat
               </Link>
               <Link
                 to="/EducationMain"
-                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Education
               </Link>
               <Link
                 to="/ContactUs"
-                className="block text-orange-300 hover:text-orange-400 py-2 text-lg no-underline"
+                className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 Contact Us
