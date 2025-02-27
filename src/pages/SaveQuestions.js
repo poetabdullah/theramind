@@ -24,8 +24,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Are you having any of the following symptoms lately; shortness of breath, constant worry, fatigue/ prolonged muscle tension, insomnia, being easily startled, or spending time on compulsive behaviors?",
       type: "radio",
       options: [
-        { name: "symptoms", label: "Yes" },
-        { name: "symptoms", label: "No" },
+        { name: "yes_symptoms", label: "Yes" },
+        { name: "no_symptoms", label: "No" },
       ],
       category: "conditionornotpt2",
     },
@@ -35,8 +35,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you had any thought that it was better if you were dead, or are you planning on ending your life?",
       type: "radio",
       options: [
-        { name: "suicidalthoughts", label: "Yes" },
-        { name: "suicidalthoughts", label: "No" },
+        { name: "yes_suicidalthoughts", label: "Yes" },
+        { name: "no_suicidalthoughts", label: "No" },
       ],
       category: "suicidalthoughtsornot",
     },
