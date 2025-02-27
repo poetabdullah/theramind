@@ -80,12 +80,26 @@ const TheraChat = () => {
                   : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
               } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
             >
-              <ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  p: ({ node, ...props }) => (
+                    <p className="mb-0.5" {...props} />
+                  ), // Minimal space between paragraphs
+                  ul: ({ node, ...props }) => (
+                    <ul className="ml-4 mt-0 mb-0" {...props} />
+                  ), // No extra margin
+                  li: ({ node, ...props }) => (
+                    <li className="relative pl-4 before:content-['•'] before:absolute before:left-0 before:top-[2px]">
+                      {props.children}
+                    </li>
+                  ),
+                }}
+              >
                 {
                   msg.text
-                    .replace(/\n{3,}/g, "\n\n") // Reduce excessive newlines to max 2
-                    .replace(/\n\s*\n/g, "\n\n") // Ensure proper paragraph breaks
-                    .replace(/•\s*/g, "- ") // Ensure bullet points render correctly
+                    .replace(/\n{3,}/g, "\n") // Reduce excessive newlines
+                    .replace(/\n\s*\n/g, "\n") // Ensure proper paragraph breaks
+                    .replace(/•\s*/g, "") // Remove actual bullet symbols
                 }
               </ReactMarkdown>
             </div>
