@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { collection, getDocs } from "firebase/firestore";
+import { X } from "lucide-react";
 import { db } from "../firebaseConfig.js";
 
-const TagSearchBar = ({ onSearch, themeColor }) => {
+const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
   const [tags, setTags] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchBarRef = useRef(null);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -18,41 +20,82 @@ const TagSearchBar = ({ onSearch, themeColor }) => {
 
   const handleTagClick = (tag) => {
     if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
+      onSearch(selectedTags.filter((t) => t !== tag));
     } else if (selectedTags.length < 3) {
-      setSelectedTags([...selectedTags, tag]);
+      onSearch([...selectedTags, tag]);
     }
   };
 
+  const handleRemoveTag = (tag) => {
+    onSearch(selectedTags.filter((t) => t !== tag));
+  };
+
+  const handleClickOutside = (event) => {
+    if (searchBarRef.current && !searchBarRef.current.contains(event.target)) {
+      setDropdownOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4">
-      <div className="bg-white p-4 rounded-lg shadow-md">
-        <h3 className={`text-lg font-semibold text-${themeColor}-600 mb-2`}>
-          Filter by Tags
-        </h3>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {tags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => handleTagClick(tag)}
-              className={`px-3 py-1 rounded-full border ${
-                selectedTags.includes(tag)
-                  ? `bg-${themeColor}-600 text-white`
-                  : `border-${themeColor}-500 text-${themeColor}-600`
-              }`}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
-        <button
-          className={`bg-${themeColor}-600 text-white px-4 py-2 rounded`}
-          onClick={() => onSearch(selectedTags)}
-          disabled={selectedTags.length === 0}
+    <div className="max-w-5xl mx-auto py-6 px-4 relative" ref={searchBarRef}>
+      <div className="relative">
+        <div
+          className="w-full p-3 border rounded-lg cursor-pointer flex flex-wrap items-center gap-2 bg-white shadow-sm hover:shadow-md transition duration-200"
+          onClick={() => setDropdownOpen(!dropdownOpen)}
         >
-          Search
-        </button>
+          {selectedTags.length > 0 ? (
+            selectedTags.map((tag) => (
+              <span
+                key={tag}
+                className={`bg-${themeColor}-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2`}
+              >
+                {tag}
+                <X
+                  size={14}
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveTag(tag);
+                  }}
+                />
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-400">Select tags...</span>
+          )}
+        </div>
+        {dropdownOpen && (
+          <div className="absolute w-full bg-white border rounded-lg mt-2 shadow-lg z-10 max-h-60 overflow-y-auto p-2">
+            {tags.map((tag) => (
+              <div
+                key={tag}
+                className={`p-2 cursor-pointer rounded-lg transition duration-200 hover:bg-${themeColor}-500 hover:text-white ${
+                  selectedTags.includes(tag)
+                    ? `bg-${themeColor}-600 text-white`
+                    : ""
+                }`}
+                onClick={() => handleTagClick(tag)}
+              >
+                {tag}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+      <button
+        className={`bg-${themeColor}-600 text-white px-4 py-2 rounded mt-4 w-full transition duration-200 hover:bg-${themeColor}-700 disabled:opacity-50`}
+        onClick={() => setDropdownOpen(false)}
+        disabled={selectedTags.length === 0}
+      >
+        Search
+      </button>
     </div>
   );
 };

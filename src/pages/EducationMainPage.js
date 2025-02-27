@@ -26,8 +26,8 @@ export default function EducationMainPage() {
         const articlesData = articlesRes.data.results || [];
         const storiesData = storiesRes.data.results || [];
 
-        setArticles(Array.isArray(articlesData) ? articlesData : []);
-        setPatientStories(Array.isArray(storiesData) ? storiesData : []);
+        setArticles(selectUniqueTagItems(articlesData, 9));
+        setPatientStories(selectUniqueTagItems(storiesData, 9));
       } catch (err) {
         console.error("API Fetch Error:", err.response?.data || err.message);
         setError("Failed to load content. Please check the backend API.");
@@ -38,6 +38,23 @@ export default function EducationMainPage() {
 
     fetchData();
   }, []);
+
+  const selectUniqueTagItems = (items, maxCount) => {
+    const tagMap = new Map();
+    const shuffledItems = items.sort(() => 0.5 - Math.random());
+
+    shuffledItems.forEach((item) => {
+      const tags = Object.values(item.selectedTags || {});
+      for (const tag of tags) {
+        if (!tagMap.has(tag) && tagMap.size < maxCount) {
+          tagMap.set(tag, item);
+          break;
+        }
+      }
+    });
+
+    return Array.from(tagMap.values());
+  };
 
   return (
     <div className="bg-white">
