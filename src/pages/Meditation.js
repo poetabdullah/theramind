@@ -1,4 +1,5 @@
 import React from 'react';
+import Footer from '../components/Footer';
 import { motion } from 'framer-motion';
 
 const Meditation = () => {
@@ -82,13 +83,13 @@ const Meditation = () => {
               </div>
               <h3 className="video-title">{video.title}</h3>
             </motion.div>
-          ))}
+         
+     ))}
         </div>
       </section>
+
     </div>
   );
 };
-
-
 
 export default Meditation;

@@ -3,10 +3,11 @@ import React from 'react';
 const HowItWorks = () => {
   const steps = [
     { id: 1, text: "Create your TheraMind account and fill out a brief questionnaire" },
-    { id: 2, text: "Tell your particular diagnosis" },
-    { id: 3, text: "Get yourself more relaxed with the meditation exercises" },
-    { id: 4, text: "Tell us what's your exact sign in your profile to experience your plan" },
-    { id: 5, text: "Find your guidance, let the technology help you control your mind and enjoy the life" }
+    { id: 2, text: "Fill out a brief questionnaire" },
+    { id: 3, text: "Share your particular diagnosis with an expert" },
+    { id: 4, text: "Book sessions with an expert and get your personal treatment plan" },
+    { id: 5, text: "Tell us what's your exact sign in your profile to experience your plan" },
+    { id: 6, text: "Find your guidance, let the technology help you control your mind and enjoy the life" }
   ];
 
   const stats = [
@@ -31,8 +32,10 @@ const HowItWorks = () => {
             ))}
           </div>
           
-          <div className="gradient-image">
-            {/* Gradient background image */}
+          <div className="illustration">
+          <img 
+               src="https://img.freepik.com/free-vector/mental-health-awareness-concept_23-2148552125.jpg?t=st=1740747044~exp=1740750644~hmac=0fc65d430ab9a00dd27e0075ab6b2d3d578c41e5ae9230780a8684169abb7b08&w=740" 
+          />
           </div>
         </div>
 
