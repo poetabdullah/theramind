@@ -96,7 +96,7 @@ const AboutUs = () => {
             List of key features our platform offers:
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <a href="/questionnaire"
+                <a href="/start-screen"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health Diagnostic Assessment
                 </a><span> - Self-assessment tool to identify the mental health condition and its sub-type.
@@ -111,7 +111,7 @@ const AboutUs = () => {
                 </span>
               </li>
               <li>
-                <a href="/therachat"
+                <a href="/splash-screen"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health ChatBot
                 </a><span> - An AI chatbot that can give responses to queries related to mental health.
