@@ -69,7 +69,7 @@ const PatientDetailForm = ({ onSubmit }) => {
   return (
     <form onSubmit={handleSubmit}>
       <h2 className="text-2xl font-bold text-center mb-6 text-orange-600">
-        Step 2: Enter Additional Details
+        Step 3: Enter Additional Details
       </h2>
 
       {/* Date of Birth Input */}

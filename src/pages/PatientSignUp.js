@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  sendSignInLinkToEmail,
   signOut,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
@@ -12,10 +12,11 @@ import StepProgress from "../components/StepProgress";
 import OAuthSignUp from "../components/OAuthSignUp";
 import PatientDetailForm from "../components/PatientDetailForm";
 import HealthHistoryForm from "../components/HealthHistoryForm";
+import EnterOTPForm from "../components/EnterOTPForm";
 
 const steps = [
   "Sign Up with Google",
-  "Verify Email",
+  "Enter OTP",
   "Enter Details",
   "Health History",
 ];
@@ -32,70 +33,99 @@ const PatientSignUp = () => {
     significantTrauma: "",
     childhoodChallenges: [],
   });
-  const [verificationCodeSent, setVerificationCodeSent] = useState(false);
-  const [verificationCode, setVerificationCode] = useState("");
+  const [otp, setOtp] = useState("");
   const [error, setError] = useState({});
   const navigate = useNavigate();
 
-  const handleGoogleSignUp = async () => {
-    try {
-      // Sign out any existing user (clear cached sessions)
-      await signOut(auth);
+  useEffect(() => {
+    // Clear any existing auth state when component mounts
+    const cleanupAuth = async () => {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.log("No active user to sign out");
+      }
+    };
 
+    cleanupAuth();
+  }, []);
+
+  const handleGoogleSignUp = async () => {
+    setError({});
+    try {
+      await signOut(auth);
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if the user is already registered in Firebase Authentication
-      const userExists = await getDoc(doc(db, "patients", user.email));
-
-      if (userExists.exists()) {
-        console.log("User already exists in Firestore, redirecting...");
-        navigate("/");
-      } else {
-        // Store basic user data locally
-        setUserData({ name: user.displayName, email: user.email });
-
-        // Send email verification (simulating OTP for demo purposes)
-        await sendSignInLinkToEmail(auth, user.email, {
-          url: "https://your-app-domain/verify",
-          handleCodeInApp: true,
-        });
-
-        setVerificationCodeSent(true); // Set this flag to show OTP step
-        setStep(2); // Move to step 2 for verification
-      }
-    } catch (err) {
-      console.error("Google Sign-In Error:", err.message);
+      setUserData({ name: user.displayName || "", email: user.email || "" });
+      await sendEmailVerification(user);
+      setStep(2);
+    } catch (authErr) {
+      console.error("Google Sign-In Error:", authErr.message);
       setError({ general: "Google sign-in failed. Please try again." });
     }
   };
 
-  const handleVerificationSubmit = (code) => {
-    if (code === verificationCode) {
-      setStep(3); // Move to step 3 if verification succeeds
-    } else {
-      setError({ general: "Invalid verification code. Please try again." });
+  const handleVerifyOTP = async () => {
+    try {
+      await auth.currentUser.reload();
+      if (auth.currentUser.emailVerified) {
+        setStep(3);
+        setError({});
+      } else {
+        setError({ general: "Invalid OTP. Please check and try again." });
+      }
+    } catch (err) {
+      console.error("OTP verification failed:", err);
+      setError({ general: "Error verifying OTP. Please try again." });
     }
   };
 
   const handleStepThreeSubmit = (data) => {
-    // Validate the details form and move to step 4
     if (data.dob && data.location) {
       setUserData({ ...userData, ...data });
       setStep(4);
+      setError({});
     } else {
       setError({ general: "Please fill in all required fields." });
     }
   };
 
   const handleStepFourSubmit = async (historyData) => {
-    const finalData = { ...userData, ...historyData, createdAt: new Date() };
+    const finalData = {
+      ...userData,
+      ...historyData,
+      createdAt: new Date(),
+      userId: auth.currentUser ? auth.currentUser.uid : Date.now().toString(),
+    };
+
     try {
-      await setDoc(doc(db, "patients", finalData.email), finalData);
-      navigate("/"); // Redirect to home page after successful sign up
+      const userDoc = await getDoc(doc(db, "patients", finalData.email));
+
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "patients", finalData.email), finalData);
+        console.log("User data saved successfully");
+        navigate("/");
+      } else {
+        console.log("User already exists in database, redirecting...");
+        navigate("/");
+      }
     } catch (err) {
+      console.error("Error saving user data:", err);
       setError({ general: "Failed to save user data. Please try again." });
+    }
+  };
+
+  const handleRetry = async () => {
+    setStep(1);
+    setError({});
+
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Error signing out:", err);
     }
   };
 
@@ -106,36 +136,38 @@ const PatientSignUp = () => {
       </div>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-xl">
         {error.general && (
-          <div className="text-red-500 mb-4">{error.general}</div>
-        )}
-
-        {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
-        {step === 2 && verificationCodeSent && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">
-              Check your email for the verification code
-            </h2>
-            <input
-              type="text"
-              className="w-full p-2 border rounded-lg"
-              placeholder="Enter verification code"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-            />
-            <button
-              onClick={() => handleVerificationSubmit(verificationCode)}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg mt-4"
-            >
-              Verify
-            </button>
-            {error.general && (
-              <p className="text-red-500 mt-2">{error.general}</p>
+          <div className="text-red-500 mb-4 bg-red-50 p-3 rounded border border-red-200">
+            <p>{error.general}</p>
+            {(step === 1 || step === 2) && (
+              <button
+                onClick={handleRetry}
+                className="text-blue-500 underline text-sm mt-2"
+              >
+                Try again
+              </button>
             )}
           </div>
         )}
-        {step === 3 && (
-          <PatientDetailForm onSubmit={handleStepThreeSubmit} error={error} />
+
+        {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
+
+        {step === 2 && (
+          <EnterOTPForm
+            otp={otp}
+            setOtp={setOtp}
+            onSubmit={handleVerifyOTP}
+            error={error.general}
+          />
         )}
+
+        {step === 3 && (
+          <PatientDetailForm
+            onSubmit={handleStepThreeSubmit}
+            error={error}
+            initialData={userData}
+          />
+        )}
+
         {step === 4 && (
           <HealthHistoryForm onSubmit={handleStepFourSubmit} error={error} />
         )}
