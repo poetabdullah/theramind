@@ -18,14 +18,12 @@ const EducationCard = ({ id, title, author, date, tags, content, type }) => {
           badge: "bg-orange-600",
           title: "text-orange-800",
           author: "text-orange-600",
-          border: "border-orange-200",
           tag: "bg-orange-100 text-orange-700 hover:bg-orange-200",
         }
       : {
           badge: "bg-purple-600",
           title: "text-purple-800",
           author: "text-purple-600",
-          border: "border-purple-200",
           tag: "bg-purple-100 text-purple-700 hover:bg-purple-200",
         };
 
@@ -57,16 +55,16 @@ const EducationCard = ({ id, title, author, date, tags, content, type }) => {
         {date ? new Date(date).toLocaleDateString() : "Unknown Date"}
       </p>
 
-      {/* Content Preview with left border styling */}
-      <div
-        className={`text-gray-700 text-sm line-clamp-3 mb-4 border-l-4 ${colors.border} pl-3`}
+      {/* Content Preview - Original version */}
+      <p
+        className="text-gray-700 text-sm line-clamp-3 mb-4"
         dangerouslySetInnerHTML={{
           __html: DOMPurify.sanitize(content) || "No content available.",
         }}
-      ></div>
+      ></p>
 
-      {/* Tags Section with improved styling */}
-      <div className="flex flex-wrap gap-2 mt-3">
+      {/* Tags Section with improved hover styling */}
+      <div className="flex flex-wrap gap-2">
         {Array.isArray(tags) && tags.length > 0 ? (
           tags.map((tag, index) => (
             <span
