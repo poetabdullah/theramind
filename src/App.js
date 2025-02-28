@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
 import Questionnaire from "./pages/Questionnaire";
+import StartScreen from "./pages/StartScreen";
 import ContactUs from "./pages/ContactUs";
 import AboutUs from "./pages/AboutUs";
 import LoginPage from "./pages/LoginPage";
@@ -23,6 +24,7 @@ const App = () => (
       <Route path="/" element={<HomePage />} />
       <Route path="/meditation" element={<Meditation />} />
       <Route path="/questionnaire" element={<Questionnaire />} />
+      <Route path="/start-screen" element={<StartScreen />} />
       <Route path="/contact-us" element={<ContactUs />} />
       <Route path="/about-us" element={<AboutUs />} />
       <Route path="/signup" element={<PatientSignUp />} />

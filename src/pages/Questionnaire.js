@@ -51,11 +51,88 @@ const Questionnaire = () => {
 
   const changeEvent = (event) => {
     const { name, value } = event.target;
-    setResponses((prev) => ({ ...prev, [name]: value }));
+    setResponses((prev) => {
+      const updatedResponses = { ...prev, [name]: value };
+
+      // Reset detected conditions if a question in range 3-6 is changed
+      const questionIndex = questions.findIndex(q => `question_${q.id}` === name);
+      if (questionIndex >= 3 && questionIndex <= 6) {
+        setDetectedConditions([]);  // Clear previously detected conditions
+      }
+
+      return updatedResponses;
+    });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!noConditionDiagnosed && !suicidalThoughts) {
+      if (currentQuestionIndex === 6) {
+        // Step 1: Detect the primary condition
+        const conditionCounts = { Stress: 0, Anxiety: 0, Depression: 0, Trauma: 0, OCD: 0 };
+
+        for (let i = 3; i <= 6; i++) {
+          const selectedCondition = responses[`question_${questions[i]?.id}`];
+          if (selectedCondition && conditionCounts.hasOwnProperty(selectedCondition)) {
+            conditionCounts[selectedCondition]++;
+          }
+        }
+
+        const detectedCondition = Object.keys(conditionCounts).reduce((a, b) =>
+          conditionCounts[a] > conditionCounts[b] ? a : b
+        );
+
+        setDetectedConditions([detectedCondition]);
+
+        // Step 2: Proceed to relevant question range based on detected condition
+        const conditionRanges = {
+          Stress: { start: 16, end: 30 },
+          Depression: { start: 31, end: 41 },
+          Anxiety: { start: 42, end: 52 },
+          Trauma: { start: 53, end: 68 },
+          OCD: { start: 69, end: 80 },
+        };
+
+        if (conditionRanges[detectedCondition]) {
+          setCurrentQuestionIndex(conditionRanges[detectedCondition].start);
+        } else {
+          setCurrentQuestionIndex(7);
+        }
+        return;
+      }
+
+      // Step 3: Track subtype responses only in relevant condition range
+      const detectedCondition = detectedConditions[0];
+      if (detectedCondition && currentQuestionIndex >= 7) {
+        const conditionRanges = {
+          Stress: { start: 16, end: 30 },
+          Depression: { start: 31, end: 41 },
+          Anxiety: { start: 42, end: 52 },
+          Trauma: { start: 53, end: 68 },
+          OCD: { start: 69, end: 80 },
+        };
+
+        if (currentQuestionIndex >= conditionRanges[detectedCondition].start) {
+          const subtypeScores = { Subtype1: 0, Subtype2: 0, Subtype3: 0 };
+
+          questions.slice(conditionRanges[detectedCondition].start, conditionRanges[detectedCondition].end + 1).forEach((question) => {
+            const selectedOption = responses[`question_${question.id}`];
+
+            if (selectedOption && question.category) {
+              subtypeScores[question.category] = (subtypeScores[question.category] || 0) + 1;
+            }
+          });
+
+          // Determine the dominant subtype
+          const detectedSubtype = Object.keys(subtypeScores).reduce((a, b) =>
+            subtypeScores[a] > subtypeScores[b] ? a : b
+          );
+
+          console.log(`Detected Condition: ${detectedCondition}, Subtype: ${detectedSubtype}`);
+          setDetectedConditions([detectedCondition, detectedSubtype]);
+        }
+      }
+
+      // Continue to next question normally
       setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1));
     }
   };
@@ -63,7 +140,38 @@ const Questionnaire = () => {
   const handlePrevious = () => {
     setNoConditionDiagnosed(false);
     setSuicidalThoughts(false);
-    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+
+    const detectedCondition = detectedConditions[0];
+
+    // Define condition ranges
+    const conditionRanges = {
+      Stress: { start: 16, end: 30 },
+      Depression: { start: 31, end: 41 },
+      Anxiety: { start: 42, end: 52 },
+      Trauma: { start: 53, end: 68 },
+      OCD: { start: 69, end: 80 },
+    };
+
+    if (detectedCondition && currentQuestionIndex >= conditionRanges[detectedCondition].start) {
+      // If inside a detected condition range, move back to Q6 (initial condition detection)
+      setCurrentQuestionIndex(6);
+    } else if (currentQuestionIndex === 6) {
+      // If returning from Q6, go back to Q3 (condition selection)
+      setCurrentQuestionIndex(3);
+    } else {
+      // Otherwise, move back one step normally
+      setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+    }
+  };
+
+
+  const getProgress = () => {
+    if (noConditionDiagnosed || suicidalThoughts) return 100; // Show as completed when interrupted
+    if (currentQuestionIndex === 0) return 0;
+    if (currentQuestionIndex <= 1) return 25;
+    if (currentQuestionIndex === 2) return 50;
+    if (currentQuestionIndex >= 3 && currentQuestionIndex <= 6) return 75;
+    return Math.round((currentQuestionIndex / (questions.length - 1)) * 100);
   };
 
   return (
@@ -71,6 +179,21 @@ const Questionnaire = () => {
       <header className="text-center py-4">
         <motion.h2 className="text-3xl font-bold text-purple-600 mt-2" {...fadeInUp}>Diagnostic Questionnaire</motion.h2>
       </header>
+
+      {/* Progress Bar (Hidden when interrupted) */}
+      {!noConditionDiagnosed && !suicidalThoughts && (
+        <div className="w-full max-w-xl mx-auto my-4 px-6">
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <motion.div
+              className="bg-gradient-to-r from-purple-600 to-orange-500 h-2.5 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${getProgress()}%` }}
+              transition={{ duration: 0.5 }}
+            ></motion.div>
+          </div>
+        </div>
+      )}
+
       <main className="flex-grow flex items-center justify-center mb-5">
         <motion.div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-xl relative" {...scaleEffect}>
           <AnimatePresence>
