@@ -54,7 +54,9 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
             selectedTags.map((tag) => (
               <span
                 key={tag}
-                className={`bg-${themeColor}-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2`}
+                className={`${
+                  themeColor === "orange" ? "bg-orange-600" : "bg-purple-600"
+                } text-white px-3 py-1 rounded-full text-sm flex items-center gap-2`}
               >
                 {tag}
                 <X
@@ -76,21 +78,37 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
             {tags.map((tag) => (
               <div
                 key={tag}
-                className={`p-2 cursor-pointer rounded-lg transition duration-200 hover:bg-${themeColor}-500 hover:text-white ${
+                className={`p-2 cursor-pointer rounded-lg transition duration-200 ${
                   selectedTags.includes(tag)
-                    ? `bg-${themeColor}-600 text-white`
+                    ? themeColor === "orange"
+                      ? "bg-orange-600 text-white"
+                      : "bg-purple-600 text-white"
                     : ""
                 }`}
                 onClick={() => handleTagClick(tag)}
               >
-                {tag}
+                <span
+                  className={`block p-2 rounded-lg transition duration-200 ${
+                    selectedTags.includes(tag)
+                      ? ""
+                      : themeColor === "orange"
+                      ? "hover:bg-orange-500 hover:text-white"
+                      : "hover:bg-purple-500 hover:text-white"
+                  }`}
+                >
+                  {tag}
+                </span>
               </div>
             ))}
           </div>
         )}
       </div>
       <button
-        className={`bg-${themeColor}-600 text-white px-4 py-2 rounded mt-4 w-full transition duration-200 hover:bg-${themeColor}-700 disabled:opacity-50`}
+        className={`${
+          themeColor === "orange"
+            ? "bg-orange-600 hover:bg-orange-700"
+            : "bg-purple-600 hover:bg-purple-700"
+        } text-white px-4 py-2 rounded mt-4 w-full transition duration-200 disabled:opacity-50`}
         onClick={() => setDropdownOpen(false)}
         disabled={selectedTags.length === 0}
       >
