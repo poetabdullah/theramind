@@ -78,6 +78,12 @@ const Footer = () => {
               >
                 Patient Stories
               </Link>
+              <Link
+                to="/testimonial"
+                className="block text-gray-300 hover:text-orange-400 no-underline"
+              >
+                Testimonial
+              </Link>
             </nav>
           </div>
 
