@@ -56,9 +56,57 @@ const Questionnaire = () => {
 
   const handleNext = () => {
     if (!noConditionDiagnosed && !suicidalThoughts) {
-      setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1));
+      if (currentQuestionIndex === 6) {
+        // Count selections from questionIndex 3-6
+        const conditionCounts = { Stress: 0, Anxiety: 0, Depression: 0, Trauma: 0, OCD: 0 };
+
+        for (let i = 3; i <= 6; i++) {
+          const selectedCondition = responses[`question_${questions[i]?.id}`];
+          if (selectedCondition && conditionCounts.hasOwnProperty(selectedCondition)) {
+            conditionCounts[selectedCondition]++;
+          }
+        }
+
+        // Determine the most selected condition
+        const detectedCondition = Object.keys(conditionCounts).reduce((a, b) =>
+          conditionCounts[a] > conditionCounts[b] ? a : b
+        );
+
+        setDetectedConditions([detectedCondition]); // Set only the detected condition
+
+        // Define start and end index for each condition
+        const conditionRanges = {
+          Stress: { start: 16, end: 30 },
+          Depression: { start: 31, end: 41 },
+          Anxiety: { start: 42, end: 52 },
+          Trauma: { start: 53, end: 68 },
+          OCD: { start: 69, end: 80 },
+        };
+
+        if (conditionRanges[detectedCondition]) {
+          setCurrentQuestionIndex(conditionRanges[detectedCondition].start);
+        }
+      } else {
+        const detectedCondition = detectedConditions[0];
+        const conditionRanges = {
+          Stress: { end: 30 },
+          Depression: { end: 41 },
+          Anxiety: { end: 52 },
+          Trauma: { end: 68 },
+          OCD: { end: 80 },
+        };
+
+        if (detectedCondition && currentQuestionIndex === conditionRanges[detectedCondition].end) {
+          // Exit the questionnaire after completing relevant questions
+          return;
+        }
+
+        setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1));
+      }
     }
   };
+
+
 
   const handlePrevious = () => {
     setNoConditionDiagnosed(false);
