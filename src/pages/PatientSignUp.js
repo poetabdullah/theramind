@@ -1,10 +1,7 @@
+// PatientSignUp.js (Updated for CAPTCHA)
+
 import React, { useState, useEffect } from "react";
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  sendEmailVerification,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
@@ -12,11 +9,11 @@ import StepProgress from "../components/StepProgress";
 import OAuthSignUp from "../components/OAuthSignUp";
 import PatientDetailForm from "../components/PatientDetailForm";
 import HealthHistoryForm from "../components/HealthHistoryForm";
-import EnterOTPForm from "../components/EnterOTPForm";
+import EnterCaptchaForm from "../components/EnterCaptchaForm";
 
 const steps = [
   "Sign Up with Google",
-  "Enter OTP",
+  "Enter CAPTCHA",
   "Enter Details",
   "Health History",
 ];
@@ -33,12 +30,12 @@ const PatientSignUp = () => {
     significantTrauma: "",
     childhoodChallenges: [],
   });
-  const [otp, setOtp] = useState("");
+  const [captchaCode, setCaptchaCode] = useState("");
+  const [userInput, setUserInput] = useState("");
   const [error, setError] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Clear any existing auth state when component mounts
     const cleanupAuth = async () => {
       try {
         await signOut(auth);
@@ -46,9 +43,23 @@ const PatientSignUp = () => {
         console.log("No active user to sign out");
       }
     };
-
     cleanupAuth();
   }, []);
+
+  useEffect(() => {
+    if (step === 2) {
+      generateCaptcha();
+    }
+  }, [step]);
+
+  const generateCaptcha = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let captcha = "";
+    for (let i = 0; i < 6; i++) {
+      captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaCode(captcha);
+  };
 
   const handleGoogleSignUp = async () => {
     setError({});
@@ -60,7 +71,6 @@ const PatientSignUp = () => {
       const user = result.user;
 
       setUserData({ name: user.displayName || "", email: user.email || "" });
-      await sendEmailVerification(user);
       setStep(2);
     } catch (authErr) {
       console.error("Google Sign-In Error:", authErr.message);
@@ -68,18 +78,13 @@ const PatientSignUp = () => {
     }
   };
 
-  const handleVerifyOTP = async () => {
-    try {
-      await auth.currentUser.reload();
-      if (auth.currentUser.emailVerified) {
-        setStep(3);
-        setError({});
-      } else {
-        setError({ general: "Invalid OTP. Please check and try again." });
-      }
-    } catch (err) {
-      console.error("OTP verification failed:", err);
-      setError({ general: "Error verifying OTP. Please try again." });
+  const handleVerifyCaptcha = () => {
+    if (userInput.trim().toUpperCase() === captchaCode.toUpperCase()) {
+      setStep(3);
+      setError({});
+    } else {
+      setError({ general: "Invalid CAPTCHA. Please try again." });
+      generateCaptcha();
     }
   };
 
@@ -103,29 +108,15 @@ const PatientSignUp = () => {
 
     try {
       const userDoc = await getDoc(doc(db, "patients", finalData.email));
-
       if (!userDoc.exists()) {
         await setDoc(doc(db, "patients", finalData.email), finalData);
-        console.log("User data saved successfully");
         navigate("/");
       } else {
-        console.log("User already exists in database, redirecting...");
         navigate("/");
       }
     } catch (err) {
       console.error("Error saving user data:", err);
       setError({ general: "Failed to save user data. Please try again." });
-    }
-  };
-
-  const handleRetry = async () => {
-    setStep(1);
-    setError({});
-
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error("Error signing out:", err);
     }
   };
 
@@ -138,24 +129,16 @@ const PatientSignUp = () => {
         {error.general && (
           <div className="text-red-500 mb-4 bg-red-50 p-3 rounded border border-red-200">
             <p>{error.general}</p>
-            {(step === 1 || step === 2) && (
-              <button
-                onClick={handleRetry}
-                className="text-blue-500 underline text-sm mt-2"
-              >
-                Try again
-              </button>
-            )}
           </div>
         )}
 
         {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
 
         {step === 2 && (
-          <EnterOTPForm
-            otp={otp}
-            setOtp={setOtp}
-            onSubmit={handleVerifyOTP}
+          <EnterCaptchaForm
+            captchaCode={captchaCode}
+            setUserInput={setUserInput}
+            onSubmit={handleVerifyCaptcha}
             error={error.general}
           />
         )}
