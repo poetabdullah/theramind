@@ -101,7 +101,7 @@ const EducationDetailView = () => {
     <div className="bg-gradient-to-b from-purple-100 via-indigo-50 to-white min-h-screen flex flex-col">
       <div className="max-w-4xl mx-auto flex-grow py-12 px-6 md:px-8 lg:px-4">
         {/* Article Header with improved styling */}
-        <header className="mb-10 border-b border-purple-200 pb-12">
+        <header className="mb-10 border-b border-purple-300 pb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-800 via-indigo-700 to-purple-900 leading-normal pb-12">
             {data.title}
           </h1>
