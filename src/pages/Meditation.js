@@ -28,10 +28,8 @@ const Meditation = () => {
 
       <MeditationTypes />
       <VideoGallery />
-
-      <div className="footer-container">
-        <Footer />
-      </div>
+      <Footer />
+      
     </div>
   );
 };
