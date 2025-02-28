@@ -124,10 +124,13 @@ const Navbar = () => {
                     onMouseEnter={() => setEducationDropdownOpen(true)}
                     onMouseLeave={() => setEducationDropdownOpen(false)}
                   >
-                    <button className="flex items-center text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg">
+                    <Link
+                      to="/education-main"
+                      className="flex items-center text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
+                    >
                       Education
                       <ChevronDown size={18} className="ml-1" />
-                    </button>
+                    </Link>
 
                     <div
                       className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
@@ -183,10 +186,13 @@ const Navbar = () => {
                     onMouseEnter={() => setEducationDropdownOpen(true)}
                     onMouseLeave={() => setEducationDropdownOpen(false)}
                   >
-                    <button className="flex items-center text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg">
+                    <Link
+                      to="/education-main"
+                      className="flex items-center text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
+                    >
                       Education
                       <ChevronDown size={18} className="ml-1" />
-                    </button>
+                    </Link>
 
                     <div
                       className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
@@ -317,9 +323,13 @@ const Navbar = () => {
 
                   {/* Education Dropdown for Mobile */}
                   <div className="py-2">
-                    <p className="text-orange-300 text-lg font-medium">
+                    <Link
+                      to="/education-main"
+                      className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                      onClick={() => setMenuOpen(false)}
+                    >
                       Education
-                    </p>
+                    </Link>
                     <div className="ml-4 mt-2 space-y-2">
                       <Link
                         to="articles"
@@ -365,9 +375,13 @@ const Navbar = () => {
 
                   {/* Education Dropdown for Mobile */}
                   <div className="py-2">
-                    <p className="text-orange-300 text-lg font-medium">
+                    <Link
+                      to="/education-main"
+                      className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                      onClick={() => setMenuOpen(false)}
+                    >
                       Education
-                    </p>
+                    </Link>
                     <div className="ml-4 mt-2 space-y-2">
                       <Link
                         to="articles"
