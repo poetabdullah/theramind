@@ -59,7 +59,7 @@ const HealthHistoryForm = ({ onSubmit }) => {
   return (
     <form onSubmit={handleSubmit}>
       <h2 className="text-2xl font-bold text-center mb-6 text-orange-600">
-        Step 3: Health History
+        Step 4: Health History
       </h2>
 
       {/* Mental Health Conditions */}

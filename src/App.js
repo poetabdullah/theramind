@@ -7,7 +7,6 @@ import Questionnaire from "./pages/Questionnaire";
 import StartScreen from "./pages/StartScreen";
 import ContactUs from "./pages/ContactUs";
 import AboutUs from "./pages/AboutUs";
-import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import PatientSignUp from "./pages/PatientSignUp";
 import TheraChat from "./pages/TheraChat";

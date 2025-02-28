@@ -1,3 +1,5 @@
+// Useless page
+
 import React, { useState } from "react";
 import DoctorSignup from "../components/DoctorSignup";
 import PatientSignup from "../components/PatientSignup";
