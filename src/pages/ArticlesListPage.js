@@ -1,6 +1,7 @@
+// Lists all of the articles by doctors
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import PageBanner from "../components/PageBanner";
+import { motion } from "framer-motion";
 import ListViewCard from "../components/ListViewCard";
 import Footer from "../components/Footer";
 import TagSearchBar from "../components/TagSearchBar";
@@ -13,6 +14,7 @@ const ArticlesListPage = () => {
   const [error, setError] = useState(null);
   const [selectedTags, setSelectedTags] = useState([]);
   const [noResults, setNoResults] = useState(false);
+  const [animationCompleted, setAnimationCompleted] = useState(false);
 
   useEffect(() => {
     fetchArticles();
@@ -48,9 +50,6 @@ const ArticlesListPage = () => {
       });
   };
 
-  const nextPage = () => setPage((prev) => Math.min(prev + 1, totalPages));
-  const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
-
   const resetSearch = () => {
     setSelectedTags([]);
     setPage(1);
@@ -59,19 +58,39 @@ const ArticlesListPage = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <PageBanner
-        title="Explore Expert-Led Articles"
-        subtitle="Gain insights from mental health professionals covering anxiety, depression, and well-being."
-        background="bg-gradient-to-r from-orange-800 via-orange-600 to-orange-400"
-      />
+      <motion.div
+        className="text-white py-20 text-center transition-all duration-1000 bg-gradient-to-r from-orange-900 via-orange-700 to-orange-500"
+        initial={{
+          background: "conic-gradient(from 0deg, #ff4500, #ff8c00, #ff4500)",
+        }}
+        animate={{
+          background: animationCompleted
+            ? "linear-gradient(to right, #ff4500, #ff8c00)"
+            : [
+                "conic-gradient(from 0deg, #ff4500, #ff8c00, #ff4500)",
+                "conic-gradient(from 120deg, #ff8c00, #ff4500, #ff8c00)",
+                "conic-gradient(from 240deg, #ff4500, #ff8c00, #ff4500)",
+                "linear-gradient(to right, #ff4500, #ff8c00)",
+              ],
+        }}
+        transition={{ duration: 4, ease: "easeInOut" }}
+        onAnimationComplete={() => setAnimationCompleted(true)}
+      >
+        <h1 className="text-5xl font-extrabold tracking-wide leading-snug drop-shadow-lg">
+          Explore Expert-Led Articles
+        </h1>
+        <p className="mt-6 text-lg md:text-xl max-w-xl mx-auto font-light">
+          Gain insights from mental health professionals covering anxiety,
+          depression, and well-being.
+        </p>
+      </motion.div>
 
       <div className="max-w-5xl mx-auto py-6 px-6">
         <TagSearchBar
           themeColor="orange"
           onSearch={setSelectedTags}
-          selectedTags={selectedTags} // Ensures tags persist
+          selectedTags={selectedTags}
         />
-
         {selectedTags.length > 0 && (
           <button
             onClick={resetSearch}
@@ -97,54 +116,22 @@ const ArticlesListPage = () => {
             the filter.
           </div>
         ) : (
-          <>
-            <div className="space-y-6">
-              {articles.map((article) => (
-                <ListViewCard
-                  key={article.id}
-                  title={article.title}
-                  content={article.content || "No content available"}
-                  author={article.author_name}
-                  date={new Date(article.date_time).toLocaleDateString()}
-                  tags={article.selectedTags || []}
-                  link={`/articles/${article.id}`}
-                  titleColor="text-orange-700"
-                  tagColor="bg-orange-200 text-orange-700"
-                  borderColor="border-orange-500"
-                />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8 space-x-4">
-                <button
-                  onClick={prevPage}
-                  disabled={page === 1}
-                  className={`px-4 py-2 rounded-lg ${
-                    page === 1
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-orange-500 text-white"
-                  }`}
-                >
-                  Previous
-                </button>
-                <span className="text-orange-600 font-semibold">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={nextPage}
-                  disabled={page === totalPages}
-                  className={`px-4 py-2 rounded-lg ${
-                    page === totalPages
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-orange-500 text-white"
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </>
+          <div className="space-y-6">
+            {articles.map((article) => (
+              <ListViewCard
+                key={article.id}
+                title={article.title}
+                content={article.content || "No content available"}
+                author={article.author_name}
+                date={new Date(article.date_time).toLocaleDateString()}
+                tags={article.selectedTags || []}
+                link={`/articles/${article.id}`}
+                titleColor="text-orange-700"
+                tagColor="bg-orange-200 text-orange-700"
+                borderColor="border-orange-500"
+              />
+            ))}
+          </div>
         )}
       </div>
       <Footer />

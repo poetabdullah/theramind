@@ -3,6 +3,8 @@ import React, { useState } from "react";
 const PatientDetailForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     dob: "",
+    gender: "",
+    birthHistory: "", // Only applicable if gender is female
     location: "",
   });
 
@@ -29,11 +31,11 @@ const PatientDetailForm = ({ onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: null })); // Clear the error for the field being updated
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: null })); // Clear error when user updates field
   };
 
   const validateForm = () => {
-    const { dob, location } = formData;
+    const { dob, gender, birthHistory, location } = formData;
     const validationErrors = {};
 
     // Validate date of birth
@@ -45,6 +47,17 @@ const PatientDetailForm = ({ onSubmit }) => {
       if (calculatedAge < 16 || calculatedAge > 50) {
         validationErrors.dob = "Patient must be between 16 and 50 years old.";
       }
+    }
+
+    // Validate gender selection
+    if (!gender) {
+      validationErrors.gender = "Gender is required.";
+    }
+
+    // Validate birth history if gender is female
+    if (gender === "Female" && !birthHistory) {
+      validationErrors.birthHistory =
+        "Please specify if you have given birth in the past year.";
     }
 
     // Validate location
@@ -69,11 +82,16 @@ const PatientDetailForm = ({ onSubmit }) => {
   return (
     <form onSubmit={handleSubmit}>
       <h2 className="text-2xl font-bold text-center mb-6 text-orange-600">
-        Step 2: Enter Additional Details
+        Step 3: Enter Additional Details
       </h2>
+
+      <p className="text-center text-gray-600 mb-4">
+        TheraMind provides mental health services for patients aged 16-50.
+      </p>
 
       {/* Date of Birth Input */}
       <div className="mb-4">
+        <label className="block font-semibold">Date of Birth</label>
         <input
           name="dob"
           type="date"
@@ -90,12 +108,67 @@ const PatientDetailForm = ({ onSubmit }) => {
         )}
       </div>
 
+      {/* Gender Selection */}
+      <div className="mb-4">
+        <label className="block font-semibold">Gender</label>
+        <select
+          name="gender"
+          value={formData.gender}
+          onChange={handleChange}
+          className="block w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+        >
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+        {errors.gender && (
+          <p className="text-red-500 text-sm mt-2">{errors.gender}</p>
+        )}
+      </div>
+
+      {/* Birth History (Shown only if gender is Female) */}
+      {formData.gender === "Female" && (
+        <div className="mb-4">
+          <label className="block font-semibold">
+            Have you given birth in the past year?
+          </label>
+          <div className="flex gap-4 mt-2">
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="birthHistory"
+                value="Yes"
+                checked={formData.birthHistory === "Yes"}
+                onChange={handleChange}
+                className="mr-2"
+              />
+              Yes
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="birthHistory"
+                value="No"
+                checked={formData.birthHistory === "No"}
+                onChange={handleChange}
+                className="mr-2"
+              />
+              No
+            </label>
+          </div>
+          {errors.birthHistory && (
+            <p className="text-red-500 text-sm mt-2">{errors.birthHistory}</p>
+          )}
+        </div>
+      )}
+
       {/* Location Input */}
       <div className="mb-4">
+        <label className="block font-semibold">Location</label>
         <input
           name="location"
           type="text"
-          placeholder="Location"
+          placeholder="Enter your location"
           value={formData.location}
           onChange={handleChange}
           className={`block w-full p-3 border ${
