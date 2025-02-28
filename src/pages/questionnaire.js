@@ -3,10 +3,7 @@ import "./questionnaire.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "../components/Footer";
 import { db } from "../firebaseConfig.js";
-import { collection, doc, getDoc, getDocs, query, orderBy } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../firebaseConfig";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -21,26 +18,12 @@ const scaleEffect = {
 };
 
 const Questionnaire = () => {
-  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState({});
   const [noConditionDiagnosed, setNoConditionDiagnosed] = useState(false);
   const [suicidalThoughts, setSuicidalThoughts] = useState(false);
   const [detectedConditions, setDetectedConditions] = useState([]);
-
-  //Only Accessible Through Login
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-      const patientDoc = await getDoc(doc(db, "patients", user.email));
-      if (!patientDoc.exists()) navigate("/");
-    });
-    return () => unsubscribe();
-  }, [navigate]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
