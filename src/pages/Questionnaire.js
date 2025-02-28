@@ -51,13 +51,23 @@ const Questionnaire = () => {
 
   const changeEvent = (event) => {
     const { name, value } = event.target;
-    setResponses((prev) => ({ ...prev, [name]: value }));
+    setResponses((prev) => {
+      const updatedResponses = { ...prev, [name]: value };
+
+      // Reset detected conditions if a question in range 3-6 is changed
+      const questionIndex = questions.findIndex(q => `question_${q.id}` === name);
+      if (questionIndex >= 3 && questionIndex <= 6) {
+        setDetectedConditions([]);  // Clear previously detected conditions
+      }
+
+      return updatedResponses;
+    });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!noConditionDiagnosed && !suicidalThoughts) {
       if (currentQuestionIndex === 6) {
-        // Count selections from questionIndex 3-6
+        // Step 1: Detect the primary condition
         const conditionCounts = { Stress: 0, Anxiety: 0, Depression: 0, Trauma: 0, OCD: 0 };
 
         for (let i = 3; i <= 6; i++) {
@@ -67,14 +77,13 @@ const Questionnaire = () => {
           }
         }
 
-        // Determine the most selected condition
         const detectedCondition = Object.keys(conditionCounts).reduce((a, b) =>
           conditionCounts[a] > conditionCounts[b] ? a : b
         );
 
-        setDetectedConditions([detectedCondition]); // Set only the detected condition
+        setDetectedConditions([detectedCondition]);
 
-        // Define start and end index for each condition
+        // Step 2: Proceed to relevant question range based on detected condition
         const conditionRanges = {
           Stress: { start: 16, end: 30 },
           Depression: { start: 31, end: 41 },
@@ -85,34 +94,76 @@ const Questionnaire = () => {
 
         if (conditionRanges[detectedCondition]) {
           setCurrentQuestionIndex(conditionRanges[detectedCondition].start);
+        } else {
+          setCurrentQuestionIndex(7);
         }
-      } else {
-        const detectedCondition = detectedConditions[0];
+        return;
+      }
+
+      // Step 3: Track subtype responses only in relevant condition range
+      const detectedCondition = detectedConditions[0];
+      if (detectedCondition && currentQuestionIndex >= 7) {
         const conditionRanges = {
-          Stress: { end: 30 },
-          Depression: { end: 41 },
-          Anxiety: { end: 52 },
-          Trauma: { end: 68 },
-          OCD: { end: 80 },
+          Stress: { start: 16, end: 30 },
+          Depression: { start: 31, end: 41 },
+          Anxiety: { start: 42, end: 52 },
+          Trauma: { start: 53, end: 68 },
+          OCD: { start: 69, end: 80 },
         };
 
-        if (detectedCondition && currentQuestionIndex === conditionRanges[detectedCondition].end) {
-          // Exit the questionnaire after completing relevant questions
-          return;
-        }
+        if (currentQuestionIndex >= conditionRanges[detectedCondition].start) {
+          const subtypeScores = { Subtype1: 0, Subtype2: 0, Subtype3: 0 };
 
-        setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1));
+          questions.slice(conditionRanges[detectedCondition].start, conditionRanges[detectedCondition].end + 1).forEach((question) => {
+            const selectedOption = responses[`question_${question.id}`];
+
+            if (selectedOption && question.category) {
+              subtypeScores[question.category] = (subtypeScores[question.category] || 0) + 1;
+            }
+          });
+
+          // Determine the dominant subtype
+          const detectedSubtype = Object.keys(subtypeScores).reduce((a, b) =>
+            subtypeScores[a] > subtypeScores[b] ? a : b
+          );
+
+          console.log(`Detected Condition: ${detectedCondition}, Subtype: ${detectedSubtype}`);
+          setDetectedConditions([detectedCondition, detectedSubtype]);
+        }
       }
+
+      // Continue to next question normally
+      setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1));
     }
   };
-
-
 
   const handlePrevious = () => {
     setNoConditionDiagnosed(false);
     setSuicidalThoughts(false);
-    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+
+    const detectedCondition = detectedConditions[0];
+
+    // Define condition ranges
+    const conditionRanges = {
+      Stress: { start: 16, end: 30 },
+      Depression: { start: 31, end: 41 },
+      Anxiety: { start: 42, end: 52 },
+      Trauma: { start: 53, end: 68 },
+      OCD: { start: 69, end: 80 },
+    };
+
+    if (detectedCondition && currentQuestionIndex >= conditionRanges[detectedCondition].start) {
+      // If inside a detected condition range, move back to Q6 (initial condition detection)
+      setCurrentQuestionIndex(6);
+    } else if (currentQuestionIndex === 6) {
+      // If returning from Q6, go back to Q3 (condition selection)
+      setCurrentQuestionIndex(3);
+    } else {
+      // Otherwise, move back one step normally
+      setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+    }
   };
+
 
   const getProgress = () => {
     if (noConditionDiagnosed || suicidalThoughts) return 100; // Show as completed when interrupted
