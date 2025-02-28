@@ -109,11 +109,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I check things more often than necessary",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "checkingocdpt1",
       questionNumber: 8
@@ -124,11 +124,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I repeatedly check doors, windows, drawers, etc.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "checkingocdpt2",
       questionNumber: 9
@@ -139,11 +139,11 @@ const saveQuestionsToFirestore = async () => {
       text: "After turning them off, I repeatedly check the gas and water tabs and light switches.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "checkingocdpt3",
       questionNumber: 10
@@ -154,11 +154,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I get upset if things are not arranged properly.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "symmetryocdpt1",
       questionNumber: 11
@@ -169,11 +169,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I get upset if others change the way I have arranged things.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "symmetryocdpt2",
       questionNumber: 12
@@ -184,11 +184,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I need things to be arranged in a particular way.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "symmetryocdpt3",
       questionNumber: 13
@@ -199,11 +199,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I find it difficult to touch an object when I know it has been touched by strangers or certain people.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "contaminationocdpt1",
       questionNumber: 14
@@ -214,11 +214,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I sometimes have to wash or clean myself simply because I feel contaminated.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "contaminationocdpt2",
       questionNumber: 15
@@ -229,11 +229,11 @@ const saveQuestionsToFirestore = async () => {
       text: "I wash my hands more often and longer than necessary.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "A lot", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "contaminationocdpt3",
       questionNumber: 16
@@ -244,11 +244,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often have you experienced flashbacks of a stressful event in the past?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "acutestresspt1",
       questionNumber: 17
@@ -259,11 +259,11 @@ const saveQuestionsToFirestore = async () => {
       text: "When reminded of a stressful experience, how emotionally upset do you feel?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "acutestresspt2",
       questionNumber: 18
@@ -274,11 +274,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often do you avoid reminders of a stressful event?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "acutestresspt3",
       questionNumber: 19
@@ -289,11 +289,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How jumpy or easily startled do you feel?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "acutestresspt4",
       questionNumber: 20
@@ -304,11 +304,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often do you have trouble sleeping since the stressful event occurred?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "acutestresspt5",
       questionNumber: 21
@@ -319,11 +319,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Over the past few weeks, how overwhelmed have you felt by stress?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt1",
       questionNumber: 22
@@ -334,11 +334,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often have you experienced physical symptoms like headaches or fatigue due to stress?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt2",
       questionNumber: 23
@@ -349,11 +349,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How irritable or angry do you feel without a clear reason?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt3",
       questionNumber: 24
@@ -364,11 +364,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often do you have difficulty concentrating on tasks due to stress?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt4",
       questionNumber: 25
@@ -379,11 +379,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How frequently are you worried about multiple aspects of your life (e.g., work, family)?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "chronicstresspt5",
       questionNumber: 26
@@ -394,11 +394,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often do you experience stress in episodes or bursts triggered by specific situations?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt1",
       questionNumber: 27
@@ -409,11 +409,11 @@ const saveQuestionsToFirestore = async () => {
       text: "When stressed, how tense or on edge do you feel?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt2",
       questionNumber: 28
@@ -424,11 +424,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often have you had sudden emotional outbursts in response to stress?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt3",
       questionNumber: 29
@@ -439,11 +439,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How hard do you find it to relax during or after stressful episodes?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt4",
       questionNumber: 30
@@ -454,11 +454,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often have you noticed a pattern of stress that comes and goes related to certain events or triggers?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "A little bit", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "Quite a bit", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "episodicchronicstresspt5",
       questionNumber: 31
@@ -469,8 +469,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Over the past 2 weeks,  Have you noticed changes in your appetite or weight (eating too much or too little)?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "majordepressivedisorderpt1",
       questionNumber: 32
@@ -481,8 +481,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you experienced trouble sleeping, either by sleeping too much or struggling to fall or stay asleep?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "majordepressivedisorderpt2",
       questionNumber: 33
@@ -493,10 +493,10 @@ const saveQuestionsToFirestore = async () => {
       text: "In the past 2 weeks how often have you experienced the following: feeling hopeless, sense of worthlessness, trouble focusing or indecisiveness.",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "Several days", score: 1 },
-        { label: "More than half the days", score: 2 },
-        { label: "Nearly every day", score: 3 }
+        { name: "Not at all", label: "Not likely at all", score: 0 },
+        { name: "Several days", label: "A little", score: 1 },
+        { name: "More than half the days", label: "Moderately", score: 2 },
+        { name: "Nearly every day", label: "A lot", score: 3 },
       ],
       category: "majordepressivedisorderpt3",
       questionNumber: 34
@@ -507,8 +507,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you had thoughts of death, suicide, or harming yourself?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "majordepressivedisorderpt4",
       questionNumber: 35
@@ -519,8 +519,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you had a baby within the past 12 months?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "postpartumdepressionpt1",
       questionNumber: 36
@@ -531,8 +531,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Since the birth of your child, have you experienced the following: feeling overwhelmed about the ability to care for your baby, crying for no reason, difficulty in bonding or guilt or shame about how you feel as a mother?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 }
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "postpartumdepressionpt2",
       questionNumber: 37
@@ -543,8 +543,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Since the birth of your child, Have you had any thoughts of harming yourself or your baby?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "postpartumdepressionpt3",
       questionNumber: 38
@@ -555,8 +555,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Over the past 2 weeks Did you experience intense feelings of sadness, but felt better temporarily if something good happened?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "atypicaldepressionpt1",
       questionNumber: 39
@@ -567,8 +567,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you experienced a change in your sleep patterns and noticed that you feel excessively tired, even after sleeping for long periods?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "atypicaldepressionpt2",
       questionNumber: 40
@@ -579,8 +579,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you gained weight recently without trying to?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "atypicaldepressionpt3",
       questionNumber: 41
@@ -591,10 +591,10 @@ const saveQuestionsToFirestore = async () => {
       text: "In the past 2 weeks, how often have you experienced the following: increased appetite or cravings, overly sensitive to rejection & criticism or a sense of heaviness in arms or legs?",
       type: "radio",
       options: [
-        { label: "Not at all", score: 0 },
-        { label: "Several days", score: 1 },
-        { label: "More than half the days", score: 2 },
-        { label: "Nearly every day", score: 3 }
+        { name: "Not at all", label: "Not likely at all", score: 0 },
+        { name: "Several days", label: "A little", score: 1 },
+        { name: "More than half the days", label: "Moderately", score: 2 },
+        { name: "Nearly every day", label: "A lot", score: 3 },
       ],
       category: "atypicaldepressionpt4",
       questionNumber: 42
@@ -605,11 +605,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Over the past 6 months, how often have you felt excessive worry about certain aspects of life (e.g. work, health, study)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "generalizedanxietydisorderpt1",
       questionNumber: 43
@@ -620,11 +620,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you find it difficult to control your worry?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "generalizedanxietydisorderpt2",
       questionNumber: 44
@@ -635,11 +635,11 @@ const saveQuestionsToFirestore = async () => {
       text: "How often have you experienced the following symptoms in the past 6 months? Feeling on edge, having muscle tension, irritability, difficulty concentrating or difficulty sleeping.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 }
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "generalizedanxietydisorderpt3",
       questionNumber: 45
@@ -650,11 +650,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Over the past month, have you experienced unexpected and recurrent panic attacks (sudden periods of intense fear or discomfort)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "panicdisorderpt1",
       questionNumber: 46
@@ -665,11 +665,11 @@ const saveQuestionsToFirestore = async () => {
       text: "During a panic attack, do you experience the following symptoms? accelerated heart rate, sweating, trembling, feeling dizzy or nausea or fear of dying.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 }
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "panicdisorderpt2",
       questionNumber: 47
@@ -680,11 +680,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you find yourself avoiding situations or places that might trigger a panic attack?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "panicdisorderpt3",
       questionNumber: 48
@@ -695,11 +695,11 @@ const saveQuestionsToFirestore = async () => {
       text: "After having a panic attack, are you worried about having another attack?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "panicdisorderpt4",
       questionNumber: 49
@@ -710,11 +710,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you feel excessive distress when anticipating or experiencing separation from home or major attachment figures (parents, spouse, etc.)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "separationanxietydisorderpt1",
       questionNumber: 50
@@ -725,11 +725,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you feel intense worry about an event that could cause separation from loved ones (e.g., getting lost, being kidnapped)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "separationanxietydisorderpt2",
       questionNumber: 51
@@ -740,11 +740,11 @@ const saveQuestionsToFirestore = async () => {
       text: "When separated from loved ones, do you experience any of the following? Headaches, nausea, having nightmares of separation or difficulty focusing on daily activities due to the fear of separation.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 }
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "separationanxietydisorderpt3",
       questionNumber: 52
@@ -755,11 +755,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you find it difficult to focus on daily activities due to worry about separation from a loved one?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "separationanxietydisorderpt4",
       questionNumber: 53
@@ -770,11 +770,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you ever experienced a single traumatic event that had a lasting emotional or psychological impact on you (e.g., car accident, assault, natural disaster)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt1",
       questionNumber: 54
@@ -784,11 +784,11 @@ const saveQuestionsToFirestore = async () => {
       id: "question55",
       text: "If yes, do you frequently re-experience this event through: intrusive thoughts, flashbacks (feeling like the event is happening again) or feeling distress when reminded of that event.",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 }
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "singleventtraumaept2",
       questionNumber: 55
@@ -799,11 +799,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you feel heightened levels of distress or physical reactions (e.g., heart racing, sweating) when reminded of the event?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt3",
       questionNumber: 56
@@ -814,11 +814,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Since the event, do you tend to avoid situations, places, or people that remind you of the trauma?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt4",
       questionNumber: 57
@@ -829,11 +829,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you noticed changes in your mood or behavior since the traumatic event (e.g., irritability, feeling on edge, difficulty concentrating)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "singleeventtraumapt5",
       questionNumber: 58
@@ -844,11 +844,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Have you experienced multiple or prolonged traumatic events, especially during childhood or adolescence (e.g., ongoing abuse, domestic violence, repeated neglect)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "complextraumapt1",
       questionNumber: 59
@@ -859,11 +859,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you frequently feel that you are constantly in danger, even in safe environments?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "complextraumapt2",
       questionNumber: 60
@@ -874,11 +874,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you struggle with regulating your emotions (e.g., difficulty calming down when upset, feeling overly emotional or detached)?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "complextraumapt3",
       questionNumber: 61
@@ -889,11 +889,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you find it difficult to form or maintain close, trusting relationships?",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 },
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "complextraumapt4",
       questionNumber: 62
@@ -904,11 +904,11 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you often feel: emotionally numb, intense feeling of guilt, shame & worthlessness or difficulty seeing a future for yourself.",
       type: "radio",
       options: [
-        { label: "Not likely at all", score: 0 },
-        { label: "A little", score: 1 },
-        { label: "Moderately", score: 2 },
-        { label: "A lot", score: 3 },
-        { label: "Extremely", score: 4 }
+        { name: "Not likely at all", label: "Not likely at all", score: 0 },
+        { name: "A little bit", label: "A little", score: 1 },
+        { name: "Moderately", label: "Moderately", score: 2 },
+        { name: "Quite a bit", label: "A lot", score: 3 },
+        { name: "Extremely", label: "Extremely", score: 4 },
       ],
       category: "complextraumaept5",
       questionNumber: 63
@@ -919,8 +919,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Were you exposed to significant trauma during childhood (before age 7), such as neglect, emotional, physical, or sexual abuse?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "developmentaltraumapt1",
       questionNumber: 64
@@ -931,8 +931,8 @@ const saveQuestionsToFirestore = async () => {
       text: "As a child, did you feel emotionally unsupported, unsafe, or rejected by caregivers or other important adults?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "developmentaltraumapt2",
       questionNumber: 65
@@ -943,8 +943,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you have difficulty with: Trusting others, forming secure attachments or feeling safe.",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "developmentaltraumapt3",
       questionNumber: 66
@@ -955,8 +955,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you struggle with: Regulating your emotions, healthily managing stress or avoiding relationships entirely.",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "developmentaltraumapt4",
       questionNumber: 67
@@ -967,8 +967,8 @@ const saveQuestionsToFirestore = async () => {
       text: "As an adult, do you still experience difficulty navigating social situations or feeling comfortable around others?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "developmentaltraumapt5",
       questionNumber: 68
@@ -979,8 +979,8 @@ const saveQuestionsToFirestore = async () => {
       text: "Do you feel that the trauma you experienced during childhood has affected your sense of identity or self-worth?",
       type: "radio",
       options: [
-        { label: "Yes", score: 1 },
-        { label: "No", score: 0 },
+        { name: "Yes", label: "Yes", score: 1 },
+        { name: "No", label: "No", score: 0 },
       ],
       category: "developmentaltraumapt6",
       questionNumber: 69

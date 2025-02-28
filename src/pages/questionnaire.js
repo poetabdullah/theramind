@@ -66,11 +66,35 @@ const Questionnaire = () => {
     setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
   };
 
+  const getProgress = () => {
+    if (noConditionDiagnosed || suicidalThoughts) return 100; // Show as completed when interrupted
+    if (currentQuestionIndex === 0) return 0;
+    if (currentQuestionIndex <= 1) return 25;
+    if (currentQuestionIndex === 2) return 50;
+    if (currentQuestionIndex >= 3 && currentQuestionIndex <= 6) return 75;
+    return Math.round((currentQuestionIndex / (questions.length - 1)) * 100);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <header className="text-center py-4">
         <motion.h2 className="text-3xl font-bold text-purple-600 mt-2" {...fadeInUp}>Diagnostic Questionnaire</motion.h2>
       </header>
+
+      {/* Progress Bar (Hidden when interrupted) */}
+      {!noConditionDiagnosed && !suicidalThoughts && (
+        <div className="w-full max-w-xl mx-auto my-4 px-6">
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <motion.div
+              className="bg-gradient-to-r from-purple-600 to-orange-500 h-2.5 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${getProgress()}%` }}
+              transition={{ duration: 0.5 }}
+            ></motion.div>
+          </div>
+        </div>
+      )}
+
       <main className="flex-grow flex items-center justify-center mb-5">
         <motion.div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-xl relative" {...scaleEffect}>
           <AnimatePresence>
