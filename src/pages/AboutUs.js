@@ -12,27 +12,27 @@ const AboutUs = () => {
           transition={{ duration: 0.5 }}>About Us</motion.h1>
       </header>
       <main className="flex-grow flex flex-col space-y-6 items-center mb-5">
-    <motion.div
+        <motion.div
           className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200
            rounded-lg p-6 mt-2 w-11/12 max-w-4xl transition duration-300 hover:scale-105 slideUp"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
-    >
+        >
           <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
             Who We Are
-      </motion.h3>
-      <p className="leading-relaxed text-gray-700">
+          </motion.h3>
+          <p className="leading-relaxed text-gray-700">
             Theramind is a mental health platform that provides a wide range of mental health services
             to individuals, families, and organizations. We are dedicated to providing the best mental
             health services to our clients. Our team of mental health professionals are highly trained
             and experienced in providing mental health services. We are committed to helping our clients
             achieve their mental health goals and live a happy and fulfilling life.
-        </p>
+          </p>
         </motion.div>
         <motion.div
-          className="service-item bg-white shadow-sm rounded-lg p-4 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
+          className="service-item bg-white bg-gradient-to-r from-purple-200 to-orange-200 shadow-sm rounded-lg p-4 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -43,24 +43,24 @@ const AboutUs = () => {
           </motion.h3>
           <p>
             Theramind target the following mental health conditions & its sub-types:
-            </p>
-            <ul className="list-disc list-inside space-y-2">
+          </p>
+          <ul className="list-disc list-inside space-y-2">
             {[
               "Stress(Acute Stress, Chronic Stress, Post-Traumatic Stress Disorder - PTSD)",
               "Anxiety (Separation Anxiety, Generalized Anxiety Disorder, Panic Disorder)",
               "Depression (Post-Partum Depression, Major Depressive Disorder, Atypical Depression)",
               "Trauma (Single Event Trauma, Complex Trauma, Developmental Trauma)",
               "Obsessive Compulsive Disorder - OCD (Contamination OCD, Checking OCD, Symmetry OCD)"
-              ].map((condition, index) => (
-                <motion.li key={index} 
+            ].map((condition, index) => (
+              <motion.li key={index}
                 className="text-gray-700 flex items-center space-x-2 cursor-pointer transition duration-300 hover:text-orange-600"
                 whileHover={{ scale: 1.05 }}
-            >
-              <span className="w-2 h-2 bg-puple-700 rounded-full flex-shrink-0"></span>
-              <span>{condition}</span>
-            </motion.li>
-              ))}
-            </ul>
+              >
+                <span className="w-2 h-2 bg-puple-700 rounded-full flex-shrink-0"></span>
+                <span>{condition}</span>
+              </motion.li>
+            ))}
+          </ul>
         </motion.div>
         <motion.div
           className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200 rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
@@ -73,8 +73,8 @@ const AboutUs = () => {
             Our Vision & Mission
           </motion.h3>
           <p className="leading-relaxed text-gray-700">
-            This platform thrives to achieve a world where seeking help for mental health conditions 
-            is free of any judgement and it is freely accesible to whoever needs it without much effort 
+            This platform thrives to achieve a world where seeking help for mental health conditions
+            is free of any judgement and it is freely accesible to whoever needs it without much effort
             & where people feel understood and valued, because your mental health matter!<br></br>
             Our platform gives adequate features which help people identify the possible mental health
             conditions they must be going through and get properly educated about those conditions and
@@ -96,8 +96,8 @@ const AboutUs = () => {
             List of key features our platform offers:
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <a href="/questionnaire" 
-                className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
+                <a href="/start-screen"
+                  className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health Diagnostic Assessment
                 </a><span> - Self-assessment tool to identify the mental health condition and its sub-type.
                 </span>
@@ -111,7 +111,7 @@ const AboutUs = () => {
                 </span>
               </li>
               <li>
-                <a href="/therachat"
+                <a href="/splash-screen"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health ChatBot
                 </a><span> - An AI chatbot that can give responses to queries related to mental health.
@@ -199,10 +199,10 @@ const AboutUs = () => {
           </p>
         </motion.div>
       </main>
-      <Footer />    
-      </div> 
-      
-    
+      <Footer />
+    </div>
+
+
   )
 }
 

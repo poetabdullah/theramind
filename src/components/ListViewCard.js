@@ -26,16 +26,16 @@ const ListViewCard = ({
 
   return (
     <div
-      className="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition duration-300 cursor-pointer border border-gray-200"
+      className="mb-8 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border border-gray-100 hover:border-l-4 hover:border-l-gray-300 cursor-pointer group"
       onClick={() => navigate(link || `/content/${id}`)}
     >
       {/* Tags Section */}
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-3">
         {Array.isArray(tags) &&
           tags.map((tag, index) => (
             <span
               key={index}
-              className={`${tagBgColor} text-xs font-semibold py-1 px-3 rounded-full`}
+              className={`${tagBgColor} px-3 py-1 text-xs font-medium rounded-full shadow-sm`}
             >
               {tag}
             </span>
@@ -43,19 +43,24 @@ const ListViewCard = ({
       </div>
 
       {/* Title Section */}
-      <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
+      <h2 className="text-2xl font-bold mb-3 text-gray-800 line-clamp-2 leading-tight group-hover:text-gray-700 transition-colors duration-200">
+        {title}
+      </h2>
 
       {/* Author & Date */}
-      <p className="text-sm text-gray-500 mb-3">
-        By <span className={`${authorTextColor} font-medium`}>{author}</span> ·{" "}
-        {date ? new Date(date).toLocaleDateString() : "Unknown Date"}
-      </p>
+      <div className="flex items-center mb-4 text-sm">
+        <span className={`font-medium ${authorTextColor}`}>By {author}</span>
+        <span className="mx-2 text-gray-400">·</span>
+        <span className="text-gray-500">
+          {date ? new Date(date).toLocaleDateString() : "Unknown Date"}
+        </span>
+      </div>
 
       {/* Content Preview */}
       <div
-        className="text-gray-700 text-sm line-clamp-3"
-        dangerouslySetInnerHTML={{ __html: content || "No content available." }}
-      ></div>
+        className="text-gray-600 text-sm leading-relaxed overflow-hidden line-clamp-3 group-hover:text-gray-700 transition-colors duration-200"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
     </div>
   );
 };
