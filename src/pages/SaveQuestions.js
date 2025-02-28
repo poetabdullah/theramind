@@ -115,7 +115,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "checkingocdpt1",
+      category: "Checking OCD",
       questionNumber: 8
     },
     //Question # 11: 
@@ -130,7 +130,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "checkingocdpt2",
+      category: "Checking OCD",
       questionNumber: 9
     },
     //Question # 11: 
@@ -145,7 +145,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "checkingocdpt3",
+      category: "Checking OCD",
       questionNumber: 10
     },
     //Question # 12: Specific Questionnaire - OCD: Symmetry/Ordering OCD
@@ -160,7 +160,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "symmetryocdpt1",
+      category: "Symmetry OCD",
       questionNumber: 11
     },
     //Question # 13
@@ -175,7 +175,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "symmetryocdpt2",
+      category: "Symmetry OCD",
       questionNumber: 12
     },
     //Question # 14
@@ -190,7 +190,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "symmetryocdpt3",
+      category: "Symmetry OCD",
       questionNumber: 13
     },
     //Question # 15: Specific Questionnaire - OCD: Contamination OCD
@@ -205,7 +205,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "contaminationocdpt1",
+      category: "Contamination OCD",
       questionNumber: 14
     },
     //Question # 16
@@ -220,7 +220,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "contaminationocdpt2",
+      category: "Contamination OCD",
       questionNumber: 15
     },
     //Question # 17
@@ -235,7 +235,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "A lot", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "contaminationocdpt3",
+      category: "Contamination OCD",
       questionNumber: 16
     },
     //Question # 18: Specific Questionnaire - Stress: Acute Stress 
@@ -250,7 +250,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "acutestresspt1",
+      category: "Acute Stress",
       questionNumber: 17
     },
     //Question # 19 
@@ -265,7 +265,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "acutestresspt2",
+      category: "Acute Stress",
       questionNumber: 18
     },
     //Question # 20 
@@ -280,7 +280,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "acutestresspt3",
+      category: "Acute Stress",
       questionNumber: 19
     },
     //Question # 21
@@ -295,7 +295,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "acutestresspt4",
+      category: "Acute Stress",
       questionNumber: 20
     },
     //Question # 22
@@ -310,7 +310,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "acutestresspt5",
+      category: "Acute Stress",
       questionNumber: 21
     },
     //Question # 23: Specific Questionnaire - Stress: Chronic Stress 
@@ -325,7 +325,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "chronicstresspt1",
+      category: "Chronic Stress",
       questionNumber: 22
     },
     //Question # 24
@@ -340,7 +340,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "chronicstresspt2",
+      category: "Chronic Stress",
       questionNumber: 23
     },
     //Question # 25
@@ -355,7 +355,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "chronicstresspt3",
+      category: "Chronic Stress",
       questionNumber: 24
     },
     //Question # 26
@@ -370,7 +370,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "chronicstresspt4",
+      category: "Chronic Stress",
       questionNumber: 25
     },
     //Question # 27
@@ -385,7 +385,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "chronicstresspt5",
+      category: "Chronic Stress",
       questionNumber: 26
     },
     //Question # 28: Specific Questionnaire - Stress: Episodic Chronic Stress 
@@ -400,7 +400,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "episodicchronicstresspt1",
+      category: "Episodic Chronic Stress",
       questionNumber: 27
     },
     //Question # 29
@@ -415,7 +415,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "episodicchronicstresspt2",
+      category: "Episodic Chronic Stress",
       questionNumber: 28
     },
     //Question # 30
@@ -430,7 +430,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "episodicchronicstresspt3",
+      category: "Episodic Chronic Stress",
       questionNumber: 29
     },
     //Question # 31
@@ -445,7 +445,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "episodicchronicstresspt4",
+      category: "Episodic Chronic Stress",
       questionNumber: 30
     },
     //Question # 32
@@ -460,7 +460,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "episodicchronicstresspt5",
+      category: "Episodic Chronic Stress",
       questionNumber: 31
     },
     //Question # 33: Specific Questionnaire - Depression: Major Depressive Disorder 
@@ -472,7 +472,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "majordepressivedisorderpt1",
+      category: "Major Depressive Disorder",
       questionNumber: 32
     },
     //Question # 34
@@ -484,7 +484,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "majordepressivedisorderpt2",
+      category: "Major Depressive Disorder",
       questionNumber: 33
     },
     //Question # 35
@@ -498,7 +498,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "More than half the days", label: "Moderately", score: 2 },
         { name: "Nearly every day", label: "A lot", score: 3 },
       ],
-      category: "majordepressivedisorderpt3",
+      category: "Major Depressive Disorder",
       questionNumber: 34
     },
     //Question # 36
@@ -510,7 +510,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "majordepressivedisorderpt4",
+      category: "Major Depressive Disorder",
       questionNumber: 35
     },
     //Question # 37: Specific Questionnaire - Depression: Postpartum Depression
@@ -522,7 +522,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "postpartumdepressionpt1",
+      category: "Postpartum Depression",
       questionNumber: 36
     },
     //Question # 38
@@ -534,7 +534,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "postpartumdepressionpt2",
+      category: "Postpartum Depression",
       questionNumber: 37
     },
     //Question # 39
@@ -546,7 +546,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "postpartumdepressionpt3",
+      category: "Postpartum Depression",
       questionNumber: 38
     },
     //Question # 40: Specific Questionnaire - Depression: Atypical Depression
@@ -558,7 +558,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "atypicaldepressionpt1",
+      category: "Atypical Depression",
       questionNumber: 39
     },
     //Question # 41
@@ -570,7 +570,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "atypicaldepressionpt2",
+      category: "Atypical Depression",
       questionNumber: 40
     },
     //Question # 42
@@ -582,7 +582,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "atypicaldepressionpt3",
+      category: "Atypical Depression",
       questionNumber: 41
     },
     //Question # 43
@@ -596,7 +596,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "More than half the days", label: "Moderately", score: 2 },
         { name: "Nearly every day", label: "A lot", score: 3 },
       ],
-      category: "atypicaldepressionpt4",
+      category: "Atypical Depression",
       questionNumber: 42
     },
     //Question # 44: Specific Questionnaire - Anxiety: Generalized Anxiety Disorder 
@@ -611,7 +611,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "generalizedanxietydisorderpt1",
+      category: "Generalized Anxiety Disorder",
       questionNumber: 43
     },
     //Question # 45
@@ -626,7 +626,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "generalizedanxietydisorderpt2",
+      category: "Generalized Anxiety Disorder",
       questionNumber: 44
     },
     //Question # 46
@@ -641,7 +641,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "generalizedanxietydisorderpt3",
+      category: "Generalized Anxiety Disorder",
       questionNumber: 45
     },
     //Question # 47: Specific Questionnaire - Anxiety: Panic Disorder 
@@ -656,7 +656,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "panicdisorderpt1",
+      category: "Panic Disorder",
       questionNumber: 46
     },
     //Question # 48
@@ -671,7 +671,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "panicdisorderpt2",
+      category: "Panic Disorder",
       questionNumber: 47
     },
     //Question # 49 
@@ -686,7 +686,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "panicdisorderpt3",
+      category: "Panic Disorder",
       questionNumber: 48
     },
     //Question # 50
@@ -701,7 +701,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "panicdisorderpt4",
+      category: "Panic Disorder",
       questionNumber: 49
     },
     //Question # 51: Specific Questionnaire - Anxiety: Separation Anxiety Disorder
@@ -716,7 +716,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "separationanxietydisorderpt1",
+      category: "Separation Anxiety Disorder",
       questionNumber: 50
     },
     //Question # 52
@@ -731,7 +731,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "separationanxietydisorderpt2",
+      category: "Separation Anxiety Disorder",
       questionNumber: 51
     },
     //Question # 53
@@ -746,7 +746,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "separationanxietydisorderpt3",
+      category: "Separation Anxiety Disorder",
       questionNumber: 52
     },
     //Question # 54
@@ -761,7 +761,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "separationanxietydisorderpt4",
+      category: "Separation Anxiety Disorder",
       questionNumber: 53
     },
     //Question # 55: Specific Questionnaire - Trauma: Singe Event Trauma
@@ -776,7 +776,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "singleeventtraumapt1",
+      category: "Single Event Trauma",
       questionNumber: 54
     },
     //Question # 56
@@ -790,7 +790,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "singleventtraumaept2",
+      category: "Single Event Trauma",
       questionNumber: 55
     },
     //Question # 57
@@ -805,7 +805,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "singleeventtraumapt3",
+      category: "Single Event Trauma",
       questionNumber: 56
     },
     //Question # 58
@@ -820,7 +820,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "singleeventtraumapt4",
+      category: "Single Event Trauma",
       questionNumber: 57
     },
     //Question # 59
@@ -835,7 +835,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "singleeventtraumapt5",
+      category: "Single Event Trauma",
       questionNumber: 58
     },
     //Question # 60: Specific Questionnaire - Trauma: Complex Trauma
@@ -850,7 +850,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "complextraumapt1",
+      category: "Complex Trauma",
       questionNumber: 59
     },
     //Question # 61
@@ -865,7 +865,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "complextraumapt2",
+      category: "Complex Trauma",
       questionNumber: 60
     },
     //Question # 62
@@ -880,7 +880,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "complextraumapt3",
+      category: "Complex Trauma",
       questionNumber: 61
     },
     //Question # 63
@@ -895,7 +895,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "complextraumapt4",
+      category: "Complex Trauma",
       questionNumber: 62
     },
     //Question # 64
@@ -910,7 +910,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "complextraumaept5",
+      category: "Complex Trauma",
       questionNumber: 63
     },
     //Question # 65: Specific Questionnaire - Trauma: Developmental Trauma
@@ -922,7 +922,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "developmentaltraumapt1",
+      category: "Developmental Trauma",
       questionNumber: 64
     },
     //Question # 66
@@ -934,7 +934,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "developmentaltraumapt2",
+      category: "Developmental Trauma",
       questionNumber: 65
     },
     //Question # 67
@@ -946,7 +946,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "developmentaltraumapt3",
+      category: "Developmental Trauma",
       questionNumber: 66
     },
     //Question # 68
@@ -958,7 +958,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "developmentaltraumapt4",
+      category: "Developmental Trauma",
       questionNumber: 67
     },
     //Question # 69
@@ -970,7 +970,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "developmentaltraumapt5",
+      category: "Developmental Trauma",
       questionNumber: 68
     },
     //Question # 70
@@ -982,7 +982,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Yes", label: "Yes", score: 1 },
         { name: "No", label: "No", score: 0 },
       ],
-      category: "developmentaltraumapt6",
+      category: "Developmental Trauma",
       questionNumber: 69
     },
   ];
