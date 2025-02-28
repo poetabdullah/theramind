@@ -23,11 +23,6 @@ const Services = () => (
         <button className="service-btn">Chat with AI</button>
       </div>
       
-      <div className="service-card">
-        <h3>Practice Meditation</h3>
-        <p>Practice Meditation and Mindfulness, which will help you in your healing journey. Get step by step instructions on how to practice meditation.</p>
-        <button className="service-btn">Explore Exercises</button>
-      </div>
     </div>
   </section>
 );
