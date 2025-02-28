@@ -15,7 +15,7 @@ const EducationDetailView = () => {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteSuccess, setDeleteSuccess] = useState(false); // ✅ New state
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,8 +77,8 @@ const EducationDetailView = () => {
 
       setDeleteSuccess(true);
       setTimeout(() => {
-        setShowDeleteModal(false); // Close modal after 2 seconds
-        navigate("/education-main"); // Redirect
+        setShowDeleteModal(false);
+        navigate("/education-main");
       }, 2000);
     } catch (err) {
       console.error("Delete error:", err.response?.data || err.message);
@@ -89,7 +89,7 @@ const EducationDetailView = () => {
   if (loading || !data) {
     return (
       <div className="text-center py-10 text-purple-600 text-xl">
-        Loading...
+        <div className="animate-pulse">Loading...</div>
       </div>
     );
   }
@@ -98,73 +98,148 @@ const EducationDetailView = () => {
     loggedInUser?.email?.toLowerCase() === data?.author_email?.toLowerCase();
 
   return (
-    <div className="bg-gradient-to-b from-purple-100 to-white min-h-screen flex flex-col">
-      <div className="max-w-3xl mx-auto flex-grow py-12 px-6">
-        <h1 className="text-5xl font-bold text-purple-900 leading-tight mb-6">
-          {data.title}
-        </h1>
-        <p className="text-lg text-gray-700 mb-6 italic">
-          By{" "}
-          <span className="text-orange-600 font-semibold">
-            {data.author_name}
-          </span>{" "}
-          &middot; {new Date(data.date_time).toLocaleDateString()}
-        </p>
-        {data.selectedTags && (
-          <div className="flex flex-wrap gap-2 mb-8">
-            {Object.values(data.selectedTags).map((tag, index) => (
-              <span
-                key={index}
-                className="bg-purple-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
+    <div className="bg-gradient-to-b from-purple-100 via-indigo-50 to-white min-h-screen flex flex-col">
+      <div className="max-w-4xl mx-auto flex-grow py-12 px-6 md:px-8 lg:px-4">
+        {/* Article Header with improved styling */}
+        <header className="mb-10 border-b border-purple-200 pb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-800 via-indigo-700 to-purple-900 leading-normal pb-12">
+            {data.title}
+          </h1>
+
+          <div className="flex flex-wrap items-center text-lg text-gray-600 mb-4">
+            <span className="mr-2">By</span>
+            <span className="text-orange-600 font-semibold mr-2">
+              {data.author_name}
+            </span>
+            <span className="text-gray-400 mx-2">•</span>
+            <span className="text-indigo-600">
+              {new Date(data.date_time).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </div>
-        )}
-        <div
-          className="prose prose-lg max-w-none text-gray-800 leading-relaxed text-justify"
-          dangerouslySetInnerHTML={{ __html: data.content }}
-        />
+
+          {data.selectedTags && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {Object.values(data.selectedTags).map((tag, index) => (
+                <span
+                  key={index}
+                  className="bg-gradient-to-r from-purple-200 to-indigo-200 text-purple-800 text-sm font-medium py-1 px-3 rounded-full shadow-sm"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </header>
+
+        {/* Article Content with improved readability */}
+        <article className="prose prose-lg max-w-none text-gray-800 leading-relaxed">
+          <div
+            className="prose-headings:text-indigo-800 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-7 prose-p:my-5 prose-a:text-orange-600 prose-a:no-underline prose-a:font-medium prose-a:hover:underline prose-li:my-1 prose-li:text-gray-700"
+            dangerouslySetInnerHTML={{ __html: data.content }}
+          />
+        </article>
+
+        {/* Action buttons with gradient styling */}
         {isAuthor && (
-          <div className="mt-8 flex space-x-4">
+          <div className="mt-12 flex space-x-4 justify-start">
             <button
               onClick={handleEdit}
-              className="bg-orange-500 text-white py-2 px-6 rounded-lg hover:bg-orange-600 transition text-lg shadow-md"
+              className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-2 px-6 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition text-lg shadow-md flex items-center"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
               Edit
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-600 transition text-lg shadow-md"
+              className="bg-gradient-to-r from-red-500 to-orange-500 text-white py-2 px-6 rounded-lg hover:from-red-600 hover:to-orange-600 transition text-lg shadow-md flex items-center"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
               Delete
             </button>
           </div>
         )}
       </div>
+
+      {/* Enhanced Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full mx-4 transform transition-all">
             {deleteSuccess ? (
-              <p className="text-lg text-green-600 font-semibold">
-                Content deleted successfully! Redirecting...
-              </p>
+              <div className="py-4">
+                <svg
+                  className="w-16 h-16 text-green-500 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <p className="text-xl text-green-600 font-semibold">
+                  Content deleted successfully!
+                </p>
+                <p className="text-gray-500 mt-2">Redirecting you...</p>
+              </div>
             ) : (
               <>
-                <p className="text-lg text-gray-700 mb-4">
-                  Are you sure you want to delete this?
+                <svg
+                  className="w-16 h-16 text-red-500 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  ></path>
+                </svg>
+                <p className="text-xl text-gray-800 font-semibold mb-2">
+                  Delete Confirmation
+                </p>
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to delete this content? This action
+                  cannot be undone.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
                     onClick={handleDelete}
-                    className="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-600 transition"
+                    className="bg-gradient-to-r from-red-500 to-orange-500 text-white py-2 px-6 rounded-lg hover:from-red-600 hover:to-orange-600 transition shadow-md"
                   >
-                    Yes
+                    Yes, Delete
                   </button>
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="bg-gray-300 py-2 px-6 rounded-lg hover:bg-gray-400 transition"
+                    className="bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 py-2 px-6 rounded-lg hover:from-gray-300 hover:to-gray-400 transition shadow-md"
                   >
                     Cancel
                   </button>
