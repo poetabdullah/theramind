@@ -16,6 +16,7 @@ import PatientStoriesListPage from "./pages/PatientStoriesListPage";
 import EducationDetailView from "./pages/EducationDetailView";
 import EducationWritePage from "./pages/EducationWritePage";
 import SplashScreen from "./pages/SplashScreen";
+import Testimonial from "./pages/Testimonial";
 
 const App = () => (
   <div>
@@ -37,6 +38,7 @@ const App = () => (
       <Route path="/articles/:id" element={<EducationDetailView />} />
       <Route path="/write-education" element={<EducationWritePage />} />
       <Route path="/splash-screen" element={<SplashScreen />} />
+      <Route path="/testimonial" element={<Testimonial />} />
     </Routes>
   </div>
 );
