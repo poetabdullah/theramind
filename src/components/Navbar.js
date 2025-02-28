@@ -99,7 +99,7 @@ const Navbar = () => {
               {user ? (
                 <>
                   <Link
-                    to="/Questionnaire"
+                    to="/start-screen"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
                     Questionnaire
@@ -130,11 +130,10 @@ const Navbar = () => {
                     </button>
 
                     <div
-                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
-                        educationDropdownOpen
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
-                      }`}
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2"
+                        }`}
                     >
                       <div className="py-1">
                         <Link
@@ -190,11 +189,10 @@ const Navbar = () => {
                     </button>
 
                     <div
-                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
-                        educationDropdownOpen
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
-                      }`}
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2"
+                        }`}
                     >
                       <div className="py-1">
                         <Link
@@ -273,17 +271,15 @@ const Navbar = () => {
 
           {/* Mobile Menu Overlay */}
           <div
-            className={`${
-              menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
-            } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
+            className={`${menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
+              } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
             onClick={() => setMenuOpen(false)}
           />
 
           {/* Mobile Menu Drawer */}
           <div
-            className={`${
-              menuOpen ? "translate-x-0" : "translate-x-full"
-            } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
+            className={`${menuOpen ? "translate-x-0" : "translate-x-full"
+              } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
           >
             <div className="flex justify-end p-4">
               <button
@@ -298,7 +294,7 @@ const Navbar = () => {
               {user ? (
                 <>
                   <Link
-                    to="/Questionnaire"
+                    to="/start-screen"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
