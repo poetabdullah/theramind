@@ -82,27 +82,32 @@ const Questionnaire = () => {
         );
 
         setDetectedConditions([detectedCondition]);
-
-        // Step 2: Proceed to relevant question range based on detected condition
-        const conditionRanges = {
-          Stress: { start: 16, end: 30 },
-          Depression: { start: 31, end: 41 },
-          Anxiety: { start: 42, end: 52 },
-          Trauma: { start: 53, end: 68 },
-          OCD: { start: 69, end: 80 },
-        };
-
-        if (conditionRanges[detectedCondition]) {
-          setCurrentQuestionIndex(conditionRanges[detectedCondition].start);
-        } else {
-          setCurrentQuestionIndex(7);
-        }
+        setCurrentQuestionIndex(detectedCondition === "OCD" ? 7 : 8);
         return;
       }
 
-      // Step 3: Track subtype responses only in relevant condition range
-      const detectedCondition = detectedConditions[0];
-      if (detectedCondition && currentQuestionIndex >= 7) {
+      // Step 2: Track subtype responses from Q7 onward
+      if (currentQuestionIndex >= 7 && currentQuestionIndex <= 68) {
+        const subtypeScores = {};
+
+        questions.slice(7, 69).forEach((question) => {
+          const selectedOption = responses[`question_${question.id}`];
+          const score = question.scores?.[selectedOption] || 0; // Fetch score from database
+
+          if (selectedOption && question.category) {
+            subtypeScores[question.category] = (subtypeScores[question.category] || 0) + score;
+          }
+        });
+
+        // Step 3: Determine the dominant subtype
+        const detectedSubtype = Object.keys(subtypeScores).reduce((a, b) =>
+          subtypeScores[a] > subtypeScores[b] ? a : b
+        );
+
+        console.log(`Detected Condition: ${detectedConditions[0]}, Subtype: ${detectedSubtype}`);
+        setDetectedConditions([detectedConditions[0], detectedSubtype]);
+
+        // Step 4: Proceed only to the relevant question range based on detected condition
         const conditionRanges = {
           Stress: { start: 16, end: 30 },
           Depression: { start: 31, end: 41 },
@@ -111,24 +116,24 @@ const Questionnaire = () => {
           OCD: { start: 69, end: 80 },
         };
 
-        if (currentQuestionIndex >= conditionRanges[detectedCondition].start) {
-          const subtypeScores = { Subtype1: 0, Subtype2: 0, Subtype3: 0 };
+        if (conditionRanges[detectedConditions[0]]) {
+          setCurrentQuestionIndex(conditionRanges[detectedConditions[0]].start);
+          return;
+        }
+      }
 
-          questions.slice(conditionRanges[detectedCondition].start, conditionRanges[detectedCondition].end + 1).forEach((question) => {
-            const selectedOption = responses[`question_${question.id}`];
+      // Skip question 7 if the diagnosed condition is not OCD
+      if (currentQuestionIndex === 7 && detectedConditions[0] !== "OCD") {
+        const conditionRanges = {
+          Stress: { start: 16, end: 30 },
+          Depression: { start: 31, end: 41 },
+          Anxiety: { start: 42, end: 52 },
+          Trauma: { start: 53, end: 68 },
+        };
 
-            if (selectedOption && question.category) {
-              subtypeScores[question.category] = (subtypeScores[question.category] || 0) + 1;
-            }
-          });
-
-          // Determine the dominant subtype
-          const detectedSubtype = Object.keys(subtypeScores).reduce((a, b) =>
-            subtypeScores[a] > subtypeScores[b] ? a : b
-          );
-
-          console.log(`Detected Condition: ${detectedCondition}, Subtype: ${detectedSubtype}`);
-          setDetectedConditions([detectedCondition, detectedSubtype]);
+        if (conditionRanges[detectedConditions[0]]) {
+          setCurrentQuestionIndex(conditionRanges[detectedConditions[0]].start);
+          return;
         }
       }
 
@@ -136,6 +141,8 @@ const Questionnaire = () => {
       setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1));
     }
   };
+
+
 
   const handlePrevious = () => {
     setNoConditionDiagnosed(false);
