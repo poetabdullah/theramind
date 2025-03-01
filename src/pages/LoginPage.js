@@ -56,7 +56,7 @@ const LoginPage = () => {
           { merge: true }
         );
 
-        navigate("/"); // Redirect to home page after successful login
+        navigate("/patient-dashboard"); // Redirect to dashboard after successful login
       } else {
         // If not registered, redirect to sign-up page
         navigate("/signup");
