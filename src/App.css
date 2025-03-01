@@ -499,13 +499,355 @@ body {
   font-weight: bold;
   color: #333;
 }
+/*gloabal */
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  color: var(--secondary);
+  margin-bottom: 1rem;
+  animation: fadeInUp 0.8s ease-in-out;
+}
 
-.subtitle {
+/* Scroll-triggered animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+:root {
+  --primary: #ff8c42; /* Orange */
+  --secondary: #9b5de5; /* Purple */
+  --accent: #ff70a6; /* Pink */
+  --light-bg: #f9f9f9;
+  --dark-text: #333;
+  --border-radius: 12px;
+}
+/*guided */
+.guided-meditation {
+  text-align: center;
+  padding: 2rem;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.slider-arrow {
+  background: var(--primary);
+  border: none;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.slider-arrow:hover {
+  background: var(--secondary);
+}
+
+.exercise-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  text-align: center;
+}
+
+.exercise-card h3 {
+  cursor: pointer;
+  color: var(--primary);
+  transition: 0.3s;
+}
+
+.exercise-card h3:hover {
+  color: var(--accent);
+}
+
+.exercise-steps {
+  margin-top: 1rem;
+  padding-left: 0;
+  list-style-type: none;
+}
+
+.exercise-steps li {
+  background: var(--light-bg);
+  padding: 0.5rem;
+  margin-bottom: 5px;
+  border-radius: var(--border-radius);
+}
+
+/*breathin */
+.breathing-exercise {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.breathing-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--secondary), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  margin: auto;
+}
+/*dailyaffirmation*/
+.daily-affirmation {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border-radius: var(--border-radius);
+  margin: 2rem auto;
+  max-width: 600px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.affirmation-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+/*meditationtimer */
+.meditation-timer {
+  text-align: center;
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+  padding: 40px;
+  border-radius: 15px;
+  max-width: 400px;
+  margin: 50px auto;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 1s ease-in-out;
+}
+
+.meditation-timer h2 {
+  font-size: 1.8rem;
+  color: #fff;
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.timer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.timer {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  width: 120px;
+  text-align: center;
+  animation: pulse 1.5s infinite alternate;
+}
+
+.timer-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.timer-buttons button {
+  background: #ff758c;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.timer-buttons button:hover {
+  background: #ff5f7e;
+  transform: scale(1.05);
+}
+
+.timer-buttons button:active {
+  transform: scale(0.95);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+/*image gallery */
+.image-gallery {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.gallery {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.gallery-item {
+  position: relative;
+  width: 250px;
+  height: 200px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: 0.3s;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-item p {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px;
+  border-radius: var(--border-radius);
+}
+
+/* .subtitle {
   font-size: 1.2rem;
   color: #666;
   margin-top: 10px;
 }
+.section-title {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 15px;
+}
 
+/* .meditation-cards, .benefits-grid {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+} */
+
+.meditation-card, .benefit-card {
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.breath-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #ffdde1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.affirmation-box {
+  background-color: #ffdde1;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+}
+.timer-display {
+  font-size: 32px;
+  text-align: center;
+}
+.meditation-types, .breathing-exercise, .daily-affirmation, .meditation-timer, .meditation-gallery {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.meditation-slider {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.meditation-card {
+  padding: 15px;
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.breathing-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+  margin: 20px auto;
+}
+
+.daily-affirmation {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border-radius: var(--border-radius);
+  margin: 2rem auto;
+  max-width: 600px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.affirmation-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+/* .video-gallery-title {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+} */ */
 /* Meditation Types Section */
 .meditation-types {
   margin: 40px 0;
