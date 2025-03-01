@@ -51,31 +51,33 @@ const HealthHistoryForm = ({ onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Pass only valid data to the parent component
       onSubmit(formData);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2 className="text-2xl font-bold text-center mb-6 text-orange-600">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-2xl mx-auto p-6 bg-white shadow-xl rounded-xl"
+    >
+      <h2 className="text-3xl font-bold text-center mb-6 text-orange-600">
         Step 4: Health History
       </h2>
 
       {/* Mental Health Conditions */}
-      <div className="bg-white p-6 mb-6 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-gray-50 p-6 mb-6 rounded-lg shadow border">
         <h3 className="text-xl font-semibold mb-4">Mental Health Conditions</h3>
         {["OCD", "Depression", "Trauma", "Anxiety", "Stress"].map(
           (condition) => (
-            <label key={condition} className="flex items-center mb-3">
+            <label key={condition} className="flex items-center space-x-3 mb-3">
               <input
                 type="checkbox"
                 value={condition}
                 checked={formData.mentalHealthConditions.includes(condition)}
                 onChange={handleChange}
-                className="mr-2"
+                className="form-checkbox text-orange-500 h-5 w-5"
               />
-              {condition}
+              <span className="text-gray-700">{condition}</span>
             </label>
           )
         )}
@@ -87,21 +89,21 @@ const HealthHistoryForm = ({ onSubmit }) => {
       </div>
 
       {/* Family History */}
-      <div className="bg-white p-6 mb-6 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-gray-50 p-6 mb-6 rounded-lg shadow border">
         <h3 className="text-xl font-semibold mb-4">
           Family Mental Health History
         </h3>
         {["Yes", "No", "Unsure"].map((option) => (
-          <label key={option} className="flex items-center mb-3">
+          <label key={option} className="flex items-center space-x-3 mb-3">
             <input
               type="radio"
               name="familyHistory"
               value={option}
               checked={formData.familyHistory === option}
               onChange={handleChange}
-              className="mr-2"
+              className="form-radio text-orange-500 h-5 w-5"
             />
-            {option}
+            <span className="text-gray-700">{option}</span>
           </label>
         ))}
         {error.familyHistory && (
@@ -110,19 +112,19 @@ const HealthHistoryForm = ({ onSubmit }) => {
       </div>
 
       {/* Significant Trauma */}
-      <div className="bg-white p-6 mb-6 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-gray-50 p-6 mb-6 rounded-lg shadow border">
         <h3 className="text-xl font-semibold mb-4">Significant Trauma</h3>
         {["Yes", "No", "Prefer not to say"].map((option) => (
-          <label key={option} className="flex items-center mb-3">
+          <label key={option} className="flex items-center space-x-3 mb-3">
             <input
               type="radio"
               name="significantTrauma"
               value={option}
               checked={formData.significantTrauma === option}
               onChange={handleChange}
-              className="mr-2"
+              className="form-radio text-orange-500 h-5 w-5"
             />
-            {option}
+            <span className="text-gray-700">{option}</span>
           </label>
         ))}
         {error.significantTrauma && (
@@ -131,7 +133,7 @@ const HealthHistoryForm = ({ onSubmit }) => {
       </div>
 
       {/* Childhood Challenges */}
-      <div className="bg-white p-6 mb-6 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-gray-50 p-6 mb-6 rounded-lg shadow border">
         <h3 className="text-xl font-semibold mb-4">Childhood Challenges</h3>
         {[
           "Abuse",
@@ -141,16 +143,16 @@ const HealthHistoryForm = ({ onSubmit }) => {
           "Unsure",
           "None",
         ].map((option) => (
-          <label key={option} className="flex items-center mb-3">
+          <label key={option} className="flex items-center space-x-3 mb-3">
             <input
               type="radio"
               name="childhoodChallenges"
               value={option}
               checked={formData.childhoodChallenges === option}
               onChange={handleChange}
-              className="mr-2"
+              className="form-radio text-orange-500 h-5 w-5"
             />
-            {option}
+            <span className="text-gray-700">{option}</span>
           </label>
         ))}
         {error.childhoodChallenges && (
@@ -160,9 +162,12 @@ const HealthHistoryForm = ({ onSubmit }) => {
         )}
       </div>
 
+      {/* Submit Button */}
       <button
         type="submit"
-        className="bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-400 w-full"
+        className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-orange-500 
+        hover:from-purple-700 hover:via-indigo-700 hover:to-orange-600 text-white 
+        font-semibold rounded-lg transition duration-200 transform hover:scale-105 shadow-lg"
       >
         Submit
       </button>
