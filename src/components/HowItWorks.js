@@ -34,7 +34,7 @@ const HowItWorks = () => {
           
           <div className="illustration">
           <img 
-               src="https://img.freepik.com/free-vector/hand-drawn-mindfulness-concept-with-characters_52683-69073.jpg?t=st=1740766289~exp=1740769889~hmac=737786ed35a5300828dbfc161c945b1ea47333bddd8a4197570bcf4abe9e0d9b&w=740">
+               src="/img/howitworks.jpg">
 
                </img>
           </div>
