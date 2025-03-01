@@ -94,8 +94,12 @@ const EducationDetailView = () => {
     );
   }
 
+  // Fixed logic: Check if user is logged in first, then compare emails
   const isAuthor =
-    loggedInUser?.email?.toLowerCase() === data?.author_email?.toLowerCase();
+    loggedInUser &&
+    loggedInUser.email &&
+    data.author_email &&
+    loggedInUser.email.toLowerCase() === data.author_email.toLowerCase();
 
   return (
     <div className="bg-gradient-to-b from-purple-100 via-indigo-50 to-white min-h-screen flex flex-col">
