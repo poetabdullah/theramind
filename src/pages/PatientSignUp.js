@@ -110,9 +110,9 @@ const PatientSignUp = () => {
       const userDoc = await getDoc(doc(db, "patients", finalData.email));
       if (!userDoc.exists()) {
         await setDoc(doc(db, "patients", finalData.email), finalData);
-        navigate("/");
+        navigate("/patient-dashboard");
       } else {
-        navigate("/");
+        navigate("/patient-dashboard");
       }
     } catch (err) {
       console.error("Error saving user data:", err);
