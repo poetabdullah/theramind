@@ -208,6 +208,7 @@ body {
 
 .step-item:hover {
   transform: translateX(10px);
+  background-color: #ffa963;
 }
 
 .step-number {
@@ -256,6 +257,7 @@ body {
 
 .stat-card:hover {
   transform: translateY(-5px);
+  background-color: #ffa963;
 }
 
 .stat-percentage {
