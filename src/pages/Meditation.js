@@ -3,6 +3,11 @@ import { motion } from "framer-motion";
 import VideoGallery from "../components/VideoGallery";
 import MeditationTypes from "../components/MeditationTypes";
 import Footer from "../components/Footer";
+import ImageGallery from "../components/ImageGallery";
+import DailyAffirmation from "../components/DailyAffirmation";
+import MeditationTimer from "../components/MeditationTimer";
+import BreathingExercise from "../components/BreathingExercise";
+import GuidedMeditation from "../components/GuidedMeditation";
 
 const Meditation = () => {
   return (
@@ -26,8 +31,12 @@ const Meditation = () => {
             Find your inner peace through mindful meditation
           </motion.p>
         </header>
-
+        <ImageGallery/>
+        <DailyAffirmation/>
         <MeditationTypes />
+        <GuidedMeditation/>
+        <BreathingExercise/>
+        <MeditationTimer/>
         <VideoGallery />
       </div>
 
