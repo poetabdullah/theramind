@@ -8,7 +8,7 @@ const OAuthSignUp = ({ onSuccess }) => {
       </h2>
       <button
         onClick={onSuccess}
-        className="w-full py-3 px-6 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-200 flex items-center justify-center"
+        className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-orange-500 hover:from-purple-700 hover:via-indigo-700 hover:to-orange-600 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
