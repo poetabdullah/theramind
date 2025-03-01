@@ -34,8 +34,9 @@ const HowItWorks = () => {
           
           <div className="illustration">
           <img 
-               src="https://img.freepik.com/free-vector/mental-health-awareness-concept_23-2148552125.jpg?t=st=1740747044~exp=1740750644~hmac=0fc65d430ab9a00dd27e0075ab6b2d3d578c41e5ae9230780a8684169abb7b08&w=740" 
-          />
+               src="https://img.freepik.com/free-vector/hand-drawn-mindfulness-concept-with-characters_52683-69073.jpg?t=st=1740766289~exp=1740769889~hmac=737786ed35a5300828dbfc161c945b1ea47333bddd8a4197570bcf4abe9e0d9b&w=740">
+
+               </img>
           </div>
         </div>
 

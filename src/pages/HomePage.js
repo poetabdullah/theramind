@@ -1,5 +1,5 @@
 import React from 'react';
-import Banner from '../components/Banner';
+import BannerSlider from '../components/BannerSlider';
 import Services from '../components/Services';
 import HowItWorks from '../components/HowItWorks';
 import MeditationSection from '../components/MeditationSection';
@@ -10,7 +10,7 @@ import Footer from '../components/Footer';
 
 const HomePage = () => (
   <>
-    <Banner />
+    <BannerSlider />
     <Services />
     <HowItWorks />
     <TestPrompt />
