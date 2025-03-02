@@ -482,30 +482,84 @@ body {
     transform: translateY(0);
   }
 }
-
 .meditation-container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-  text-align: center;
+  /* background: linear-gradient(135deg, #a635d6, #ff7b00); */
+  min-height: 400vh
 }
 
+/* Header */
 .meditation-header {
-  padding: 20px 0;
+  background: linear-gradient(135deg, #a635d6, #ff7b00);
+  text-align: center;
+  color: white;
+  padding:70px 80px;
+  height: 50vh;
 }
-
-.title {
+.meditation-header .title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #333;
+  color: white;
 }
-/*gloabal */
-.section-title {
+.meditation-header .subtitle {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+/* Importance Section */
+.importance-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 20px; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 30px;  
+  max-width: 1250px;
+}
+.importance-content {
+  flex: 1;
+  padding: 20px; 
+}
+.importance-content h2 {
+  font-weight: bolder;
+  font-size: 1.8rem;
+  color: #a635d6;
+}
+.importance-content p {
+  font-size: 1rem;
+  color: #555;
+}
+.importance-image {
+  flex: 1;
+}
+.importance-image img {
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+/* Benefits Cards */
+.benefits-section {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+}
+.benefit-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 350px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
-  font-size: 2rem;
-  color: var(--secondary);
-  margin-bottom: 1rem;
-  animation: fadeInUp 0.8s ease-in-out;
+}
+.benefit-card h3 {
+  color: #ff7b00;
+  font-size: 1.4rem;
+}
+.benefit-card p {
+  font-size: 1rem;
+  color: #555;
 }
 
 /* Scroll-triggered animations */
@@ -527,67 +581,107 @@ body {
   --dark-text: #333;
   --border-radius: 12px;
 }
-/*guided */
-.guided-meditation {
-  text-align: center;
-  padding: 2rem;
-}
-
-.slider-container {
+.guided-meditation-container {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  height: 100vh;
+  background: linear-gradient(to right, #b43d65, #ecd4dc, #ffccbc);
+  padding: 20px;
+  margin-top: 40px;
+}
+
+.medimage-slider {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
-  gap: 1rem;
+  align-items: center;
+  height: 100%;
+  padding: 20px;
 }
 
-.slider-arrow {
-  background: var(--primary);
-  border: none;
-  padding: 0.5rem 1rem;
-  color: #fff;
-  font-size: 1.5rem;
-  cursor: pointer;
-  border-radius: 50%;
-  transition: 0.3s;
+.medslider-content {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
 }
 
-.slider-arrow:hover {
-  background: var(--secondary);
+.medslider-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  opacity: 0.5;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.medslider-content img.active {
+  opacity: 1;
+}
+
+.medcontent {
+  flex: 1;
+  padding: 20px;
+}
+
+.medtitle {
+  font-size: 2rem;
+  color: rgb(128, 17, 128);
+  margin-bottom: 20px;
 }
 
 .exercise-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--border-radius);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  text-align: center;
-}
-
-.exercise-card h3 {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
-  color: var(--primary);
-  transition: 0.3s;
+  transition: all 0.3s ease;
 }
 
-.exercise-card h3:hover {
-  color: var(--accent);
+.exercise-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.exercise-steps {
-  margin-top: 1rem;
-  padding-left: 0;
-  list-style-type: none;
+.exercise-card.active {
+  background: #ff4081;
+  color: white;
 }
 
-.exercise-steps li {
-  background: var(--light-bg);
-  padding: 0.5rem;
-  margin-bottom: 5px;
-  border-radius: var(--border-radius);
+/* Removing the color definitions from CSS since we're handling them inline for consistency */
+.exercise-title {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
 }
 
+.steps {
+  list-style: none;
+  padding: 0;
+}
+
+.steps li {
+  font-size: 1.2rem;
+  transition: all 0.3s;
+}
+
+/* We're using inline styles for hover effects, but keeping this for backup */
+.steps li:hover {
+  transform: translateX(10px);
+}
+
+/* Fix for active card text colors */
+.exercise-card.active .exercise-title,
+.exercise-card.active .steps li {
+  color: white;
+} */
 /*breathin */
+.breathing-title{
+  color: orange;
+  margin-top: 30px;
+  font-weight: bold;
+}
 .breathing-exercise {
   text-align: center;
   padding: 3rem 0;
@@ -607,22 +701,7 @@ body {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
   margin: auto;
 }
-/*dailyaffirmation*/
-.daily-affirmation {
-  text-align: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
-  border-radius: var(--border-radius);
-  margin: 2rem auto;
-  max-width: 600px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
 
-.affirmation-text {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
 /*meditationtimer */
 .meditation-timer {
   text-align: center;
@@ -708,67 +787,7 @@ body {
   }
 }
 
-/*image gallery */
-.image-gallery {
-  text-align: center;
-  padding: 3rem 0;
-}
 
-.gallery {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.gallery-item {
-  position: relative;
-  width: 250px;
-  height: 200px;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  transition: 0.3s;
-}
-
-.gallery-item:hover {
-  transform: scale(1.05);
-}
-
-.gallery-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.gallery-item p {
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: white;
-  font-weight: bold;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 5px;
-  border-radius: var(--border-radius);
-}
-
-/* .subtitle {
-  font-size: 1.2rem;
-  color: #666;
-  margin-top: 10px;
-}
-.section-title {
-  text-align: center;
-  font-size: 24px;
-  margin-bottom: 15px;
-}
-
-/* .meditation-cards, .benefits-grid {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-} */
 
 .meditation-card, .benefit-card {
   padding: 15px;
@@ -791,12 +810,6 @@ body {
   font-size: 18px;
 }
 
-.affirmation-box {
-  background-color: #ffdde1;
-  padding: 15px;
-  text-align: center;
-  cursor: pointer;
-}
 .timer-display {
   font-size: 32px;
   text-align: center;
@@ -828,26 +841,6 @@ body {
   margin: 20px auto;
 }
 
-.daily-affirmation {
-  text-align: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
-  border-radius: var(--border-radius);
-  margin: 2rem auto;
-  max-width: 600px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.affirmation-text {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-/* .video-gallery-title {
-  text-align: center;
-  font-size: 24px;
-  margin-bottom: 20px;
-} */ */
 /* Meditation Types Section */
 .meditation-types {
   margin: 40px 0;
