@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Footer from "../components/Footer.js";
 import { db } from "../firebaseConfig.js";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -46,6 +48,31 @@ const Questionnaire = () => {
     };
     fetchQuestions();
   }, []);
+
+  const saveResponsesToFirestore = async (responses, diagnosedCondition, diagnosedSubtype) => {
+    try {
+      const auth = getAuth();
+      const user = auth.user;
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      const userId = user.uid;
+      const responseDocRef = doc(db, "user_responses", userId);
+
+      await setDoc(responseDocRef, {
+        responses,
+        diagnosedCondition,
+        diagnosedSubtype,
+        timestamp: new Date(),
+      });
+
+      console.log("Responses successfully saved!");
+    } catch (error) {
+      console.error("Error saving responses: ", error);
+    }
+  };
 
   useEffect(() => {
     if (currentQuestionIndex === 1 && responses["question_question1"] === "none" && responses["question_question2"] === "no_symptoms") {
@@ -119,6 +146,11 @@ const Questionnaire = () => {
     }
   }, [isQuestionnaireComplete, subtypeScores]);
 
+  useEffect(() => {
+    if (isQuestionnaireComplete) {
+      saveResponsesToFirestore(responses, detectedCondition, diagnosedSubtype);
+    }
+  }, [isQuestionnaireComplete, responses, detectedCondition, diagnosedSubtype]);
 
   const handlePrevious = () => {
     setNoConditionDiagnosed(false);
