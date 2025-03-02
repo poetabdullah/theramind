@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./questionnaire.css";
 import { motion, AnimatePresence } from "framer-motion";
-import Footer from "../components/Footer";
+import Footer from "../components/Footer.js";
 import { db } from "../firebaseConfig.js";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
