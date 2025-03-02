@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./questionnaire.css";
 import { motion, AnimatePresence } from "framer-motion";
-import Footer from "../components/Footer.js";
+import Footer from "../components/Footer";
 import { db } from "../firebaseConfig.js";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { doc, setDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { collection, getDocs, query, orderBy, doc, setDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -19,25 +19,32 @@ const scaleEffect = {
   exit: { opacity: 0, scale: 0.9, transition: { duration: 0.3 } }
 };
 
-const conditionRanges = {
-  Stress: { start: 16, end: 30 },
-  Depression: { start: 31, end: 41 },
-  Anxiety: { start: 42, end: 52 },
-  Trauma: { start: 53, end: 68 },
-  OCD: { start: 69, end: 80 },
-};
-
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState({});
   const [noConditionDiagnosed, setNoConditionDiagnosed] = useState(false);
   const [suicidalThoughts, setSuicidalThoughts] = useState(false);
-  const [detectedCondition, setDetectedCondition] = useState(null);
   const [detectedConditions, setDetectedConditions] = useState([]);
-  const [subtypeScores, setSubtypeScores] = useState({});
-  const [diagnosedSubtype, setDiagnosedSubtype] = useState(null);
-  const [isQuestionnaireComplete, setIsQuestionnaireComplete] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const auth = getAuth();
+
+  // Check if user is authenticated and registered in "patients" collection
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setIsLoading(false);
+      } else {
+        // Redirect to login if not authenticated
+        navigate("/login");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth, navigate]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -48,31 +55,6 @@ const Questionnaire = () => {
     };
     fetchQuestions();
   }, []);
-
-  const saveResponsesToFirestore = async (responses, diagnosedCondition, diagnosedSubtype) => {
-    try {
-      const auth = getAuth();
-      const user = auth.user;
-      if (!user) {
-        console.error("User not authenticated");
-        return;
-      }
-
-      const userId = user.uid;
-      const responseDocRef = doc(db, "user_responses", userId);
-
-      await setDoc(responseDocRef, {
-        responses,
-        diagnosedCondition,
-        diagnosedSubtype,
-        timestamp: new Date(),
-      });
-
-      console.log("Responses successfully saved!");
-    } catch (error) {
-      console.error("Error saving responses: ", error);
-    }
-  };
 
   useEffect(() => {
     if (currentQuestionIndex === 1 && responses["question_question1"] === "none" && responses["question_question2"] === "no_symptoms") {
@@ -93,64 +75,127 @@ const Questionnaire = () => {
     setResponses((prev) => {
       const updatedResponses = { ...prev, [name]: value };
 
+      // Get the question text that corresponds to this answer
+      const questionKey = name.replace("question_", "");
+      const question = questions.find(q => q.id === questionKey);
+
+      // If user is authenticated, save this response to Firestore
+      if (user && question) {
+        // Store each individual response as it's selected
+        const responseData = {
+          questionId: questionKey,
+          questionText: question.text,
+          response: value,
+          timestamp: new Date()
+        };
+
+        const responsePath = `patients/${user.email}/responses/${questionKey}`;
+        setDoc(doc(db, responsePath), responseData, { merge: true })
+          .catch(error => console.error("Error saving response:", error));
+      }
+
       // Reset detected conditions if a question in range 3-6 is changed
       const questionIndex = questions.findIndex(q => `question_${q.id}` === name);
       if (questionIndex >= 3 && questionIndex <= 6) {
-        setDetectedConditions([]);
+        setDetectedConditions([]);  // Clear previously detected conditions
       }
 
       return updatedResponses;
     });
   };
 
-  const handleNext = () => {
-    if (!detectedCondition && currentQuestionIndex === 6) {
-      const conditionCounts = { Stress: 0, Anxiety: 0, Depression: 0, Trauma: 0, OCD: 0 };
+  const handleNext = async () => {
+    if (!noConditionDiagnosed && !suicidalThoughts) {
+      if (currentQuestionIndex === 6) {
+        // Step 1: Detect the primary condition
+        const conditionCounts = { Stress: 0, Anxiety: 0, Depression: 0, Trauma: 0, OCD: 0 };
 
-      for (let i = 3; i <= 6; i++) {
-        const selectedCondition = responses[`question_${questions[i]?.id}`];
-        if (selectedCondition) conditionCounts[selectedCondition]++;
-      }
+        for (let i = 3; i <= 6; i++) {
+          const selectedCondition = responses[`question_${questions[i]?.id}`];
+          if (selectedCondition && conditionCounts.hasOwnProperty(selectedCondition)) {
+            conditionCounts[selectedCondition]++;
+          }
+        }
 
-      const detected = Object.keys(conditionCounts).reduce((a, b) => conditionCounts[a] > conditionCounts[b] ? a : b);
-      setDetectedCondition(detected);
-      setCurrentQuestionIndex(conditionRanges[detected]?.start || 16);
-      return;
-    }
+        const detectedCondition = Object.keys(conditionCounts).reduce((a, b) =>
+          conditionCounts[a] > conditionCounts[b] ? a : b
+        );
 
-    if (detectedCondition) {
-      const currentQuestion = questions[currentQuestionIndex];
-      const selectedOption = responses[`question_${currentQuestion.id}`];
-
-      if (selectedOption && currentQuestion.category) {
-        const score = currentQuestion.options.find(option => option.name === selectedOption)?.score || 0;
-        setSubtypeScores(prev => ({
-          ...prev,
-          [currentQuestion.category]: (prev[currentQuestion.category] || 0) + score
-        }));
-      }
-
-      if (currentQuestionIndex === conditionRanges[detectedCondition].end) {
-        setIsQuestionnaireComplete(true);
+        setDetectedConditions([detectedCondition]);
+        setCurrentQuestionIndex(detectedCondition === "OCD" ? 7 : 8);
         return;
       }
-    }
 
-    setCurrentQuestionIndex((prev) => prev + 1);
+      // Step 2: Track subtype responses from Q7 onward
+      if (currentQuestionIndex >= 7 && currentQuestionIndex <= 68) {
+        const subtypeScores = {};
+
+        questions.slice(7, 69).forEach((question) => {
+          const selectedOption = responses[`question_${question.id}`];
+          const score = question.scores?.[selectedOption] || 0; // Fetch score from database
+
+          if (selectedOption && question.category) {
+            subtypeScores[question.category] = (subtypeScores[question.category] || 0) + score;
+          }
+        });
+
+        // Step 3: Determine the dominant subtype
+        const detectedSubtype = Object.keys(subtypeScores).reduce((a, b) =>
+          subtypeScores[a] > subtypeScores[b] ? a : b
+        );
+
+        console.log(`Detected Condition: ${detectedConditions[0]}, Subtype: ${detectedSubtype}`);
+        setDetectedConditions([detectedConditions[0], detectedSubtype]);
+
+        // Step 4: Proceed only to the relevant question range based on detected condition
+        const conditionRanges = {
+          Stress: { start: 16, end: 30 },
+          Depression: { start: 31, end: 41 },
+          Anxiety: { start: 42, end: 52 },
+          Trauma: { start: 53, end: 68 },
+          OCD: { start: 69, end: 80 },
+        };
+
+        if (conditionRanges[detectedConditions[0]]) {
+          setCurrentQuestionIndex(conditionRanges[detectedConditions[0]].start);
+          return;
+        }
+      }
+
+      // Skip question 7 if the diagnosed condition is not OCD
+      if (currentQuestionIndex === 7 && detectedConditions[0] !== "OCD") {
+        const conditionRanges = {
+          Stress: { start: 16, end: 30 },
+          Depression: { start: 31, end: 41 },
+          Anxiety: { start: 42, end: 52 },
+          Trauma: { start: 53, end: 68 },
+        };
+
+        if (conditionRanges[detectedConditions[0]]) {
+          setCurrentQuestionIndex(conditionRanges[detectedConditions[0]].start);
+          return;
+        }
+      }
+
+      // Continue to next question normally
+      setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1));
+    } else {
+      // Save final diagnosis result if it's the end
+      if (user) {
+        const diagnosisResult = {
+          timestamp: new Date(),
+          noConditionDiagnosed: noConditionDiagnosed,
+          suicidalThoughts: suicidalThoughts,
+          detectedConditions: detectedConditions,
+          allResponses: responses
+        };
+
+        // Save the complete assessment results
+        await setDoc(doc(db, `patients/${user.email}/assessments/${new Date().toISOString()}`), diagnosisResult)
+          .catch(error => console.error("Error saving assessment result:", error));
+      }
+    }
   };
-
-  useEffect(() => {
-    if (isQuestionnaireComplete) {
-      const maxSubtype = Object.keys(subtypeScores).reduce((a, b) => subtypeScores[a] > subtypeScores[b] ? a : b, "");
-      setDiagnosedSubtype(maxSubtype);
-    }
-  }, [isQuestionnaireComplete, subtypeScores]);
-
-  useEffect(() => {
-    if (isQuestionnaireComplete) {
-      saveResponsesToFirestore(responses, detectedCondition, diagnosedSubtype);
-    }
-  }, [isQuestionnaireComplete, responses, detectedCondition, diagnosedSubtype]);
 
   const handlePrevious = () => {
     setNoConditionDiagnosed(false);
@@ -158,17 +203,29 @@ const Questionnaire = () => {
 
     const detectedCondition = detectedConditions[0];
 
+    // Define condition ranges
+    const conditionRanges = {
+      Stress: { start: 16, end: 30 },
+      Depression: { start: 31, end: 41 },
+      Anxiety: { start: 42, end: 52 },
+      Trauma: { start: 53, end: 68 },
+      OCD: { start: 69, end: 80 },
+    };
+
     if (detectedCondition && currentQuestionIndex >= conditionRanges[detectedCondition].start) {
+      // If inside a detected condition range, move back to Q6 (initial condition detection)
       setCurrentQuestionIndex(6);
     } else if (currentQuestionIndex === 6) {
+      // If returning from Q6, go back to Q3 (condition selection)
       setCurrentQuestionIndex(3);
     } else {
+      // Otherwise, move back one step normally
       setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
     }
   };
 
   const getProgress = () => {
-    if (noConditionDiagnosed || suicidalThoughts) return 100;
+    if (noConditionDiagnosed || suicidalThoughts) return 100; // Show as completed when interrupted
     if (currentQuestionIndex === 0) return 0;
     if (currentQuestionIndex <= 1) return 25;
     if (currentQuestionIndex === 2) return 50;
@@ -176,19 +233,35 @@ const Questionnaire = () => {
     return Math.round((currentQuestionIndex / (questions.length - 1)) * 100);
   };
 
-  if (isQuestionnaireComplete) {
+  // Save final result when questionnaire is completed
+  useEffect(() => {
+    const saveFinalResult = async () => {
+      if (user && (noConditionDiagnosed || suicidalThoughts ||
+        (detectedConditions.length > 0 && currentQuestionIndex === questions.length - 1))) {
+
+        const result = {
+          timestamp: new Date(),
+          noConditionDiagnosed,
+          suicidalThoughts,
+          detectedConditions,
+          allResponses: responses
+        };
+
+        // Save the final assessment result
+        await setDoc(doc(db, `patients/${user.email}/assessments/${new Date().toISOString()}`), result)
+          .catch(error => console.error("Error saving final assessment:", error));
+      }
+    };
+
+    saveFinalResult();
+  }, [noConditionDiagnosed, suicidalThoughts, detectedConditions, currentQuestionIndex, questions.length, responses, user]);
+
+  if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        <header className="text-center py-4">
-          <motion.h2 className="text-3xl font-bold text-purple-600 mt-2" {...fadeInUp}>Diagnosis Result</motion.h2>
-        </header>
-        <main className="flex-grow flex items-center justify-center mb-5">
-          <motion.div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-xl text-center" {...scaleEffect}>
-            <h2 className="text-2xl font-bold">Your diagnosed subtype:</h2>
-            <p className="text-xl text-green-800 mt-2">{diagnosedSubtype}</p>
-          </motion.div>
-        </main>
-        <Footer />
+      <div className="flex flex-col min-h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-purple-600">Loading questionnaire...</p>
+        </div>
       </div>
     );
   }
