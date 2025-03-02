@@ -9,7 +9,7 @@ const BreathingExercise = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1 }}
     >
-      <h2 className="section-title">Breathing Exercise</h2>
+      <h2 className="breathing-title">Breathing Exercise</h2>
       <motion.div
         className="breathing-circle"
         animate={{ scale: [1, 1.3, 1] }}
