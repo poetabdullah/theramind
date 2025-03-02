@@ -69,7 +69,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-indigo-400 to-orange-300 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-indigo-400 to-orange-500 p-4">
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-purple-700 mb-2">
