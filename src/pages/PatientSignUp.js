@@ -70,8 +70,17 @@ const PatientSignUp = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      setUserData({ name: user.displayName || "", email: user.email || "" });
-      setStep(2);
+      // Check if patient already exists in Firestore
+      const userDoc = await getDoc(doc(db, "patients", user.email));
+
+      if (userDoc.exists()) {
+        // If user exists, navigate directly to dashboard
+        navigate("/patient-dashboard");
+      } else {
+        // If new user, proceed with signup steps
+        setUserData({ name: user.displayName || "", email: user.email || "" });
+        setStep(2);
+      }
     } catch (authErr) {
       console.error("Google Sign-In Error:", authErr.message);
       setError({ general: "Google sign-in failed. Please try again." });
