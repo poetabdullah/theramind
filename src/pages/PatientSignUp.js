@@ -130,7 +130,7 @@ const PatientSignUp = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-500 via-indigo-400 to-orange-300 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-700 via-indigo-500 to-orange-600 p-4">
       <div className="w-full max-w-xl mb-6">
         <div className="bg-white bg-opacity-90 rounded-lg shadow-lg p-4">
           <StepProgress steps={steps} currentStep={step} />
