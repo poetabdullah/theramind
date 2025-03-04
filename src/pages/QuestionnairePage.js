@@ -129,6 +129,8 @@ const Questionnaire = () => {
 
       const detected = Object.keys(conditionCounts).reduce((a, b) => conditionCounts[a] > conditionCounts[b] ? a : b);
       setDetectedCondition(detected);
+      console.log(detected);
+      console.log(conditionCounts);
       setCurrentQuestionIndex(conditionRanges[detected]?.start || 16);
       return;
     }
@@ -202,9 +204,9 @@ const Questionnaire = () => {
   const getProgress = () => {
     if (noConditionDiagnosed || suicidalThoughts) return 100;
     if (currentQuestionIndex === 0) return 0;
-    if (currentQuestionIndex <= 1) return 25;
-    if (currentQuestionIndex === 2) return 50;
-    if (currentQuestionIndex >= 3 && currentQuestionIndex <= 6) return 75;
+    if (currentQuestionIndex <= 1) return 10;
+    if (currentQuestionIndex === 2) return 20;
+    if (currentQuestionIndex >= 3 && currentQuestionIndex <= 6) return 40;
     return Math.round((currentQuestionIndex / (questions.length - 1)) * 100);
   };
 
