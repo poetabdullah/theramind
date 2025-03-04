@@ -68,7 +68,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-r from-violet-800 via-purple-800 to-purple-900 shadow-lg">
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-violet-900 via-purple-800 to-indigo-900 shadow-lg">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
@@ -272,7 +272,7 @@ const Navbar = () => {
                   )}
                   <button
                     onClick={handleLogout}
-                    className="bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-purple-800 hover:to-indigo-800 transition-colors duration-200 font-medium"
+                    className="bg-gradient-to-r from-violet-600 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-violet-700 hover:to-indigo-800 transition-colors duration-200 font-medium"
                   >
                     Logout
                   </button>
@@ -293,7 +293,7 @@ const Navbar = () => {
           <div
             className={`${
               menuOpen ? "translate-x-0" : "translate-x-full"
-            } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
+            } fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-violet-900 via-purple-800 to-indigo-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
           >
             <div className="flex justify-end p-4">
               <button
@@ -427,7 +427,7 @@ const Navbar = () => {
                 <div className="space-y-4 pt-6 pb-8">
                   <Link
                     to="/signup"
-                    className="block bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-center font-medium no-underline"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-base font-medium no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
                     Sign Up
@@ -463,8 +463,9 @@ const Navbar = () => {
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="w-full bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-purple-800 hover:to-indigo-800 transition-colors duration-200 font-medium"
+                      className="bg-gradient-to-r from-violet-600 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-violet-700 hover:to-indigo-800 transition-colors duration-200 font-medium"
                     >
+                      {" "}
                       Logout
                     </button>
                   </div>
