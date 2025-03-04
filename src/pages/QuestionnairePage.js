@@ -19,12 +19,28 @@ const scaleEffect = {
   exit: { opacity: 0, scale: 0.9, transition: { duration: 0.3 } }
 };
 
+//Diagnosis Summary Transitions & Animations
+const fadeinup = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+};
+
+const scaleeffect = {
+  initial: { opacity: 0, scale: 0.8 },
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const textSlideIn = {
+  initial: { opacity: 0, y: -20 },
+  animate: { opacity: 1, y: 1, transition: { duration: 0.5, ease: "easeOut", delay: 0.3 } },
+};
+
 const conditionRanges = {
   Stress: { start: 16, end: 30 },
   Depression: { start: 31, end: 41 },
   Anxiety: { start: 42, end: 52 },
   Trauma: { start: 53, end: 68 },
-  OCD: { start: 69, end: 80 },
+  OCD: { start: 7, end: 15 },
 };
 
 const Questionnaire = () => {
@@ -192,22 +208,41 @@ const Questionnaire = () => {
 
     const detectedCondition = detectedConditions[0];
 
-    if (detectedCondition && currentQuestionIndex >= conditionRanges[detectedCondition].start) {
-      setCurrentQuestionIndex(6);
-    } else if (currentQuestionIndex === 6) {
-      setCurrentQuestionIndex(3);
-    } else {
-      setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+    //If In The Middle Of A Detected Condition, Go Back To Normal Back Question Of Range
+    if (detectedCondition && currentQuestionIndex > conditionRanges[detectedCondition].start) {
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
+    //If At The Beginning Of A Detected Condition, Go Back To Question 6
+    if (detectedCondition && currentQuestionIndex === conditionRanges[detectedCondition].start) {
+      setDetectedCondition(null);
+      setCurrentQuestionIndex(6);
+    }
+    //If At Question 6, Go Back To Question 3
+    if (!detectedCondition && currentQuestionIndex === 6) {
+      setCurrentQuestionIndex(3);
+      return;
+    }
+    //To Prevent Moving Back Below 0
+    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
   };
 
   const getProgress = () => {
     if (noConditionDiagnosed || suicidalThoughts) return 100;
-    if (currentQuestionIndex === 0) return 0;
-    if (currentQuestionIndex <= 1) return 10;
-    if (currentQuestionIndex === 2) return 20;
-    if (currentQuestionIndex >= 3 && currentQuestionIndex <= 6) return 40;
-    return Math.round((currentQuestionIndex / (questions.length - 1)) * 100);
+
+    const totalQuestions = questions.length;
+
+    if (currentQuestionIndex <= 6) {
+      return Math.round((currentQuestionIndex / 6) * 40);
+    }
+
+    if (detectedCondition) {
+      const { start, end } = conditionRanges[detectedCondition];
+      const conditionTotal = end - start + 1;
+
+      return 40 + Math.round(((currentQuestionIndex - start) / conditionTotal) * 60);
+    }
+
+    return Math.round((currentQuestionIndex / totalQuestions) * 100);
   };
 
   if (isLoading) {
@@ -222,14 +257,20 @@ const Questionnaire = () => {
 
   if (isQuestionnaireComplete) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50">
+      <div className="flex flex-col min-h-screen bg-gray-50"
+        initial="initial"
+        animate="animate">
         <header className="text-center py-4">
-          <motion.h2 className="text-3xl font-bold text-purple-600 mt-2" {...fadeInUp}>Diagnosis Result</motion.h2>
+          <motion.h2 className="text-3xl font-bold text-purple-600 mt-2" variants={fadeinup}>Diagnosis Result</motion.h2>
         </header>
         <main className="flex-grow flex items-center justify-center mb-5">
-          <motion.div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-xl text-center" {...scaleEffect}>
-            <h2 className="text-2xl font-bold">Your diagnosed subtype:</h2>
-            <p className="text-xl text-green-800 mt-2">{diagnosedSubtype}</p>
+          <motion.div className="bg-gradient-to-r from-purple-300 to-orange-200 shadow-lg rounded-lg p-6 w-full max-w-xl text-center"
+            variants={scaleeffect}
+            whileHover={{ scale: 1.05 }}>
+            <motion.h2 className="text-xl font-bold">Your diagnosed mental health condition:</motion.h2>
+            <motion.p className="text-lg text-orange-800 mt-2"
+              variants={textSlideIn}>Based on the responses you submitted, you are likely to
+              have features of {diagnosedSubtype}</motion.p>
           </motion.div>
         </main>
         <Footer />
