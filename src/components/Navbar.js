@@ -68,7 +68,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-r from-violet-800 via-purple-800 to-purple-900 shadow-lg">
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-purple-900 via-violet-900 to-indigo-900 shadow-lg">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
