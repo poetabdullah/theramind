@@ -161,13 +161,13 @@ const Navbar = () => {
                     to="/contact-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Contact Us
+                    Contact
                   </Link>
                   <Link
                     to="/about-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    About Us
+                    About
                   </Link>
                 </>
               ) : (
@@ -223,13 +223,13 @@ const Navbar = () => {
                     to="/contact-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Contact Us
+                    Contact
                   </Link>
                   <Link
                     to="/about-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    About Us
+                    About
                   </Link>
                 </>
               )}
