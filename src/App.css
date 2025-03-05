@@ -488,7 +488,7 @@ body {
 }
 
 /* Header */
-.meditation-header {
+/* .meditation-header {
   background: linear-gradient(135deg, #a635d6, #ff7b00);
   text-align: center;
   color: white;
@@ -503,7 +503,7 @@ body {
 .meditation-header .subtitle {
   font-size: 1.2rem;
   margin-top: 10px;
-}
+} */
 
 /* Importance Section */
 .importance-card {
@@ -677,7 +677,7 @@ body {
   color: white;
 } */
 /*breathin */
-.breathing-title{
+/* .breathing-title{
   color: orange;
   margin-top: 30px;
   font-weight: bold;
@@ -703,7 +703,7 @@ body {
 }
 
 /*meditationtimer */
-.meditation-timer {
+/* .meditation-timer {
   text-align: center;
   background: linear-gradient(to right, #ff9a9e, #fad0c4);
   padding: 40px;
@@ -712,17 +712,17 @@ body {
   margin: 50px auto;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
   animation: fadeIn 1s ease-in-out;
-}
+} */
 
-.meditation-timer h2 {
+/* .meditation-timer h2 {
   font-size: 1.8rem;
   color: #fff;
   margin-bottom: 15px;
   font-weight: bold;
   text-transform: uppercase;
-}
+} */
 
-.timer-content {
+/* .timer-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -764,10 +764,10 @@ body {
 
 .timer-buttons button:active {
   transform: scale(0.95);
-}
+} */
 
 /* Animations */
-@keyframes fadeIn {
+/* @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(-20px);
@@ -785,8 +785,8 @@ body {
   to {
     transform: scale(1.05);
   }
-}
-
+} */
+ */
 
 
 .meditation-card, .benefit-card {
@@ -799,7 +799,7 @@ body {
   transition: 0.3s ease;
 }
 
-.breath-circle {
+/* .breath-circle {
   width: 100px;
   height: 100px;
   border-radius: 50%;
@@ -813,8 +813,8 @@ body {
 .timer-display {
   font-size: 32px;
   text-align: center;
-}
-.meditation-types, .breathing-exercise, .daily-affirmation, .meditation-timer, .meditation-gallery {
+} */
+.meditation-types,  .meditation-gallery {
   text-align: center;
   margin-bottom: 50px;
 }
@@ -838,8 +838,11 @@ body {
   height: 120px;
   border-radius: 50%;
   background: linear-gradient(to right, #ff9a9e, #fad0c4);
-  margin: 20px auto;
+  margin-left: 20px;
+
 }
+
+
 
 /* Meditation Types Section */
 .meditation-types {
@@ -881,7 +884,7 @@ body {
 }
 
 /* Video Gallery */
-.video-gallery-title {
+/* .video-gallery-title {
   font-size: 2rem;
   font-weight: bold;
   color: #444;
@@ -930,4 +933,4 @@ body {
   font-size: 1.1rem;
   font-weight: bold;
 }
-
+ */
