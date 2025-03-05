@@ -436,6 +436,78 @@ const PatientDashboard = () => {
             </div>
           )}
         </div>
+        {/* Patient Info */}
+        <div className="bg-white shadow-lg rounded-lg p-4 border border-purple-100 mb-8 overflow-x-auto">
+          <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
+            Patient Information
+          </h2>
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">Email:</span>
+              <span className="text-gray-700">
+                {patientData?.email || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">Location:</span>
+              <span className="text-gray-700">
+                {patientData?.location || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">Gender:</span>
+              <span className="text-gray-700">
+                {patientData?.gender || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">DOB:</span>
+              <span className="text-gray-700">{patientData?.dob || "N/A"}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">
+                Mental Health:
+              </span>
+              <span className="text-gray-700">
+                {patientData?.mentalHealthConditions?.length > 0
+                  ? patientData.mentalHealthConditions.join(", ")
+                  : "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">
+                Family History:
+              </span>
+              <span className="text-gray-700">
+                {patientData?.familyHistory || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">
+                Birth History:
+              </span>
+              <span className="text-gray-700">
+                {patientData?.birthHistory || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">
+                Significant Trauma:
+              </span>
+              <span className="text-gray-700">
+                {patientData?.significantTrauma || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-purple-700">
+                Childhood Challenges:
+              </span>
+              <span className="text-gray-700">
+                {patientData?.childhoodChallenges || "N/A"}
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Patient Stories Section */}
         <div className="mb-8">

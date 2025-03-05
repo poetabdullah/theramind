@@ -68,7 +68,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-r from-violet-800 via-purple-800 to-purple-900 shadow-lg">
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-violet-900 via-purple-800 to-indigo-900 shadow-lg">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
@@ -99,10 +99,16 @@ const Navbar = () => {
               {user ? (
                 <>
                   <Link
-                    to="/start-screen"
+                    to="/about-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Questionnaire
+                    About
+                  </Link>
+                  <Link
+                    to="/contact-us"
+                    className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
+                  >
+                    Contact
                   </Link>
                   <Link
                     to="/meditation"
@@ -110,11 +116,12 @@ const Navbar = () => {
                   >
                     Meditation
                   </Link>
+
                   <Link
-                    to="/splash-screen"
+                    to="/start-screen"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    TheraChat
+                    Questionnaire
                   </Link>
 
                   {/* Education Dropdown */}
@@ -133,10 +140,11 @@ const Navbar = () => {
                     </Link>
 
                     <div
-                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
-                        ? "opacity-100 visible translate-y-0"
-                        : "opacity-0 invisible -translate-y-2"
-                        }`}
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
+                        educationDropdownOpen
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible -translate-y-2"
+                      }`}
                     >
                       <div className="py-1">
                         <Link
@@ -156,27 +164,26 @@ const Navbar = () => {
                       </div>
                     </div>
                   </div>
-
                   <Link
-                    to="/contact-us"
+                    to="/splash-screen"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Contact
+                    TheraChat
                   </Link>
+                </>
+              ) : (
+                <>
                   <Link
                     to="/about-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
                     About
                   </Link>
-                </>
-              ) : (
-                <>
                   <Link
-                    to="/meditation"
+                    to="/contact-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Meditation
+                    Contact
                   </Link>
 
                   {/* Education Dropdown for non-logged-in users */}
@@ -195,10 +202,11 @@ const Navbar = () => {
                     </Link>
 
                     <div
-                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
-                        ? "opacity-100 visible translate-y-0"
-                        : "opacity-0 invisible -translate-y-2"
-                        }`}
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-900 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
+                        educationDropdownOpen
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible -translate-y-2"
+                      }`}
                     >
                       <div className="py-1">
                         <Link
@@ -218,18 +226,11 @@ const Navbar = () => {
                       </div>
                     </div>
                   </div>
-
                   <Link
-                    to="/contact-us"
+                    to="/meditation"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Contact
-                  </Link>
-                  <Link
-                    to="/about-us"
-                    className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
-                  >
-                    About
+                    Meditation
                   </Link>
                 </>
               )}
@@ -255,18 +256,23 @@ const Navbar = () => {
               isRegistered && (
                 <div className="flex items-center space-x-4">
                   {user.photoURL && (
-                    <img
-                      src={user.photoURL}
-                      alt={user.displayName}
-                      className="w-10 h-10 rounded-full border-2 border-white"
-                    />
+                    <Link
+                      to="/patient-dashboard"
+                      className="flex items-center space-x-2"
+                    >
+                      <img
+                        src={user.photoURL}
+                        alt={user.displayName}
+                        className="w-10 h-10 rounded-full border-2 border-white"
+                      />
+                      <span className="text-orange-300 font-medium hover:text-orange-500 transition-colors duration-200 no-underline">
+                        {user.displayName}
+                      </span>
+                    </Link>
                   )}
-                  <span className="text-orange-300 font-medium">
-                    {user.displayName}
-                  </span>
                   <button
                     onClick={handleLogout}
-                    className="bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-purple-800 hover:to-indigo-800 transition-colors duration-200 font-medium"
+                    className="bg-gradient-to-r from-violet-600 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-violet-700 hover:to-indigo-800 transition-colors duration-200 font-medium"
                   >
                     Logout
                   </button>
@@ -277,15 +283,17 @@ const Navbar = () => {
 
           {/* Mobile Menu Overlay */}
           <div
-            className={`${menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
-              } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
+            className={`${
+              menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
+            } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
             onClick={() => setMenuOpen(false)}
           />
 
           {/* Mobile Menu Drawer */}
           <div
-            className={`${menuOpen ? "translate-x-0" : "translate-x-full"
-              } fixed top-0 right-0 h-full w-64 bg-violet-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
+            className={`${
+              menuOpen ? "translate-x-0" : "translate-x-full"
+            } fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-violet-900 via-purple-800 to-indigo-900 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
           >
             <div className="flex justify-end p-4">
               <button
@@ -300,84 +308,90 @@ const Navbar = () => {
               {user ? (
                 <>
                   <Link
+                    to="/about-us"
+                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    About
+                  </Link>
+                  <Link
+                    to="/ContactUs"
+                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Contact
+                  </Link>
+
+                  <Link
+                    to="/meditation"
+                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Meditation
+                  </Link>
+                  <Link
                     to="/start-screen"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
                     Questionnaire
                   </Link>
+                  {/* Education Dropdown for Mobile */}
+                  <div className="py-2">
+                    <Link
+                      to="/education-main"
+                      className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Education
+                    </Link>
+                    <div className="ml-4 mt-2 space-y-2">
+                      <Link
+                        to="articles"
+                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Articles
+                      </Link>
+                      <Link
+                        to="patient-stories"
+                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Patient Stories
+                      </Link>
+                    </div>
+                  </div>
                   <Link
-                    to="/meditation"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Meditation
-                  </Link>
-                  <Link
-                    to="/TheraChat"
+                    to="/splash-screen"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
                     TheraChat
                   </Link>
-
-                  {/* Education Dropdown for Mobile */}
-                  <div className="py-2">
-                    <Link
-                      to="/education-main"
-                      className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Education
-                    </Link>
-                    <div className="ml-4 mt-2 space-y-2">
-                      <Link
-                        to="articles"
-                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Articles
-                      </Link>
-                      <Link
-                        to="patient-stories"
-                        className="block text-orange-300 hover:text-orange-500 py-1 text-base no-underline"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Patient Stories
-                      </Link>
-                    </div>
-                  </div>
-
-                  <Link
-                    to="/ContactUs"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Contact Us
-                  </Link>
-                  <Link
-                    to="/about-us"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    About Us
-                  </Link>
                 </>
               ) : (
                 <>
                   <Link
-                    to="/meditation"
+                    to="/about-us"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Meditation
+                    About
+                  </Link>
+                  <Link
+                    to="/ContactUs"
+                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Contact
                   </Link>
 
                   {/* Education Dropdown for Mobile */}
                   <div className="py-2">
                     <Link
                       to="/education-main"
-                      className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                      className="block text-orange-300 hover:text-orange-500py-2 text-lg no-underline"
                       onClick={() => setMenuOpen(false)}
                     >
                       Education
@@ -398,22 +412,14 @@ const Navbar = () => {
                         Patient Stories
                       </Link>
                     </div>
+                    <Link
+                      to="/meditation"
+                      className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Meditation
+                    </Link>
                   </div>
-
-                  <Link
-                    to="/ContactUs"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Contact Us
-                  </Link>
-                  <Link
-                    to="/about-us"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    About Us
-                  </Link>
                 </>
               )}
 
@@ -421,7 +427,7 @@ const Navbar = () => {
                 <div className="space-y-4 pt-6 pb-8">
                   <Link
                     to="/signup"
-                    className="block bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-center font-medium no-underline"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-base font-medium no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
                     Sign Up
@@ -439,20 +445,27 @@ const Navbar = () => {
                   <div className="pt-6 pb-8">
                     <div className="flex items-center space-x-4 mb-4">
                       {user.photoURL && (
-                        <img
-                          src={user.photoURL}
-                          alt={user.displayName}
-                          className="w-10 h-10 rounded-full border-2 border-white"
-                        />
+                        <Link
+                          to="/patient-dashboard"
+                          className="flex items-center space-x-2"
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          <img
+                            src={user.photoURL}
+                            alt={user.displayName}
+                            className="w-10 h-10 rounded-full border-2 border-white"
+                          />
+                          <span className="text-orange-300 font-medium hover:text-orange-500 transition-colors duration-200">
+                            {user.displayName}
+                          </span>
+                        </Link>
                       )}
-                      <span className="text-orange-300 font-medium">
-                        {user.displayName}
-                      </span>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="w-full bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-purple-800 hover:to-indigo-800 transition-colors duration-200 font-medium"
+                      className="bg-gradient-to-r from-violet-600 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-violet-700 hover:to-indigo-800 transition-colors duration-200 font-medium"
                     >
+                      {" "}
                       Logout
                     </button>
                   </div>
