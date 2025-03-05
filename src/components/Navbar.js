@@ -428,7 +428,7 @@ const Navbar = () => {
                 <div className="space-y-4 pt-6 pb-8">
                   <Link
                     to="/signup"
-                    className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-base font-medium no-underline"
+                    className="block text-center bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-800 transition-colors duration-200 text-base font-medium no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
                     Sign Up
