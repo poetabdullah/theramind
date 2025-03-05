@@ -10,6 +10,7 @@ import {
 import { auth, db } from "../firebaseConfig";
 import ListViewCard from "../components/ListViewCard";
 import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
 
 const PatientDashboard = () => {
   const [user, setUser] = useState(null);
