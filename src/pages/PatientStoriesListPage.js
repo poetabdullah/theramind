@@ -64,7 +64,7 @@ const PatientStoriesListPage = () => {
   return (
     <div className="bg-gradient-to-br from-purple-300 via-violet-200 to-indigo-300 min-h-screen">
       <motion.div
-        className="text-white py-20 text-center transition-all duration-1000 bg-gradient-to-r from-purple-800 via-violet-600 to-indigo-600"
+        className="text-white py-20 text-center transition-all duration-1000 bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400"
         initial={{
           background: "conic-gradient(from 0deg, #800080, #4b0082, #800080)",
         }}
