@@ -12,6 +12,7 @@ import ListViewCard from "../components/ListViewCard";
 import Footer from "../components/Footer";
 import QuestionnaireResponses from "../components/QuestionnaireResponses";
 import { useNavigate } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const PatientDashboard = () => {
   const [user, setUser] = useState(null);
@@ -22,7 +23,6 @@ const PatientDashboard = () => {
   const [patientData, setPatientData] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const navigate = useNavigate();
-
   // Form state
   const [detailFormData, setDetailFormData] = useState({
     birthHistory: "",
@@ -44,10 +44,12 @@ const PatientDashboard = () => {
       if (authUser) {
         setUser(authUser);
         fetchPatientData(authUser.email);
+      } else {
+        navigate("/login"); // Redirect to login if not authenticated
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (patientData) {
