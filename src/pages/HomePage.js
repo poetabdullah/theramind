@@ -6,6 +6,8 @@ import MeditationSection from '../components/MeditationSection';
 import FeatureSection from '../components/FeatureSection';
 import Testimonial from '../components/Testimonial';
 import TestPrompt from '../components/TestPrompt';
+import GlobalTarget from '../components/GlobalTarget';
+import FAQ from '../components/FAQ';
 import Footer from '../components/Footer';
 
 const HomePage = () => (
@@ -16,7 +18,9 @@ const HomePage = () => (
     <TestPrompt />
     <MeditationSection/>
     <FeatureSection/>
+    <GlobalTarget/>
     <Testimonial />
+    <FAQ />
     <Footer />
   </>
 );
