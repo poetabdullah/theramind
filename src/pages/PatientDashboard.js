@@ -10,7 +10,6 @@ import {
 import { auth, db } from "../firebaseConfig";
 import ListViewCard from "../components/ListViewCard";
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/Footer";
 
 const PatientDashboard = () => {
   const [user, setUser] = useState(null);
@@ -508,6 +507,14 @@ const PatientDashboard = () => {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Questionnaire Responses */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
+            Questionnaire Responses
+          </h2>
+          <QuestionnaireResponses userId={user?.uid} />
         </div>
 
         {/* Patient Stories Section */}
