@@ -10,6 +10,7 @@ import OAuthSignUp from "../components/OAuthSignUp";
 import PatientDetailForm from "../components/PatientDetailForm";
 import HealthHistoryForm from "../components/HealthHistoryForm";
 import EnterCaptchaForm from "../components/EnterCaptchaForm";
+import Footer from "../components/Footer";
 
 const steps = [
   "Sign Up with Google",
@@ -130,75 +131,81 @@ const PatientSignUp = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-700 via-indigo-500 to-orange-600 p-4">
-      <div className="w-full max-w-xl mb-6">
-        <div className="bg-white bg-opacity-90 rounded-lg shadow-lg p-4">
-          <StepProgress steps={steps} currentStep={step} />
+    <div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-700 via-indigo-500 to-orange-600 p-4">
+        <div className="w-full max-w-xl mb-6">
+          <div className="bg-white bg-opacity-90 rounded-lg shadow-lg p-4">
+            <StepProgress steps={steps} currentStep={step} />
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-xl">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-purple-700">
-            Create Your TheraMind Account
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Step {step} of {steps.length}
+        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-xl">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-purple-700">
+              Create Your TheraMind Account
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Step {step} of {steps.length}
+            </p>
+          </div>
+
+          {error.general && (
+            <div className="text-red-500 mb-6 bg-red-50 p-4 rounded-lg border border-red-200 flex items-center">
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
+                  clipRule="evenodd"
+                ></path>
+              </svg>
+              <p>{error.general}</p>
+            </div>
+          )}
+
+          <div className="transition-all duration-300">
+            {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
+
+            {step === 2 && (
+              <EnterCaptchaForm
+                captchaCode={captchaCode}
+                setUserInput={setUserInput}
+                onSubmit={handleVerifyCaptcha}
+                error={error.general}
+              />
+            )}
+
+            {step === 3 && (
+              <PatientDetailForm
+                onSubmit={handleStepThreeSubmit}
+                error={error}
+                initialData={userData}
+              />
+            )}
+
+            {step === 4 && (
+              <HealthHistoryForm
+                onSubmit={handleStepFourSubmit}
+                error={error}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-white">
+          <p>
+            Already have an account?{" "}
+            <a href="/login" className="font-medium underline">
+              Login
+            </a>
           </p>
         </div>
-
-        {error.general && (
-          <div className="text-red-500 mb-6 bg-red-50 p-4 rounded-lg border border-red-200 flex items-center">
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
-            <p>{error.general}</p>
-          </div>
-        )}
-
-        <div className="transition-all duration-300">
-          {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
-
-          {step === 2 && (
-            <EnterCaptchaForm
-              captchaCode={captchaCode}
-              setUserInput={setUserInput}
-              onSubmit={handleVerifyCaptcha}
-              error={error.general}
-            />
-          )}
-
-          {step === 3 && (
-            <PatientDetailForm
-              onSubmit={handleStepThreeSubmit}
-              error={error}
-              initialData={userData}
-            />
-          )}
-
-          {step === 4 && (
-            <HealthHistoryForm onSubmit={handleStepFourSubmit} error={error} />
-          )}
-        </div>
       </div>
-
-      <div className="mt-6 text-center text-sm text-white">
-        <p>
-          Already have an account?{" "}
-          <a href="/login" className="font-medium underline">
-            Login
-          </a>
-        </p>
-      </div>
+      <Footer />
     </div>
   );
 };
