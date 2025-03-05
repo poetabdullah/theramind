@@ -57,7 +57,7 @@ const ArticlesListPage = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gradient-to-br from-orange-100 via-amber-50 to-orange-100 min-h-screen">
       <motion.div
         className="text-white py-20 text-center transition-all duration-1000 bg-gradient-to-r from-orange-900 via-orange-700 to-orange-500"
         initial={{
