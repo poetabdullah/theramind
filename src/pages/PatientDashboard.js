@@ -214,9 +214,8 @@ const PatientDashboard = () => {
             placeholder="Enter your location"
             value={detailFormData.location}
             onChange={handleDetailChange}
-            className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-              detailErrors.location ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${detailErrors.location ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {detailErrors.location && (
             <p className="text-red-500 text-sm mt-2">{detailErrors.location}</p>
@@ -235,11 +234,10 @@ const PatientDashboard = () => {
                   key={option}
                   type="button"
                   onClick={() => handleBirthHistoryChange(option)}
-                  className={`px-4 py-2 rounded-lg transition focus:outline-none ${
-                    detailFormData.birthHistory === option
+                  className={`px-4 py-2 rounded-lg transition focus:outline-none ${detailFormData.birthHistory === option
                       ? "bg-gradient-to-r from-purple-600 to-orange-500 text-white"
                       : "bg-gray-200 hover:bg-gray-300"
-                  }`}
+                    }`}
                 >
                   {option}
                 </button>
@@ -512,12 +510,12 @@ const PatientDashboard = () => {
         </div>
 
         {/* Questionnaire Responses */}
-    <div className="mb-8">
-      <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
-        Questionnaire Responses
-      </h2>
-    <QuestionnaireResponses userId={user?.uid} />
-    </div>
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
+            Questionnaire Responses
+          </h2>
+          <QuestionnaireResponses userId={user?.uid} />
+        </div>
 
         {/* Patient Stories Section */}
         <div className="mb-8">
@@ -555,8 +553,8 @@ const PatientDashboard = () => {
                   date={
                     story.date_time && story.date_time.seconds
                       ? new Date(
-                          story.date_time.seconds * 1000
-                        ).toLocaleDateString()
+                        story.date_time.seconds * 1000
+                      ).toLocaleDateString()
                       : "No date available"
                   }
                   tags={story.selectedTags || []}
