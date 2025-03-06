@@ -393,7 +393,7 @@ body {
 }
 .feature-section {
   background: linear-gradient(135deg, #c7a6e6, #faa1cd);
-  color: white;
+  color: rgb(81, 12, 99);
   text-align: center;
   padding: 50px;
   border-radius: 10px;
@@ -420,7 +420,7 @@ body {
 }
 
 .feature-card:hover {
-  color: rgb(81, 12, 99);
+  color: rgb(134, 61, 12);
   transform: translateY(5px) ;
 }
 

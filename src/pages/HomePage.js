@@ -7,6 +7,8 @@ import FeatureSection from '../components/FeatureSection';
 import Testimonial from '../components/Testimonial';
 import TestPrompt from '../components/TestPrompt';
 import GlobalTarget from '../components/GlobalTarget';
+import TheraChatSection from '../components/TheraChatSection';
+import EducationSection from '../components/EducationSection';
 import FAQ from '../components/FAQ';
 import Footer from '../components/Footer';
 
@@ -18,6 +20,8 @@ const HomePage = () => (
     <TestPrompt />
     <MeditationSection/>
     <FeatureSection/>
+    <EducationSection/>
+    <TheraChatSection/>
     <GlobalTarget/>
     <Testimonial />
     <FAQ />
