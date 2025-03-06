@@ -106,12 +106,6 @@ const Navbar = () => {
                     About
                   </Link>
                   <Link
-                    to="/contact-us"
-                    className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
-                  >
-                    Contact
-                  </Link>
-                  <Link
                     to="/meditation"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
@@ -123,6 +117,12 @@ const Navbar = () => {
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
                     Questionnaire
+                  </Link>
+                  <Link
+                    to="/splash-screen"
+                    className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
+                  >
+                    TheraChat
                   </Link>
 
                   {/* Education Dropdown */}
@@ -166,10 +166,10 @@ const Navbar = () => {
                     </div>
                   </div>
                   <Link
-                    to="/splash-screen"
+                    to="/contact-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    TheraChat
+                    Contact
                   </Link>
                 </>
               ) : (
@@ -181,10 +181,10 @@ const Navbar = () => {
                     About
                   </Link>
                   <Link
-                    to="/contact-us"
+                    to="/meditation"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Contact
+                    Meditation
                   </Link>
 
                   {/* Education Dropdown for non-logged-in users */}
@@ -228,10 +228,10 @@ const Navbar = () => {
                     </div>
                   </div>
                   <Link
-                    to="/meditation"
+                    to="/contact-us"
                     className="text-orange-300 hover:text-orange-500 transition-colors duration-200 text-lg no-underline"
                   >
-                    Meditation
+                    Contact
                   </Link>
                 </>
               )}
@@ -259,18 +259,18 @@ const Navbar = () => {
                   {user.photoURL && (
                     <Link
                       to="/patient-dashboard"
-                      className="flex items-center space-x-2"
+                      className="flex items-center space-x-2 no-underline" // Add no-underline here
                     >
                       <img
                         src={user.photoURL}
                         alt={user.displayName}
                         className="w-10 h-10 rounded-full border-2 border-white"
                       />
-                      <span className="text-orange-300 font-medium hover:text-orange-500 transition-colors duration-200 no-underline">
+                      <span className="text-orange-300 font-medium hover:text-orange-500 transition-colors duration-200">
                         {user.displayName}
                       </span>
                     </Link>
-                  )}
+                  )}{" "}
                   <button
                     onClick={handleLogout}
                     className="bg-gradient-to-r from-violet-600 to-indigo-700 text-white px-6 py-2.5 rounded-lg hover:from-violet-700 hover:to-indigo-800 transition-colors duration-200 font-medium"
@@ -315,13 +315,6 @@ const Navbar = () => {
                   >
                     About
                   </Link>
-                  <Link
-                    to="/ContactUs"
-                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Contact
-                  </Link>
 
                   <Link
                     to="/meditation"
@@ -336,6 +329,13 @@ const Navbar = () => {
                     onClick={() => setMenuOpen(false)}
                   >
                     Questionnaire
+                  </Link>
+                  <Link
+                    to="/splash-screen"
+                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    TheraChat
                   </Link>
                   {/* Education Dropdown for Mobile */}
                   <div className="py-2">
@@ -364,11 +364,11 @@ const Navbar = () => {
                     </div>
                   </div>
                   <Link
-                    to="/splash-screen"
+                    to="/ContactUs"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
-                    TheraChat
+                    Contact
                   </Link>
                 </>
               ) : (
@@ -381,13 +381,12 @@ const Navbar = () => {
                     About
                   </Link>
                   <Link
-                    to="/ContactUs"
+                    to="/meditation"
                     className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Contact
+                    Meditation
                   </Link>
-
                   {/* Education Dropdown for Mobile */}
                   <div className="py-2">
                     <Link
@@ -413,14 +412,14 @@ const Navbar = () => {
                         Patient Stories
                       </Link>
                     </div>
-                    <Link
-                      to="/meditation"
-                      className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Meditation
-                    </Link>
                   </div>
+                  <Link
+                    to="/ContactUs"
+                    className="block text-orange-300 hover:text-orange-500 py-2 text-lg no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Contact
+                  </Link>
                 </>
               )}
 
