@@ -4,21 +4,21 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons 
 const slides = [
   {
     id: 1,
-    image: '/img/slider1.png',
+    image: '/img/slider1.jpeg',
     title: "TheraMind",
     description:
       "Get ready to conquer your mind by the best mental health services backed by psychology experts, AI-personalized recommendations, and several free beneficial resources.",
   },
   {
     id: 2,
-    image: "/img/slider2.png",
+    image: "/img/slider2.jpeg",
     title: "TheraMind",
     description:
       "Discover a healthier mindset. Our therapy tools and expert insights will guide you every step of the way.",
   },
   {
     id: 3,
-    image: "/img/slider4.png",
+    image: "/img/slider4.jpeg",
     title: "TheraMind",
     description:
       "Unlock the power of your mind with science-backed mental health solutions tailored for you.",
