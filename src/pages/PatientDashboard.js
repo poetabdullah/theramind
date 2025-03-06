@@ -9,9 +9,10 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import ListViewCard from "../components/ListViewCard";
+import Footer from "../components/Footer";
+import QuestionnaireResponses from "../components/QuestionnaireResponses";
 import { useNavigate } from "react-router-dom";
-import QuestionnaireResponses from "../components/QuestionnaireResponses.js";
-import Footer from "../components/Footer.js";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const PatientDashboard = () => {
   const [user, setUser] = useState(null);
@@ -22,7 +23,6 @@ const PatientDashboard = () => {
   const [patientData, setPatientData] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const navigate = useNavigate();
-
   // Form state
   const [detailFormData, setDetailFormData] = useState({
     birthHistory: "",
@@ -44,10 +44,12 @@ const PatientDashboard = () => {
       if (authUser) {
         setUser(authUser);
         fetchPatientData(authUser.email);
+      } else {
+        navigate("/login"); // Redirect to login if not authenticated
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (patientData) {
@@ -214,8 +216,9 @@ const PatientDashboard = () => {
             placeholder="Enter your location"
             value={detailFormData.location}
             onChange={handleDetailChange}
-            className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${detailErrors.location ? "border-red-500" : "border-gray-300"
-              }`}
+            className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+              detailErrors.location ? "border-red-500" : "border-gray-300"
+            }`}
           />
           {detailErrors.location && (
             <p className="text-red-500 text-sm mt-2">{detailErrors.location}</p>
@@ -234,10 +237,11 @@ const PatientDashboard = () => {
                   key={option}
                   type="button"
                   onClick={() => handleBirthHistoryChange(option)}
-                  className={`px-4 py-2 rounded-lg transition focus:outline-none ${detailFormData.birthHistory === option
+                  className={`px-4 py-2 rounded-lg transition focus:outline-none ${
+                    detailFormData.birthHistory === option
                       ? "bg-gradient-to-r from-purple-600 to-orange-500 text-white"
                       : "bg-gray-200 hover:bg-gray-300"
-                    }`}
+                  }`}
                 >
                   {option}
                 </button>
@@ -407,165 +411,173 @@ const PatientDashboard = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Profile Section */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
-              Hi, {patientData?.fullName || user?.displayName || "there"}
-            </h1>
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-violet-200 to-indigo-200 flex flex-col">
+      <div className="flex-grow p-6">
+        <div className="rounded-lg p-6 bg-transparent">
+          {" "}
+          {/* Profile Section */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+                Hi, {patientData?.fullName || user?.displayName || "there"}
+              </h1>
 
-            {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg shadow hover:from-purple-700 hover:to-orange-600 transition"
-              >
-                Edit Profile
-              </button>
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg shadow hover:from-purple-700 hover:to-orange-600 transition"
+                >
+                  Edit Profile
+                </button>
+              )}
+            </div>
+
+            {isEditing && (
+              <div className="bg-white shadow-lg rounded-lg p-6 border border-purple-100">
+                <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-6">
+                  {currentStep === 1
+                    ? "Personal Details"
+                    : "Health Information"}
+                </h2>
+
+                {currentStep === 1 ? renderDetailForm() : renderHealthForm()}
+              </div>
             )}
           </div>
-
-          {isEditing && (
-            <div className="bg-white shadow-lg rounded-lg p-6 border border-purple-100">
-              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-6">
-                {currentStep === 1 ? "Personal Details" : "Health Information"}
-              </h2>
-
-              {currentStep === 1 ? renderDetailForm() : renderHealthForm()}
-            </div>
-          )}
-        </div>
-        {/* Patient Info */}
-        <div className="bg-white shadow-lg rounded-lg p-4 border border-purple-100 mb-8 overflow-x-auto">
-          <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
-            Patient Information
-          </h2>
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">Email:</span>
-              <span className="text-gray-700">
-                {patientData?.email || "N/A"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">Location:</span>
-              <span className="text-gray-700">
-                {patientData?.location || "N/A"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">Gender:</span>
-              <span className="text-gray-700">
-                {patientData?.gender || "N/A"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">DOB:</span>
-              <span className="text-gray-700">{patientData?.dob || "N/A"}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">
-                Mental Health:
-              </span>
-              <span className="text-gray-700">
-                {patientData?.mentalHealthConditions?.length > 0
-                  ? patientData.mentalHealthConditions.join(", ")
-                  : "N/A"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">
-                Family History:
-              </span>
-              <span className="text-gray-700">
-                {patientData?.familyHistory || "N/A"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">
-                Birth History:
-              </span>
-              <span className="text-gray-700">
-                {patientData?.birthHistory || "N/A"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">
-                Significant Trauma:
-              </span>
-              <span className="text-gray-700">
-                {patientData?.significantTrauma || "N/A"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-purple-700">
-                Childhood Challenges:
-              </span>
-              <span className="text-gray-700">
-                {patientData?.childhoodChallenges || "N/A"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Questionnaire Responses */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
-            Questionnaire Responses
-          </h2>
-          <QuestionnaireResponses userId={user?.uid} />
-        </div>
-
-        {/* Patient Stories Section */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
-              Your Patient Stories
+          {/* Patient Info */}
+          <div className="bg-white shadow-lg rounded-lg p-4 border border-purple-100 mb-8 overflow-x-auto">
+            <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
+              Patient Information
             </h2>
-            <button
-              onClick={() => navigate("/write-education")}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg shadow hover:from-purple-700 hover:to-orange-600 transition"
-            >
-              Write a Story
-            </button>
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">Email:</span>
+                <span className="text-gray-700">
+                  {patientData?.email || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">Location:</span>
+                <span className="text-gray-700">
+                  {patientData?.location || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">Gender:</span>
+                <span className="text-gray-700">
+                  {patientData?.gender || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">DOB:</span>
+                <span className="text-gray-700">
+                  {patientData?.dob || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">
+                  Mental Health:
+                </span>
+                <span className="text-gray-700">
+                  {patientData?.mentalHealthConditions?.length > 0
+                    ? patientData.mentalHealthConditions.join(", ")
+                    : "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">
+                  Family History:
+                </span>
+                <span className="text-gray-700">
+                  {patientData?.familyHistory || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">
+                  Birth History:
+                </span>
+                <span className="text-gray-700">
+                  {patientData?.birthHistory || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">
+                  Significant Trauma:
+                </span>
+                <span className="text-gray-700">
+                  {patientData?.significantTrauma || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-purple-700">
+                  Childhood Challenges:
+                </span>
+                <span className="text-gray-700">
+                  {patientData?.childhoodChallenges || "N/A"}
+                </span>
+              </div>
+            </div>
           </div>
+          {/* Questionnaire Responses */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
+              Questionnaire Responses
+            </h2>
+            <QuestionnaireResponses userId={user?.uid} />
+          </div>
+          {/* Patient Stories Section */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+                Your Patient Stories
+              </h2>
+              <button
+                onClick={() => navigate("/write-education")}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg shadow hover:from-purple-700 hover:to-orange-600 transition"
+              >
+                Write a Story
+              </button>
+            </div>
 
-          {loading ? (
-            <div className="py-8 text-center text-gray-500">
-              Loading your stories...
-            </div>
-          ) : error ? (
-            <div className="py-8 text-center text-red-500">{error}</div>
-          ) : patientStories.length === 0 ? (
-            <div className="py-8 text-center text-gray-500 bg-white rounded-lg border border-purple-100 shadow">
-              You have not shared any patient stories yet.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {patientStories.map((story) => (
-                <ListViewCard
-                  key={story.id}
-                  id={story.id}
-                  title={story.title}
-                  content={story.content || "No content available"}
-                  author={story.author_name}
-                  date={
-                    story.date_time && story.date_time.seconds
-                      ? new Date(
-                        story.date_time.seconds * 1000
-                      ).toLocaleDateString()
-                      : "No date available"
-                  }
-                  tags={story.selectedTags || []}
-                  link={`/stories/${story.id}`}
-                  type="story"
-                />
-              ))}
-            </div>
-          )}
+            {loading ? (
+              <div className="py-8 text-center text-gray-500">
+                Loading your stories...
+              </div>
+            ) : error ? (
+              <div className="py-8 text-center text-red-500">{error}</div>
+            ) : patientStories.length === 0 ? (
+              <div className="py-8 text-center text-gray-500 bg-white rounded-lg border border-purple-100 shadow">
+                You have not shared any patient stories yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {patientStories.map((story) => (
+                  <ListViewCard
+                    key={story.id}
+                    id={story.id}
+                    title={story.title}
+                    content={story.content || "No content available"}
+                    author={story.author_name}
+                    date={
+                      story.date_time && story.date_time.seconds
+                        ? new Date(
+                            story.date_time.seconds * 1000
+                          ).toLocaleDateString()
+                        : "No date available"
+                    }
+                    tags={story.selectedTags || []}
+                    link={`/stories/${story.id}`}
+                    type="story"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Footer Section */}
+      <Footer />
     </div>
   );
 };
