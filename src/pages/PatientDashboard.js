@@ -265,7 +265,7 @@ const PatientDashboard = () => {
           </button>
           <button
             type="submit"
-            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg hover:from-purple-700 hover:to-orange-600 transition shadow"
+            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow"
           >
             Continue
           </button>
@@ -401,7 +401,7 @@ const PatientDashboard = () => {
           </button>
           <button
             type="submit"
-            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg hover:from-purple-700 hover:to-orange-600 transition shadow"
+            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow"
           >
             Save Changes
           </button>
@@ -411,21 +411,21 @@ const PatientDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-violet-200 to-indigo-200 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-violet-200 to-indigo-300 flex flex-col">
       <div className="flex-grow p-6">
         <div className="rounded-lg p-6 bg-transparent">
           {" "}
           {/* Profile Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
                 Hi, {patientData?.fullName || user?.displayName || "there"}
               </h1>
 
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg shadow hover:from-purple-700 hover:to-orange-600 transition"
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition"
                 >
                   Edit Profile
                 </button>
@@ -446,7 +446,7 @@ const PatientDashboard = () => {
           </div>
           {/* Patient Info */}
           <div className="bg-white shadow-lg rounded-lg p-4 border border-purple-100 mb-8 overflow-x-auto">
-            <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
+            <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent mb-4">
               Patient Information
             </h2>
             <div className="flex flex-wrap items-center gap-4 text-sm">
@@ -520,7 +520,7 @@ const PatientDashboard = () => {
           </div>
           {/* Questionnaire Responses */}
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-4">
+            <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent mb-4">
               Questionnaire Responses
             </h2>
             <QuestionnaireResponses userId={user?.uid} />
@@ -528,12 +528,12 @@ const PatientDashboard = () => {
           {/* Patient Stories Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
                 Your Patient Stories
               </h2>
               <button
                 onClick={() => navigate("/write-education")}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-lg shadow hover:from-purple-700 hover:to-orange-600 transition"
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition"
               >
                 Write a Story
               </button>
