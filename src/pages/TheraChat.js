@@ -1,3 +1,4 @@
+// Gemini powered chatbot
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Menu } from "lucide-react";
 import Footer from "../components/Footer";
@@ -220,7 +221,7 @@ const TheraChat = () => {
           <div
             ref={chatContainerRef}
             className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto"
-            style={{ height: "calc(100vh - 130px)" }}
+            style={{ minHeight: 0 }}
           >
             {messages.map((msg, index) => (
               <div
