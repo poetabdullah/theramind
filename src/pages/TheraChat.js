@@ -1,3 +1,4 @@
+// Gemini supported ChatBot
 import React, { useState, useEffect, useRef } from "react";
 import { Send } from "lucide-react";
 import Footer from "../components/Footer";
