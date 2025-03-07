@@ -8,7 +8,7 @@ const Sidebar = ({
   onNewConversation,
 }) => {
   return (
-    <div className="w-64 bg-white border-r border-gray-200 text-gray-800 p-4 flex flex-col h-screen sticky top-0">
+    <div className="w-64 bg-white border-r border-gray-200 text-gray-800 p-4 flex flex-col overflow-y-auto">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
           TheraChat
