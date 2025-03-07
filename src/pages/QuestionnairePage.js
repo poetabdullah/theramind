@@ -279,26 +279,11 @@ const Questionnaire = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen">
       <header className="text-center py-4">
-        <motion.h2 className="text-3xl font-bold text-purple-600 mt-2" {...fadeInUp}>Diagnostic Questionnaire</motion.h2>
+        <motion.h2 className="text-5xl font-extrabold text-purple-700 mt-2" {...fadeInUp}>Diagnostic Questionnaire</motion.h2>
       </header>
-
-      {/* Progress Bar (Hidden when interrupted) */}
-      {!noConditionDiagnosed && !suicidalThoughts && (
-        <div className="w-full max-w-xl mx-auto my-4 px-6">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <motion.div
-              className="bg-gradient-to-r from-purple-600 to-orange-500 h-2.5 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${getProgress()}%` }}
-              transition={{ duration: 0.5 }}
-            ></motion.div>
-          </div>
-        </div>
-      )}
-
-      <main className="flex-grow flex items-center justify-center mb-5">
+      <main className="flex-grow flex items-center justify-center mb-5 bg-gradient-to-r from-purple-150 to-orange-150">
         <motion.div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-xl relative" {...scaleEffect}>
           <AnimatePresence>
             {noConditionDiagnosed && (
@@ -321,14 +306,14 @@ const Questionnaire = () => {
           <AnimatePresence>
             {!noConditionDiagnosed && !suicidalThoughts && questions.length > 0 && currentQuestionIndex < questions.length && (
               <motion.div {...fadeInUp}>
-                <h3 className="text-xl font-semibold text-gray-700 mb-4">{questions[currentQuestionIndex]?.text}</h3>
-                <div className="grid grid-cols-1 gap-4">
+                <h3 className="text-2xl font-bold text-orange-600 mb-3">{questions[currentQuestionIndex]?.text}</h3>
+                <div className="grid grid-cols-1 gap-2">
                   {questions[currentQuestionIndex]?.options.map((option, index) => (
                     <motion.label
                       key={index}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center space-x-2 bg-purple-100 p-2 rounded-full cursor-pointer hover:bg-orange-300"
+                      className="flex items-center space-x-2 bg-gradient-to-r from-purple-400 to-indigo-400 p-2 rounded-full cursor-pointer hover:bg-orange-300"
                     >
                       <input
                         type="radio"
@@ -372,6 +357,19 @@ const Questionnaire = () => {
               </motion.button>
             )}
           </div>
+          {/* Progress Bar (Hidden when interrupted) */}
+          {!noConditionDiagnosed && !suicidalThoughts && (
+            <div className="w-full max-w-xl mx-auto my-4 px-6">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <motion.div
+                  className="bg-gradient-to-r from-purple-600 to-orange-500 h-2.5 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${getProgress()}%` }}
+                  transition={{ duration: 0.5 }}
+                ></motion.div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </main>
       <Footer />
