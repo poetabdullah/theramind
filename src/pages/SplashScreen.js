@@ -8,7 +8,7 @@ import Footer from "../components/Footer";
 
 const SplashScreen = () => {
   const navigate = useNavigate();
-  const [colors, setColors] = useState(["#4B0082", "#7B1FA2"]); // Indigo → Purple
+  const [isOrangeTheme, setIsOrangeTheme] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
@@ -41,25 +41,28 @@ const SplashScreen = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Repeating gradient animation with darker orange
+    // Toggle between orange and purple gradient
     const interval = setInterval(() => {
-      setColors((prev) =>
-        prev[0] === "#4B0082" ? ["#D35400", "#E67E22"] : ["#4B0082", "#7B1FA2"]
-      );
-    }, 2000);
+      setIsOrangeTheme((prev) => !prev);
+    }, 5000); // Every 5 seconds for smoother transition
     return () => clearInterval(interval);
   }, []);
+  const backgroundStyle = {
+    background: isOrangeTheme
+      ? "linear-gradient(to bottom right, #752400, #EA8B4E)" // More Contrast in Orange
+      : "linear-gradient(to bottom right, #140024, #7765E3)", // Deep Purple → Softer Indigo
+    backgroundSize: "200% 200%",
+    animation: "gradientShift 8s ease infinite alternate",
+    transition: "background 3.5s ease-in-out",
+  };
 
   if (loading) return null; // Prevents flickering while checking auth
 
   return (
     <div>
       <div
-        className="flex justify-center items-center min-h-screen"
-        style={{
-          background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`,
-          transition: "background 1.5s ease-in-out",
-        }}
+        className="flex justify-center items-center min-h-screen w-full transition-all duration-1000 ease-in-out"
+        style={backgroundStyle}
       >
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
@@ -84,7 +87,7 @@ const SplashScreen = () => {
             Your AI-powered mental health companion
           </motion.p>
           <motion.button
-            className="mt-8 px-6 py-3 text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-orange-500 rounded-full shadow-lg hover:scale-105 hover:from-orange-500 hover:to-purple-500 transition-transform"
+            className="mt-8 px-6 py-3 text-lg font-bold text-white bg-gradient-to-r from-indigo-600 to-orange-600 rounded-full shadow-lg hover:scale-105 hover:from-orange-600 hover:to-indigo-600 transition-transform"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.5 }}
