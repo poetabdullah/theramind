@@ -1,6 +1,5 @@
-// Gemini supported ChatBot
 import React, { useState, useEffect, useRef } from "react";
-import { Send } from "lucide-react";
+import { Send, Menu } from "lucide-react";
 import Footer from "../components/Footer";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
@@ -28,6 +27,7 @@ const TheraChat = () => {
   const [currentConversation, setCurrentConversation] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const chatContainerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -41,6 +41,11 @@ const TheraChat = () => {
         fetchConversations(loggedInUser.uid);
       }
     });
+
+    // Handle mobile view - close sidebar by default on small screens
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
   }, [navigate]);
 
   useEffect(() => {
@@ -65,6 +70,10 @@ const TheraChat = () => {
     setCurrentConversation(null);
     setMessages([]);
     setHideHeadline(false);
+    // Close sidebar on mobile after selecting a conversation
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
   };
 
   const handleSelectConversation = (conversationId) => {
@@ -75,7 +84,15 @@ const TheraChat = () => {
       setCurrentConversation(selectedChat);
       setMessages(selectedChat.messages || []);
       setHideHeadline(true);
+      // Close sidebar on mobile after selecting a conversation
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      }
     }
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   const createTitle = (text) => {
@@ -158,15 +175,39 @@ const TheraChat = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 flex flex-col">
-      <div className="flex flex-1">
-        <Sidebar
-          conversations={conversations}
-          onSelectConversation={handleSelectConversation}
-          selectedConversation={currentConversation}
-          onNewConversation={startNewConversation}
-        />
+      <div className="flex flex-1 min-h-0 relative">
+        {/* Mobile sidebar toggle button */}
+        <button
+          className="md:hidden absolute top-4 left-4 z-20 bg-white rounded-full p-2 shadow-md"
+          onClick={toggleSidebar}
+        >
+          <Menu className="w-5 h-5 text-purple-600" />
+        </button>
 
-        <div className="flex-1 flex flex-col items-center">
+        {/* Sidebar */}
+        <div
+          className={`${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } transition-transform duration-300 ease-in-out md:translate-x-0 fixed md:relative z-10 h-screen`}
+        >
+          <Sidebar
+            conversations={conversations}
+            onSelectConversation={handleSelectConversation}
+            selectedConversation={currentConversation}
+            onNewConversation={startNewConversation}
+          />
+        </div>
+
+        {/* Main chat area */}
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          {/* Semi-transparent overlay for mobile when sidebar is open */}
+          {sidebarOpen && (
+            <div
+              className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-5"
+              onClick={toggleSidebar}
+            ></div>
+          )}
+
           {!hideHeadline && messages.length === 0 && (
             <div className="flex-1 flex items-center justify-center w-full text-center px-4">
               <h1 className="text-4xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent py-6">
@@ -175,9 +216,11 @@ const TheraChat = () => {
             </div>
           )}
 
+          {/* Chat messages container - make it fill available space */}
           <div
             ref={chatContainerRef}
-            className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto flex flex-col"
+            className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto"
+            style={{ height: "calc(100vh - 130px)" }}
           >
             {messages.map((msg, index) => (
               <div
@@ -226,26 +269,29 @@ const TheraChat = () => {
             )}
           </div>
 
-          <div className="w-full max-w-3xl px-4 py-4 flex flex-col items-center space-y-2 mx-auto">
-            <div className="flex items-center w-full space-x-3">
-              <input
-                type="text"
-                className="flex-1 bg-white text-gray-900 border border-purple-500 rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder-gray-500 text-sm shadow-md"
-                placeholder="Type your question..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && !e.shiftKey && sendMessage()
-                }
-                disabled={loading}
-              />
-              <button
-                className="group bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full p-3 shadow-lg focus:outline-none transition-all transform hover:scale-105 focus:ring-4 focus:ring-purple-500/50 focus:ring-offset-2 flex items-center justify-center"
-                onClick={sendMessage}
-                disabled={loading}
-              >
-                <Send className="w-5 h-5 text-white" />
-              </button>
+          {/* Input area - fixed at bottom */}
+          <div className="w-full bg-white border-t border-gray-100 py-4">
+            <div className="max-w-3xl mx-auto px-4">
+              <div className="flex items-center w-full space-x-3">
+                <input
+                  type="text"
+                  className="flex-1 bg-white text-gray-900 border border-purple-500 rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder-gray-500 text-sm shadow-md"
+                  placeholder="Type your question..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && !e.shiftKey && sendMessage()
+                  }
+                  disabled={loading}
+                />
+                <button
+                  className="group bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full p-3 shadow-lg focus:outline-none transition-all transform hover:scale-105 focus:ring-4 focus:ring-purple-500/50 focus:ring-offset-2 flex items-center justify-center"
+                  onClick={sendMessage}
+                  disabled={loading}
+                >
+                  <Send className="w-5 h-5 text-white" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
