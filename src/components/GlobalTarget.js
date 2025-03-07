@@ -39,7 +39,7 @@ const GlobalTarget = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-white text-center mb-4 transition-colors duration-300 group-hover:text-pink-200">
-            Target 3.4
+            SDG Target 3.4
           </h2>
           <p className="text-white text-center transition-colors duration-300 group-hover:text-pink-100">
             Reduce premature mortality from non-communicable diseases and promote mental health

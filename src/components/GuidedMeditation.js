@@ -10,7 +10,7 @@ const exercises = [
     { 
         title: "Body Scan", 
         steps: ["Focus on your toes", "Move your attention upward", "Relax each body part as you go"], 
-        image: "/img/exercise2.png" 
+        image: "/img/exercise4.png" 
     },
     { 
         title: "Visualization", 
@@ -42,13 +42,7 @@ export default function GuidedMeditation() {
                     >
                         Guided meditation is a transformative practice that helps you reduce stress, improve focus, and cultivate inner peace. Our carefully crafted techniques will guide you through a journey of mindfulness and self-discovery.
                     </motion.p>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="bg-purple-600 text-white px-8 py-3 rounded-full shadow-lg hover:bg-purple-700 transition-all"
-                    >
-                        Learn More
-                    </motion.button>
+                   
                 </div>
             </div>
 
@@ -120,7 +114,7 @@ export default function GuidedMeditation() {
                     </div>
                 </div>
                 <div className="medcontent">
-                    <h2 className="medtitle">Try With Us</h2>
+                    <h2 className="medtitle" style={{ paddingTop: '40px' }}>Try With Us</h2>
                     <div className="exercise">
                         {exercises.map((exercise, index) => (
                             <motion.div 
