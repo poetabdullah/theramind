@@ -1,50 +1,72 @@
-import React from "react"
-import { motion } from "framer-motion"
-import Footer from "../components/Footer"
+import React from "react";
+import { motion } from "framer-motion";
+import Footer from "../components/Footer";
 
 const AboutUs = () => {
   return (
     <div className="flex flex-col min-h-screen bg-orange-50">
-      <header className="text-center py-4">
-        <motion.h1 className="text-3xl font-bold text-purple-700 mt-2"
-          initial={{ opacity: 0, y: -20 }}
+      <header className="meditation-header relative bg-gradient-to-r from-purple-600 to-orange-500 py-20">
+        {/* Animated Heading */}
+        <motion.h1
+          initial={{ opacity: 0, y: -30, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+          className="text-6xl font-extrabold text-white text-center mb-4 tracking-wide"
+        >
+          About Us
+        </motion.h1>
+
+        {/* Animated Subtext */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}>About Us</motion.h1>
+          transition={{ delay: 0.5, duration: 1 }}
+          whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
+          className="mt-6 text-lg md:text-xl max-w-2xl mx-auto font-light text-white text-center"
+        >
+          TheraMind is a mental health platform dedicated to providing accessible and compassionate mental
+          health support for individuals, families, and organizations. Our goal is to break the stigma
+          surrounding mental health and create a safe space for people to understand, manage, and improve
+          their well-being.
+        </motion.p>
       </header>
-      <main className="flex-grow flex flex-col space-y-6 items-center mb-5">
+
+      <main className="flex-grow flex flex-col items-center bg-gradient-to-r from-purple-150 to-orange-150 pb-10">
+        {/* Who We Are */}
         <motion.div
-          className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200
-           rounded-lg p-6 mt-2 w-11/12 max-w-4xl transition duration-300 hover:scale-105 slideUp"
+          className="service-item bg-white shadow-sm rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
+          <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             Who We Are
           </motion.h3>
-          <p className="leading-relaxed text-gray-700">
-            Theramind is a mental health platform that provides a wide range of mental health services
-            to individuals, families, and organizations. We are dedicated to providing the best mental
-            health services to our clients. Our team of mental health professionals are highly trained
-            and experienced in providing mental health services. We are committed to helping our clients
-            achieve their mental health goals and live a happy and fulfilling life.
+          <p className="leading-relaxed text-black">
+            TheraMind brings together a team of dedicated mental health professionals, technology experts,
+            and advocates committed to enhancing mental health awareness. Our platform offers AI-driven support,
+            educational resources, and access to professional help, ensuring that anyone struggling with mental
+            health challenges has a place to turn to.
           </p>
         </motion.div>
+
+        {/* Our Scope */}
         <motion.div
-          className="service-item bg-white bg-gradient-to-r from-purple-200 to-orange-200 shadow-sm rounded-lg p-4 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
+          className="service-item bg-white shadow-sm rounded-lg p-4 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
+          <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             Our Scope
           </motion.h3>
-          <p>
-            Theramind target the following mental health conditions & its sub-types:
-          </p>
-          <ul className="list-disc list-inside space-y-2">
+          <motion.p>
+            We specialize in identifying and addressing a range of mental health conditions, including:
+          </motion.p>
+          <motion.ul className="list-disc list-inside space-y-2">
             {[
               "Stress(Acute Stress, Chronic Stress, Post-Traumatic Stress Disorder - PTSD)",
               "Anxiety (Separation Anxiety, Generalized Anxiety Disorder, Panic Disorder)",
@@ -60,150 +82,155 @@ const AboutUs = () => {
                 <span>{condition}</span>
               </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         </motion.div>
+
+        {/* Our Vision & Mission */}
         <motion.div
-          className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200 rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
+          className="service-item bg-white shadow-sm rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
+          <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             Our Vision & Mission
           </motion.h3>
-          <p className="leading-relaxed text-gray-700">
-            This platform thrives to achieve a world where seeking help for mental health conditions
-            is free of any judgement and it is freely accesible to whoever needs it without much effort
-            & where people feel understood and valued, because your mental health matter!<br></br>
-            Our platform gives adequate features which help people identify the possible mental health
-            conditions they must be going through and get properly educated about those conditions and
-            how to treat them. We also provide contacts of professionals that people can connect with to
-            hear them & help them get healed.
+          <p className="leading-relaxed text-black">
+            Our vision is a world where seeking mental health support is free of judgment and accessible to
+            all. We believe that mental well-being should be a priority, not a privilege. Through our
+            platform, we strive to empower individuals by offering self-assessment tools, educational
+            resources, and direct access to professional support.
           </p>
         </motion.div>
+
+        {/* What We Offer */}
         <motion.div
-          className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200 rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
+          className="service-item bg-white shadow-sm rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
+          <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             What We Offer
           </motion.h3>
-          <p className="leading-relaxed text-gray-700">
-            List of key features our platform offers:
-            <ul className="list-disc pl-5 space-y-2">
-              <li>
-                <a href="/start-screen"
+          <motion.p className="leading-relaxed text-gray-700">
+            TheraMind provides a range of features to help users navigate their mental health journey:
+            <motion.ul className="list-disc pl-5 space-y-2">
+              <motion.li>
+                <motion.a href="/start-screen"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health Diagnostic Assessment
-                </a><span> - Self-assessment tool to identify the mental health condition and its sub-type.
+                </motion.a><span> – A self-assessment tool to help individuals identify potential mental health conditions.
                 </span>
-              </li>
-              <li>
-                <a href="/education-main"
+              </motion.li>
+              <motion.li>
+                <motion.a href="/education-main"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health Educational Articles & User Stories
-                </a><span> - Educational articles & user stories to motivate people,
-                  that they are not alone in this healing journey.
+                </motion.a><span> – Insights into mental health topics and personal stories that inspire and educate.
                 </span>
-              </li>
-              <li>
-                <a href="/splash-screen"
+              </motion.li>
+              <motion.li>
+                <motion.a href="/splash-screen"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health ChatBot
-                </a><span> - An AI chatbot that can give responses to queries related to mental health.
+                </motion.a><span> – An interactive chatbot that provides mental health information and support.
                 </span>
-              </li>
-              <li>
-                <a href="/meditation"
+              </motion.li>
+              <motion.li>
+                <motion.a href="/meditation"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Mental Health Meditation Exercises
-                </a><span> - Self-healing meditation and mindful
-                  exercises that can help relieve stress and other issues, which will ultimately help you heal.
+                </motion.a><span> – Guided exercises designed to reduce stress and improve emotional resilience.
                 </span>
-              </li>
-            </ul>
-          </p>
+              </motion.li>
+            </motion.ul>
+          </motion.p>
         </motion.div>
+
+        {/* Why Choose Us */}
         <motion.div
-          className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200 rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
+          className="service-item bg-white shadow-sm rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
+          <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             Why Choose Us
           </motion.h3>
-          <p className="leading-relaxed text-gray-700">
-            We are dedicated to provide the best mental health services backed by psychology experts,
-            AI-personalized recommendations, user-friendly and accessible platform, which ensures
-            complete confidentiality of our clients. We are committed to help our clients achieve
-            their mental health goals and live a happy and fulfilling life.
-          </p>
+          <motion.p className="leading-relaxed text-gray-700">
+            TheraMind is built on a foundation of scientific research, expert guidance, and user-centric design. We provide:
+            <motion.li>AI-driven mental health insights</motion.li>
+            <motion.li>Confidential and secure support</motion.li>
+            <motion.li>Professional recommendations</motion.li>
+            <motion.li>A welcoming and stigma-free environment</motion.li>
+          </motion.p>
         </motion.div>
+
+        {/* Commitment to Privacy */}
         <motion.div
-          className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200 rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
+          className="service-item bg-white shadow-sm rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
-            Commitment To Privacy & Security
+          <motion.h3 className="text-2xl font-extrabold text-purple-700 mb-2">
+            Commitment to Privacy & Security
           </motion.h3>
-          <p className="leading-relaxed text-gray-700">
-            We assure you that your data is private and confidential with us. We are committed to
-            protecting your privacy and security. We follow strict privacy and security protocols to
-            ensure that your data is safe and secure. We do not share your data with any third party.
+          <p className="leading-relaxed text-black">
+            Your mental health journey is personal, and we respect your privacy. TheraMind follows strict
+            data security and confidentiality protocols to ensure that your information remains protected
+            at all times.
           </p>
         </motion.div>
+
+        {/* Get in Touch */}
         <motion.div
-          className="service-item bg-white shadow-sm bg-gradient-to-r from-purple-200 to-orange-200 rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
+          className="service-item bg-white shadow-sm rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.h3 className="text-2xl font-bold text-purple-700 mb-2">
+          <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             Get In Touch
           </motion.h3>
-          <p className="leading-relaxed text-gray-700">
-            You can react out to us through the following links:
-            <ul className="list-disc pl-5 space-y-2">
-              <li>
-                <a href="/instagram"
+          <motion.p className="leading-relaxed text-gray-700">
+            We’d love to connect with you! Follow us on social media for updates and mental health insights:
+            <motion.ul className="list-disc pl-5 space-y-2">
+              <motion.li>
+                <motion.a href="/instagram"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Instagram
-                </a><span> - theramind
+                </motion.a><span> - theramind
                 </span>
-              </li>
-              <li>
-                <a href="/facebook"
+              </motion.li>
+              <motion.li>
+                <motion.a href="/facebook"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Facebook
-                </a><span> - TheraMind
+                </motion.a><span> - TheraMind
                 </span>
-              </li>
-              <li>
-                <a href="/twitter"
+              </motion.li>
+              <motion.li>
+                <motion.a href="/twitter"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Twitter
-                </a><span> - theramind
+                </motion.a><span> - theramind
                 </span>
-              </li>
-            </ul>
-          </p>
+              </motion.li>
+            </motion.ul>
+          </motion.p>
         </motion.div>
       </main>
+
       <Footer />
     </div>
-
-
-  )
-}
+  );
+};
 
 export default AboutUs;
