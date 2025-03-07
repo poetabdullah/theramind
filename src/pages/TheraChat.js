@@ -1,4 +1,3 @@
-// Gemini powered chatbot
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Menu } from "lucide-react";
 import Footer from "../components/Footer";
@@ -175,7 +174,7 @@ const TheraChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
       <div className="flex flex-1 min-h-0 relative">
         {/* Mobile sidebar toggle button */}
         <button
@@ -217,11 +216,11 @@ const TheraChat = () => {
             </div>
           )}
 
-          {/* Chat messages container - make it fill available space */}
+          {/* Chat messages container - fixed height to prevent overflow issues */}
           <div
             ref={chatContainerRef}
-            className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto"
-            style={{ minHeight: 0 }}
+            className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto mb-20"
+            style={{ flexGrow: 1, overflowY: "auto" }}
           >
             {messages.map((msg, index) => (
               <div
@@ -271,7 +270,7 @@ const TheraChat = () => {
           </div>
 
           {/* Input area - fixed at bottom */}
-          <div className="w-full bg-white border-t border-gray-100 py-4">
+          <div className="w-full bg-white border-t border-gray-100 py-4 fixed bottom-0 left-0 right-0">
             <div className="max-w-3xl mx-auto px-4">
               <div className="flex items-center w-full space-x-3">
                 <input
