@@ -58,18 +58,37 @@ const Contact = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="text-center py-4">
-        <h2 className="text-3xl font-bold text-purple-600 mt-2">
+    <div className="flex flex-col min-h-screen bg-gradient-to-r from-purple-150 via-voilet-200 to-orange-150">
+      <header className="meditation-header relative bg-gradient-to-r from-purple-600 to-orange-500 py-20">
+        {/* Animated Heading */}
+        <motion.h1
+          initial={{ opacity: 0, y: -30, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+          className="text-6xl font-extrabold text-white text-center mb-4 tracking-wide"
+        >
           Feel Free To Contact Our Team
-        </h2>
-      </header>
-      <main className="flex-grow flex items-center justify-center mb-5">
-        <motion.div
-          className="bg-white shadow-lg rounded-lg p-4 mt-4 w-full max-w-xl"
-          initial={{ opacity: 0, y: 50 }}
+        </motion.h1>
+
+        {/* Animated Subtext */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -50 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
+          className="mt-6 text-lg md:text-xl max-w-2xl mx-auto font-light text-white text-center"
+        >
+          Your mental well-being matters, and we’re here to support you every step of the way!
+        </motion.p>
+      </header>
+      <main className="flex-grow flex items-center justify-center mt-5 mb-5">
+        <motion.div
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          whileHover={{ scale: 1.05 }}
+          className="w-full max-w-xl p-6 shadow-lg rounded-xl"
         >
           {success && (
             <div
@@ -79,30 +98,30 @@ const Contact = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <p className="font-bold">Your response is invaluable to us!</p>
-              <p>Thanks for contacting us, we will get back to you shortly.</p>
+              <motion.p className="font-bold">Your response is invaluable to us!</motion.p>
+              <motion.p>Thanks for contacting us, we will get back to you shortly.</motion.p>
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <motion.form onSubmit={handleSubmit} className="space-y-4">
             {Object.entries({ name: "Name", email: "Email", subject: "Subject" }).map(([key, label]) => (
-              <div key={key} className="relative">
-                <label className="block text-purple-600 font-semibold">
+              <motion.div key={key} className="relative">
+                <motion.label className="block text-purple-700 text-xl font-bold">
                   {label}
-                </label>
+                </motion.label>
                 <motion.input
                   type={key === "email" ? "email" : "text"}
                   name={key}
                   value={formData[key]}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:ouline-none transition duration-300"
+                  className="w-full p-2 border border-orange-500 rounded-lg focus:ring-2 focus:ring-orange-500 focus:ouline-none outline-none transition duration-300"
                   whileFocus={{ scale: 1.02 }}
                 />
                 {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key]}</p>}
-              </div>
+              </motion.div>
             )
             )}
             <div className="relative">
-              <label className="block text-purple-600 font-semibold">
+              <label className="block text-purple-700 text-xl font-bold">
                 Message
               </label>
               <motion.textarea
@@ -116,12 +135,12 @@ const Contact = () => {
             <motion.button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white font-semibold p-2 rounded-lg hover:scale-105 transition duration-300"
+              className="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white font-bold text-xl p-2 rounded-lg hover:scale-105 transition duration-300"
               whileHover={{ scale: 1.05 }}
             >
               {loading ? "Sending..." : "Send Message"}
             </motion.button>
-          </form>
+          </motion.form>
 
         </motion.div>
       </main>
