@@ -44,7 +44,7 @@ const SplashScreen = () => {
     // Toggle between orange and purple gradient
     const interval = setInterval(() => {
       setIsOrangeTheme((prev) => !prev);
-    }, 5000); // Every 5 seconds for smoother transition
+    }, 3000); // Every 5 seconds for smoother transition
     return () => clearInterval(interval);
   }, []);
   const backgroundStyle = {
