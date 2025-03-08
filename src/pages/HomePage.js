@@ -19,9 +19,9 @@ const HomePage = () => (
     <HowItWorks />
     <TestPrompt />
     <MeditationSection/>
-    <FeatureSection/>
     <EducationSection/>
     <TheraChatSection/>
+    <FeatureSection/>
     <GlobalTarget/>
     <Testimonial />
     <FAQ />
