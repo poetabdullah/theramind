@@ -1,3 +1,4 @@
+// Gemini powered chatbot
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Menu } from "lucide-react";
 import Footer from "../components/Footer";
@@ -174,8 +175,8 @@ const TheraChat = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-      <div className="flex flex-1 min-h-0 relative">
+    <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex flex-1 relative">
         {/* Mobile sidebar toggle button */}
         <button
           className="md:hidden absolute top-4 left-4 z-20 bg-white rounded-full p-2 shadow-md"
@@ -195,9 +196,10 @@ const TheraChat = () => {
             onSelectConversation={handleSelectConversation}
             selectedConversation={currentConversation}
             onNewConversation={startNewConversation}
+            isOpen={sidebarOpen}
+            onToggle={toggleSidebar}
           />
         </div>
-
         {/* Main chat area */}
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
           {/* Semi-transparent overlay for mobile when sidebar is open */}
@@ -208,89 +210,104 @@ const TheraChat = () => {
             ></div>
           )}
 
-          {!hideHeadline && messages.length === 0 && (
-            <div className="flex-1 flex items-center justify-center w-full text-center px-4">
-              <h1 className="text-4xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent py-6">
-                How can I assist you today?
-              </h1>
-            </div>
-          )}
-
-          {/* Chat messages container - fixed height to prevent overflow issues */}
+          {/* Main content wrapper with fixed height */}
           <div
-            ref={chatContainerRef}
-            className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto mb-20"
-            style={{ flexGrow: 1, overflowY: "auto" }}
+            className="flex flex-col"
+            style={{ height: "calc(100vh - 80px)" }}
           >
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex w-full ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                } animate-fade-in`}
-              >
-                <div
-                  className={`${
-                    msg.sender === "user"
-                      ? "bg-gradient-to-r from-indigo-800 to-indigo-500 text-white"
-                      : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
-                  } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
-                >
-                  <ReactMarkdown
-                    components={{
-                      p: ({ node, ...props }) => (
-                        <p className="mb-0.5" {...props} />
-                      ),
-                      ul: ({ node, ...props }) => (
-                        <ul className="ml-4 mt-0 mb-0" {...props} />
-                      ),
-                      li: ({ node, ...props }) => (
-                        <li className="relative pl-4 before:content-['•'] before:absolute before:left-0 before:top-[2px]">
-                          {props.children}
-                        </li>
-                      ),
-                    }}
-                  >
-                    {msg.text
-                      .replace(/\n{3,}/g, "\n")
-                      .replace(/\n\s*\n/g, "\n")
-                      .replace(/•\s*/g, "")}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            ))}
-
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-purple-500 text-white rounded-2xl px-5 py-3 shadow-lg max-w-md text-left">
-                  Typing...
-                </div>
+            {/* Headline section - with reduced flex properties */}
+            {!hideHeadline && messages.length === 0 && (
+              <div className="flex items-center justify-center h-48">
+                {" "}
+                {/* Fixed height instead of flex-grow */}
+                <h1 className="text-4xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent py-6">
+                  How can I assist you today?
+                </h1>
               </div>
             )}
-          </div>
 
-          {/* Input area - fixed at bottom */}
-          <div className="w-full bg-white border-t border-gray-100 py-4 fixed bottom-0 left-0 right-0">
-            <div className="max-w-3xl mx-auto px-4">
-              <div className="flex items-center w-full space-x-3">
-                <input
-                  type="text"
-                  className="flex-1 bg-white text-gray-900 border border-purple-500 rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder-gray-500 text-sm shadow-md"
-                  placeholder="Type your question..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && !e.shiftKey && sendMessage()
-                  }
-                  disabled={loading}
-                />
-                <button
-                  className="group bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full p-3 shadow-lg focus:outline-none transition-all transform hover:scale-105 focus:ring-4 focus:ring-purple-500/50 focus:ring-offset-2 flex items-center justify-center"
-                  onClick={sendMessage}
-                  disabled={loading}
+            {/* Chat messages container */}
+            <div
+              ref={chatContainerRef}
+              className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto"
+              style={{
+                height:
+                  messages.length > 0
+                    ? "calc(100vh - 160px)"
+                    : "calc(100vh - 160px - 48px)",
+              }}
+              // Adjust height based on whether headline is shown
+            >
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex w-full ${
+                    msg.sender === "user" ? "justify-end" : "justify-start"
+                  } animate-fade-in`}
                 >
-                  <Send className="w-5 h-5 text-white" />
-                </button>
+                  <div
+                    className={`${
+                      msg.sender === "user"
+                        ? "bg-gradient-to-r from-indigo-800 to-indigo-500 text-white"
+                        : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
+                    } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
+                  >
+                    <ReactMarkdown
+                      components={{
+                        p: ({ node, ...props }) => (
+                          <p className="mb-0.5" {...props} />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul className="ml-4 mt-0 mb-0" {...props} />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li className="relative pl-4 before:content-['•'] before:absolute before:left-0 before:top-[2px]">
+                            {props.children}
+                          </li>
+                        ),
+                      }}
+                    >
+                      {msg.text
+                        .replace(/\n{3,}/g, "\n")
+                        .replace(/\n\s*\n/g, "\n")
+                        .replace(/•\s*/g, "")}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              ))}
+
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-purple-500 text-white rounded-2xl px-5 py-3 shadow-lg max-w-md text-left">
+                    Typing...
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Input area - fixed height */}
+            <div className="w-full bg-white border-t border-gray-100 py-4">
+              <div className="max-w-3xl mx-auto px-4">
+                <div className="flex items-center w-full space-x-3">
+                  <input
+                    type="text"
+                    className="flex-1 bg-white text-gray-900 border border-purple-500 rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder-gray-500 text-sm shadow-md"
+                    placeholder="Type your question..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && !e.shiftKey && sendMessage()
+                    }
+                    disabled={loading}
+                  />
+                  <button
+                    className="group bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full p-3 shadow-lg focus:outline-none transition-all transform hover:scale-105 focus:ring-4 focus:ring-purple-500/50 focus:ring-offset-2 flex items-center justify-center"
+                    onClick={sendMessage}
+                    disabled={loading}
+                  >
+                    <Send className="w-5 h-5 text-white" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -6,9 +6,20 @@ const Sidebar = ({
   onSelectConversation,
   selectedConversation,
   onNewConversation,
+  isOpen,
+  onToggle,
 }) => {
   return (
-    <div className="h-screen w-64 bg-white shadow-lg flex flex-col overflow-hidden border-r border-gray-200">
+    <div className="h-screen w-64 bg-white shadow-lg flex flex-col overflow-hidden border-r border-gray-200 relative">
+      {/* Close Button - Only visible on mobile */}
+      <button
+        onClick={onToggle}
+        className="md:hidden absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+        aria-label="Close sidebar"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
       {/* Sidebar Header */}
       <div className="p-4 flex items-center justify-between border-b border-gray-200">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
