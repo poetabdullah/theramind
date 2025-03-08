@@ -50,6 +50,9 @@ const ArticlesListPage = () => {
       });
   };
 
+  const nextPage = () => setPage((prev) => Math.min(prev + 1, totalPages));
+  const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
+
   const resetSearch = () => {
     setSelectedTags([]);
     setPage(1);
@@ -116,22 +119,57 @@ const ArticlesListPage = () => {
             the filter.
           </div>
         ) : (
-          <div className="space-y-6">
-            {articles.map((article) => (
-              <ListViewCard
-                key={article.id}
-                title={article.title}
-                content={article.content || "No content available"}
-                author={article.author_name}
-                date={new Date(article.date_time).toLocaleDateString()}
-                tags={article.selectedTags || []}
-                link={`/articles/${article.id}`}
-                titleColor="text-orange-700"
-                tagColor="bg-orange-200 text-orange-700"
-                borderColor="border-orange-500"
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-6">
+              {articles.map((article) => (
+                <ListViewCard
+                  key={article.id}
+                  title={article.title}
+                  content={article.content || "No content available"}
+                  author={article.author_name}
+                  date={new Date(article.date_time).toLocaleDateString()}
+                  tags={article.selectedTags || []}
+                  link={`/articles/${article.id}`}
+                  titleColor="text-orange-700"
+                  tagColor="bg-orange-200 text-orange-700"
+                  borderColor="border-orange-500"
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center space-x-4 mt-8">
+                <button
+                  onClick={prevPage}
+                  disabled={page === 1}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    page === 1
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 text-white hover:from-orange-700 hover:via-orange-600 hover:to-orange-500"
+                  }`}
+                >
+                  Previous
+                </button>
+
+                <div className="text-orange-700 font-medium">
+                  Page {page} of {totalPages}
+                </div>
+
+                <button
+                  onClick={nextPage}
+                  disabled={page === totalPages}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    page === totalPages
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 text-white hover:from-orange-700 hover:via-orange-600 hover:to-orange-500"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
       <Footer />
