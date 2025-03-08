@@ -139,6 +139,39 @@ const PatientStoriesListPage = () => {
                 />
               ))}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center space-x-4 mt-8">
+                <button
+                  onClick={prevPage}
+                  disabled={page === 1}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    page === 1
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600"
+                  }`}
+                >
+                  Previous
+                </button>
+
+                <div className="text-purple-700 font-medium">
+                  Page {page} of {totalPages}
+                </div>
+
+                <button
+                  onClick={nextPage}
+                  disabled={page === totalPages}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    page === totalPages
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
