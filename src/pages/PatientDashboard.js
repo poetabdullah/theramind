@@ -6,12 +6,13 @@ import {
   where,
   getDocs,
   updateDoc,
-  doc,
+  doc
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import ListViewCard from "../components/ListViewCard";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
+import QuestionnaireResponses from "../components/QuestionnaireResponses";
 
 const PatientDashboard = () => {
   const [user, setUser] = useState(null);
@@ -21,7 +22,6 @@ const PatientDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [patientData, setPatientData] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [userResponses, setUserResponses] = useState([]);
   const navigate = useNavigate();
   // Form state
   const [detailFormData, setDetailFormData] = useState({
@@ -44,7 +44,6 @@ const PatientDashboard = () => {
       if (authUser) {
         setUser(authUser);
         fetchPatientData(authUser.email);
-        fetchUserResponses(authUser.email);
       } else {
         navigate("/login"); // Redirect to login if not authenticated
       }
@@ -198,23 +197,6 @@ const PatientDashboard = () => {
     }
   };
 
-  const fetchUserResponses = async (email) => {
-    try {
-      const q = query(
-        collection(db, "patients", patientData?.id || "", "responses"),
-        where("userEmail", "==", email)
-      );
-      const querySnapshot = await getDocs(q);
-      const responses = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setUserResponses(responses);
-    } catch (error) {
-      console.error("Error fetching user responses:", error);
-    }
-  };
-
   const handleBirthHistoryChange = (option) => {
     setDetailFormData({ ...detailFormData, birthHistory: option });
     setDetailErrors((prevErrors) => ({ ...prevErrors, birthHistory: null }));
@@ -234,9 +216,8 @@ const PatientDashboard = () => {
             placeholder="Enter your location"
             value={detailFormData.location}
             onChange={handleDetailChange}
-            className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-              detailErrors.location ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${detailErrors.location ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {detailErrors.location && (
             <p className="text-red-500 text-sm mt-2">{detailErrors.location}</p>
@@ -255,11 +236,10 @@ const PatientDashboard = () => {
                   key={option}
                   type="button"
                   onClick={() => handleBirthHistoryChange(option)}
-                  className={`px-4 py-2 rounded-lg transition focus:outline-none ${
-                    detailFormData.birthHistory === option
-                      ? "bg-gradient-to-r from-purple-600 to-orange-500 text-white"
-                      : "bg-gray-200 hover:bg-gray-300"
-                  }`}
+                  className={`px-4 py-2 rounded-lg transition focus:outline-none ${detailFormData.birthHistory === option
+                    ? "bg-gradient-to-r from-purple-600 to-orange-500 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
+                    }`}
                 >
                   {option}
                 </button>
@@ -531,7 +511,7 @@ const PatientDashboard = () => {
                 </span>
                 <span className="text-gray-700">
                   {patientData?.mentalHealthConditions &&
-                  patientData.mentalHealthConditions.length > 0
+                    patientData.mentalHealthConditions.length > 0
                     ? patientData.mentalHealthConditions.join(", ")
                     : "None specified"}
                 </span>
@@ -539,28 +519,14 @@ const PatientDashboard = () => {
             </div>
           </div>
 
-          {/* Questionnaire Responses */}
-          <div className="bg-white shadow-lg rounded-lg p-4 border border-purple-100 mb-8 overflow-x-auto">
-            <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent mb-4">
-              Your Responses
-            </h2>
-            {userResponses.length > 0 ? (
-              userResponses.map((response) => (
-                <div
-                  key={response.id}
-                  className="border-b border-gray-200 py-2"
-                >
-                  <p>
-                    <strong>Question:</strong> {response.question}
-                  </p>
-                  <p>
-                    <strong>Response:</strong> {response.answer}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p>No responses found.</p>
-            )}
+          {/* Integrating QuestionnaireResponse Component */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
+                Questionnaire Assessment Response Summary
+              </h2>
+              <QuestionnaireResponses patientEmail={auth.authUser.email} />
+            </div>
           </div>
 
           {/* Patient Stories Section */}
@@ -599,8 +565,8 @@ const PatientDashboard = () => {
                     date={
                       story.date_time && story.date_time.seconds
                         ? new Date(
-                            story.date_time.seconds * 1000
-                          ).toLocaleDateString()
+                          story.date_time.seconds * 1000
+                        ).toLocaleDateString()
                         : "No date available"
                     }
                     tags={story.selectedTags || []}
