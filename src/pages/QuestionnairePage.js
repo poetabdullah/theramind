@@ -19,22 +19,6 @@ const scaleEffect = {
   exit: { opacity: 0, scale: 0.9, transition: { duration: 0.3 } }
 };
 
-//Diagnosis Summary Transitions & Animations
-const fadeinup = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-};
-
-const scaleeffect = {
-  initial: { opacity: 0, scale: 0.8 },
-  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
-const textSlideIn = {
-  initial: { opacity: 0, y: -20 },
-  animate: { opacity: 1, y: 1, transition: { duration: 0.5, ease: "easeOut", delay: 0.3 } },
-};
-
 const conditionRanges = {
   Stress: { start: 16, end: 30 },
   Depression: { start: 31, end: 41 },
@@ -257,24 +241,42 @@ const Questionnaire = () => {
 
   if (isQuestionnaireComplete) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50"
-        initial="initial"
-        animate="animate">
+      <motion.div className="flex flex-col min-h-screen bg-gray-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}>
         <header className="text-center py-4">
-          <motion.h2 className="text-3xl font-bold text-purple-600 mt-2" variants={fadeinup}>Diagnosis Result</motion.h2>
+          <motion.h2 className="text-5xl font-bold text-purple-800 mt-2"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}>Diagnosis Result</motion.h2>
         </header>
         <main className="flex-grow flex items-center justify-center mb-5">
-          <motion.div className="bg-gradient-to-r from-purple-300 to-orange-200 shadow-lg rounded-lg p-6 w-full max-w-xl text-center"
-            variants={scaleeffect}
-            whileHover={{ scale: 1.05 }}>
-            <motion.h2 className="text-xl font-bold">Your diagnosed mental health condition:</motion.h2>
-            <motion.p className="text-lg text-orange-800 mt-2"
-              variants={textSlideIn}>Based on the responses you submitted, you are likely to
-              have features of {diagnosedSubtype}</motion.p>
+          <motion.div className="bg-gradient-to-r from-purple-200 to-fuchsia-200 shadow-lg rounded-lg p-6 w-full max-w-xl text-center"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            whileHover={{ scale: 1.05, boxShadow: "0px 4px 15px rgba(0,0,0,0.2)" }}>
+            <motion.h2 className="text-3xl font-bold bg-gradient-to-r text-pink-600 to-purple-500"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}>Your diagnosed mental health condition:</motion.h2>
+            <motion.p className="text-xl text-purple-800 mt-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}>Based on the responses you submitted, you are likely to
+              have features of,<br></br><motion.span
+                className="font-bold text-pink-700 text-3xl"
+                animate={{ scale: [1, 1.1, 1], transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } }}
+              >
+                {diagnosedSubtype}
+              </motion.span></motion.p>
           </motion.div>
         </main>
         <Footer />
-      </div>
+      </motion.div>
     );
   }
 
@@ -284,21 +286,72 @@ const Questionnaire = () => {
         <motion.h2 className="text-5xl font-extrabold text-purple-700 mt-2" {...fadeInUp}>Diagnostic Questionnaire</motion.h2>
       </header>
       <main className="flex-grow flex items-center justify-center mb-5 bg-gradient-to-r from-purple-150 to-orange-150">
-        <motion.div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-xl relative" {...scaleEffect}>
+        <motion.div
+          className={`p-6 w-full max-w-xl relative ${suicidalThoughts || noConditionDiagnosed
+            ? "bg-transparent shadow-none"
+            : "bg-white shadow-lg rounded-lg"
+            }`}
+
+          {...scaleEffect}
+        >
           <AnimatePresence>
             {noConditionDiagnosed && (
-              <motion.div {...fadeInUp} className="text-center">
-                <h3 className="text-xl font-semibold text-purple-600 mb-4">Thank you for taking TheraMind's diagnostic questionnaire!</h3>
-                <p className="text-lg text-orange-500">You are not diagnosed with any mental health condition within TheraMind's scope.</p>
+              <motion.div
+                {...fadeInUp}
+                className="text-center p-8 w-full bg-gradient-to-r from-purple-200 to-purple-300 rounded-lg shadow-lg"
+              >
+                <motion.h3
+                  className="text-3xl font-bold text-purple-900"
+                >
+                  Thank you for taking TheraMind's diagnostic questionnaire!
+                </motion.h3>
+                <motion.p
+                  className="text-2xl font-semibold text-orange-700 mt-4"
+                >
+                  You are not diagnosed with any mental health condition within TheraMind's scope.
+                </motion.p>
               </motion.div>
             )}
             {suicidalThoughts && (
-              <motion.div {...fadeInUp} className="text-center text-red-800">
-                <h2 className="text-2xl font-bold">Suicidal Thoughts Detected</h2>
-                <p>Your responses indicate suicidal thoughts. Please seek immediate help from an emergency hotline.</p>
-                <h3 className="text-lg font-semibold mt-4">Emergency Hotlines:</h3>
-                <p><strong>Umang:</strong> 0311 7786264<br /><strong>Rozan:</strong> 0304 111 1741<br /><strong>Welfare Bureau:</strong> 1121</p>
-                <p className="mt-4">If in immediate danger, dial <strong>911</strong>.</p>
+              <motion.div {...fadeInUp} initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                whileHover={{ scale: 1.02 }}
+                className="text-center text-red-800 p-4 border border-red-500 rounded-lg bg-red-100">
+                <motion.h2 className="text-2xl font-bold"
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    transition: { repeat: Infinity, duration: 1.5 }
+                  }}>🚨😔 Suicidal Thoughts Detected</motion.h2>
+                <motion.p className="mt-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.8 }}>Your responses indicate suicidal thoughts. Please seek immediate help from an emergency hotline.</motion.p>
+                <motion.h3 className="text-lg font-semibold mt-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.8 }}>Emergency Hotlines:</motion.h3>
+                <motion.p className="mt-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.9, duration: 0.8 }}>
+                  <motion.span whileHover={{ scale: 1.05, textShadow: "0px 0px 8px rgba(255, 0, 0, 0.8)" }}>
+                    <strong>Umang:</strong> 0311 7786264
+                  </motion.span>
+                  <br />
+                  <motion.span whileHover={{ scale: 1.05, textShadow: "0px 0px 8px rgba(255, 0, 0, 0.8)" }}>
+                    <strong>Rozan:</strong> 0304 111 1741
+                  </motion.span>
+                  <br />
+                  <motion.span whileHover={{ scale: 1.05, textShadow: "0px 0px 8px rgba(255, 0, 0, 0.8)" }}>
+                    <strong>Welfare Bureau:</strong> 1121
+                  </motion.span></motion.p>
+                <motion.p className="mt-4 font-bold text-red-900"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.2, duration: 0.8 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ x: [-2, 2, -2, 2, 0], transition: { duration: 0.2 } }}>If in immediate danger, dial <strong>911</strong>.</motion.p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -313,7 +366,7 @@ const Questionnaire = () => {
                       key={index}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center space-x-2 bg-gradient-to-r from-purple-400 to-indigo-400 p-2 rounded-full cursor-pointer hover:bg-orange-300"
+                      className="flex items-center space-x-2 bg-gradient-to-r from-fuchsia-400 to-purple-400 p-2 rounded-full cursor-pointer hover:to-purple-600 transition-colors"
                     >
                       <input
                         type="radio"
@@ -373,7 +426,7 @@ const Questionnaire = () => {
         </motion.div>
       </main>
       <Footer />
-    </div>
+    </div >
   );
 };
 
