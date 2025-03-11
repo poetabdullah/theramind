@@ -1,3 +1,4 @@
+// Searches the tags
 import React, { useState, useEffect, useRef } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { X, Search, Tag, ChevronDown, ChevronUp } from "lucide-react";
