@@ -520,14 +520,16 @@ const PatientDashboard = () => {
           </div>
 
           {/* Integrating QuestionnaireResponse Component */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
-                Questionnaire Assessment Response Summary
-              </h2>
-              <QuestionnaireResponses patientEmail={auth.authUser.email} />
-            </div>
-          </div>
+<div className="mb-8">
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
+      Questionnaire Assessment Response Summary
+    </h2>
+  </div>
+  
+  {/* Pass the email from the user state */}
+  {user && <QuestionnaireResponses patientEmail={user.email} />}
+</div>
 
           {/* Patient Stories Section */}
           <div className="mb-8">
