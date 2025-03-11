@@ -124,7 +124,7 @@ body {
 }
 
 .service-card {
-  background: linear-gradient(to bottom right, rgba(147, 51, 234, 0.9), rgba(192, 132, 252, 0.9));
+  background: linear-gradient(to bottom right, rgba(233, 77, 5, 0.9), rgba(243, 150, 96, 0.9));
   border-radius: 15px;
   padding: 30px;
   display: flex;
