@@ -54,6 +54,7 @@ export default function GuidedMeditation() {
                         animate={{ opacity: 1, y: 0 }} 
                         transition={{ duration: 0.5 }}
                         style={{
+                            paddingBottom: '20px', 
                             display: 'flex',
                             position: 'relative',
                             width: '100%',
@@ -65,6 +66,7 @@ export default function GuidedMeditation() {
                             <motion.div
                                 key={index}
                                 style={{
+                                    paddingBottom: '20px',
                                     position: 'absolute',
                                     width: '100%',
                                     height: '100%',
@@ -115,7 +117,7 @@ export default function GuidedMeditation() {
                 </div>
                 <div className="medcontent">
                     <h2 className="medtitle" style={{ paddingTop: '40px' }}>Try With Us</h2>
-                    <div className="exercise">
+                    <div className="exercise" style={{ paddingBottom: '40px' }}>
                         {exercises.map((exercise, index) => (
                             <motion.div 
                                 key={index} 
