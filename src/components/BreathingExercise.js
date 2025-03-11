@@ -73,17 +73,28 @@ const BreathingExercise = () => {
 
                 {/* Meditation Timer */}
                 <motion.div
-                    className="meditation-timer w-80 h-80 rounded-full flex flex-col items-center justify-center text-white background: linear-gradient(to right, #ff9a9e, #fad0c4)text-xl font-bold p-6"
-                    animate={{ 
-                        backgroundColor: [' #dd4600', ' #dd4600', 'rgb(228, 91, 53)']
+                    // className="meditation-timer w-80 h-80 rounded-full flex flex-col items-center justify-center text-white background: linear-gradient(to right, #ff9a9e, #fad0c4)text-xl font-bold p-6"
+                    // animate={{ 
+                    //     backgroundColor: [' #dd4600', ' #dd4600', 'rgb(228, 91, 53)']
             
-                    }}
-                    transition={{ 
-                        repeat: Infinity, 
-                        duration: 4, 
-                        ease: "easeInOut" 
-                    }}
-                >
+                    // }}
+                    // transition={{ 
+                    //     repeat: Infinity, 
+                    //     duration: 4, 
+                    //     ease: "easeInOut" 
+                    // }}
+                    className="meditation-timer w-80 h-80 rounded-full flex flex-col items-center justify-center text-white text-xl font-bold p-6"
+                    animate={{ 
+                         background: [
+            "linear-gradient(to right, #dd4600,rgb(190, 80, 15))", 
+            "linear-gradient(to right,rgb(255, 60, 0), #fad0c4)", 
+            "linear-gradient(to right, #dd4600,rgb(185, 28, 159))"
+                                          ]
+                             }}
+                            transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+                                                                                                >
+
+                
                     <div className="text-6xl font-bold mb-8">
                         <div className="flex justify-center">
                             <span className="mr-2">{Math.floor(time / 60)}</span>:
