@@ -1,4 +1,4 @@
-// Lists all of the articles by doctors
+// Lists all of the articles written by the doctors
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
