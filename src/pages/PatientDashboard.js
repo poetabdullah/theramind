@@ -1,3 +1,4 @@
+// Patient's dashboard
 import React, { useState, useEffect } from "react";
 import {
   collection,

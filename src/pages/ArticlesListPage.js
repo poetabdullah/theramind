@@ -33,7 +33,9 @@ const ArticlesListPage = () => {
         let filteredArticles = response.data.results || [];
         if (selectedTags.length > 0) {
           filteredArticles = filteredArticles.filter((article) =>
-            selectedTags.every((tag) => article.selectedTags?.includes(tag))
+            selectedTags.every((tag) =>
+              Object.values(article.selectedTags || {}).includes(tag)
+            )
           );
         }
         setArticles(filteredArticles);
@@ -128,7 +130,7 @@ const ArticlesListPage = () => {
                   content={article.content || "No content available"}
                   author={article.author_name}
                   date={new Date(article.date_time).toLocaleDateString()}
-                  tags={article.selectedTags || []}
+                  tags={Object.values(article.selectedTags || {})}
                   link={`/articles/${article.id}`}
                   titleColor="text-orange-700"
                   tagColor="bg-orange-200 text-orange-700"
