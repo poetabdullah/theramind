@@ -11,7 +11,7 @@ const slides = [
   },
   {
     id: 2,
-    image: "/img/slider2.jpeg",
+    image: "/img/slider2.png",
     title: "TheraMind",
     description:
       "Discover a healthier mindset. Our therapy tools and expert insights will guide you every step of the way.",
@@ -55,7 +55,7 @@ const BannerSlider = () => {
         <div className="content">
           <h1>{slides[currentSlide].title}</h1>
           <p>{slides[currentSlide].description}</p>
-          <a href="/homepage" className="cta-button">Get Started</a>
+          <a href="/" className="cta-button">Get Started</a>
           {/* <button className="cta-button">Get Started</button> */}
         </div>
 
