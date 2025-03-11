@@ -75,7 +75,8 @@ const BreathingExercise = () => {
                 <motion.div
                     className="meditation-timer w-80 h-80 rounded-full flex flex-col items-center justify-center text-white background: linear-gradient(to right, #ff9a9e, #fad0c4)text-xl font-bold p-6"
                     animate={{ 
-                        backgroundColor: ['#FF6B93', '#FF4081', '#FF6B93']
+                        backgroundColor: [' #dd4600', ' #dd4600', 'rgb(228, 91, 53)']
+            
                     }}
                     transition={{ 
                         repeat: Infinity, 
