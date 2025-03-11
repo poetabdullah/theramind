@@ -111,6 +111,7 @@ body {
   color: #4a148c;
   font-size: 2rem;
   margin-bottom: 40px;
+  font-weight: bolder;
 }
 
 .services-grid {
@@ -123,7 +124,7 @@ body {
 }
 
 .service-card {
-  background: linear-gradient(135deg, #c7a6e6, #faa1cd);
+  background: linear-gradient(to bottom right, rgba(147, 51, 234, 0.9), rgba(192, 132, 252, 0.9));
   border-radius: 15px;
   padding: 30px;
   display: flex;
@@ -138,21 +139,21 @@ body {
 }
 
 .service-card h3 {
-  color: #4a148c;
+  color: #ffffff;
   margin: 0;
   font-size: 1.3rem;
 }
 
 .service-card p {
-  color: #666;
+  color: #ffffff;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .service-btn {
   background: none;
   border: none;
-  color: #ff4081;
+  color: #830b33;
   padding: 0;
   font-weight: 600;
   cursor: pointer;
@@ -166,7 +167,7 @@ body {
 .how-it-works {
   padding: 60px 20px;
   /* background-color: #fff; */
-  background: linear-gradient(135deg, #c7a6e6, #faa1cd);
+  background: #b073ff;
   margin: 20px 0;
 }
 
@@ -176,8 +177,9 @@ body {
 }
 
 .how-it-works h2 {
+  font-weight: bolder;
   text-align: center;
-  color: #4a148c;
+  color: #ffffff;
   margin-bottom: 40px;
   transition: ease-in;
 }
@@ -214,7 +216,7 @@ body {
 .step-number {
   width: 32px;
   height: 32px;
-  background-color: #4a148c;
+  background-color: #b073ff;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -237,7 +239,8 @@ body {
 }
 
 .stats-section h3 {
-  color: #4a148c;
+  color: #ffffff;
+  font-weight: bolder;
   margin-bottom: 40px;
 }
 

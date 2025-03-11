@@ -18,9 +18,9 @@ const Services = () => (
       </div>
       
       <div className="service-card">
-        <h3>Chat with Digital Assistant</h3>
-        <p>Chat with our top-notch Generative AI assistant that will support you your healing journey. It will provide you with guided assistance.</p>
-        <button className="service-btn">Chat with AI</button>
+        <h3>Keep Track of your Journey</h3>
+        <p>Stay on track with our progress tracker that that will support your healing journey. <br></br>It will provide you with updated progress of your treatment plan.</p>
+        <button className="service-btn">See progress status</button>
       </div>
       
     </div>
