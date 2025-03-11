@@ -1,3 +1,4 @@
+// Component of the signup page and inspiration for the patient dashboard as well
 import React, { useState } from "react";
 
 const HealthHistoryForm = ({ onSubmit }) => {
