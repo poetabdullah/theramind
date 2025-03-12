@@ -79,10 +79,13 @@ const PatientDetailForm = ({ onSubmit }) => {
       <h2 className="text-2xl font-bold text-center mb-4 text-indigo-700">
         Step 3: Additional Details
       </h2>
-      <p className="text-center text-gray-600 mb-6">
-        TheraMind provides mental health services for patients aged 16-50.
-      </p>
-
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <p className="text-yellow-700 font-medium">
+          <span className="font-bold">Important:</span> TheraMind only provides
+          mental health services for patients aged 16-50. Please ensure your
+          date of birth is accurate.
+        </p>
+      </div>
       {/* Date of Birth Input */}
       <div className="mb-5">
         <label className="block font-medium mb-1 text-gray-700">
