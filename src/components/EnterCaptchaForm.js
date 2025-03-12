@@ -7,6 +7,19 @@ const EnterCaptchaForm = ({
   onSubmit,
   error,
 }) => {
+  // Generate random distortion values for each character
+  const generateDistortionProps = () => {
+    const chars = captchaCode.split("");
+    return chars.map(() => ({
+      rotation: Math.floor(Math.random() * 30) - 15,
+      xOffset: Math.floor(Math.random() * 6) - 3,
+      yOffset: Math.floor(Math.random() * 6) - 3,
+      fontSize: Math.floor(Math.random() * 8) + 24, // Random size between 24-32px
+    }));
+  };
+
+  const charProps = generateDistortionProps();
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
       <h2 className="text-xl font-bold text-center text-purple-600 mb-4">
@@ -16,11 +29,76 @@ const EnterCaptchaForm = ({
         Enter the code shown below:
       </p>
 
-      {/* CAPTCHA Display */}
-      <div className="flex justify-center items-center mb-4">
-        <span className="text-2xl font-bold bg-gray-100 px-5 py-3 rounded-lg shadow">
-          {captchaCode}
-        </span>
+      {/* Enhanced CAPTCHA Display */}
+      <div className="flex justify-center items-center mb-4 relative">
+        <div
+          className="bg-gray-100 px-5 py-3 rounded-lg shadow overflow-hidden relative"
+          style={{
+            background:
+              "repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 10px, #e8e8e8 10px, #e8e8e8 20px)",
+          }}
+        >
+          {/* Wavy pattern overlay */}
+          <svg
+            className="absolute inset-0 w-full h-full opacity-20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <pattern
+                id="wave-pattern"
+                width="50"
+                height="10"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M0,5 C12.5,0 12.5,10 25,5 C37.5,0 37.5,10 50,5"
+                  fill="none"
+                  stroke="#6B46C1"
+                  strokeWidth="1"
+                />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#wave-pattern)" />
+          </svg>
+
+          {/* Distorted characters */}
+          <div className="relative">
+            {captchaCode.split("").map((char, index) => (
+              <span
+                key={index}
+                style={{
+                  display: "inline-block",
+                  transform: `rotate(${charProps[index].rotation}deg) 
+                              translateX(${charProps[index].xOffset}px) 
+                              translateY(${charProps[index].yOffset}px)`,
+                  fontSize: `${charProps[index].fontSize}px`,
+                  fontWeight: "bold",
+                  margin: "0 2px",
+                  color: `hsl(${Math.random() * 60 + 240}, 70%, 40%)`,
+                  textShadow: "1px 1px 1px rgba(0,0,0,0.2)",
+                  fontFamily: index % 2 === 0 ? "monospace" : "sans-serif",
+                }}
+              >
+                {char}
+              </span>
+            ))}
+          </div>
+
+          {/* Noise dots */}
+          {Array.from({ length: 30 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full"
+              style={{
+                width: `${Math.random() * 3 + 1}px`,
+                height: `${Math.random() * 3 + 1}px`,
+                backgroundColor: `rgba(0,0,0,${Math.random() * 0.3 + 0.1})`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* CAPTCHA Input */}
