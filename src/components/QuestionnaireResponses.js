@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../firebaseConfig.js";
-import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  where,
+} from "firebase/firestore";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const QuestionnaireResponses = ({ patientEmail }) => {
@@ -11,7 +18,8 @@ const QuestionnaireResponses = ({ patientEmail }) => {
 
   useEffect(() => {
     const fetchLatestData = async () => {
-      const userEmail = patientEmail || (auth.currentUser ? auth.currentUser.email : null);
+      const userEmail =
+        patientEmail || (auth.currentUser ? auth.currentUser.email : null);
       if (!userEmail) {
         console.error("No user email found");
         setLoading(false);
@@ -19,8 +27,17 @@ const QuestionnaireResponses = ({ patientEmail }) => {
       }
 
       try {
-        const assessmentsRef = collection(db, "patients", userEmail, "assessments");
-        const assessmentsQuery = query(assessmentsRef, orderBy("timestamp", "desc"), limit(1));
+        const assessmentsRef = collection(
+          db,
+          "patients",
+          userEmail,
+          "assessments"
+        );
+        const assessmentsQuery = query(
+          assessmentsRef,
+          orderBy("timestamp", "desc"),
+          limit(1)
+        );
         const assessmentSnapshot = await getDocs(assessmentsQuery);
 
         let latestAssessmentData = null;
@@ -33,8 +50,15 @@ const QuestionnaireResponses = ({ patientEmail }) => {
         setLatestAssessment(latestAssessmentData);
 
         if (latestTimestamp) {
-          const responsesRef = collection(db, "patients", userEmail, "responses");
-          const tenMinutesBefore = new Date(latestTimestamp.getTime() - 10 * 60000);
+          const responsesRef = collection(
+            db,
+            "patients",
+            userEmail,
+            "responses"
+          );
+          const tenMinutesBefore = new Date(
+            latestTimestamp.getTime() - 10 * 60000
+          );
           const responsesQuery = query(
             responsesRef,
             where("timestamp", ">=", tenMinutesBefore),
@@ -43,7 +67,7 @@ const QuestionnaireResponses = ({ patientEmail }) => {
           const responseSnapshot = await getDocs(responsesQuery);
 
           if (!responseSnapshot.empty) {
-            setLatestResponses(responseSnapshot.docs.map(doc => doc.data()));
+            setLatestResponses(responseSnapshot.docs.map((doc) => doc.data()));
           }
         }
       } catch (error) {
@@ -57,18 +81,31 @@ const QuestionnaireResponses = ({ patientEmail }) => {
   }, [patientEmail]);
 
   return (
-    <div className="bg-white p-4 border rounded-lg shadow-md w-full">
-      <h2 className="text-xl font-bold mb-4 text-purple-700">Your Latest Assessment & Responses</h2>
+    <div className="bg-white p-4 border rounded-2xl shadow-md w-full">
+      <h2 className="text-xl font-bold mb-4 text-purple-700">
+        Your Latest Assessment & Responses
+      </h2>
       {loading ? (
         <p className="text-gray-500">Loading data...</p>
       ) : (
-        <div className="p-4 border rounded-lg bg-purple-50">
+        <div className="p-4 border rounded-2xl bg-purple-50">
           {latestAssessment ? (
             <div className="mb-4">
-              <h3 className="text-md font-semibold text-purple-700">Latest Assessment</h3>
-              <p><strong>Diagnosed Subtype:</strong> {latestAssessment?.diagnosedSubtype || "None"}</p>
-              <p><strong>No Condition Diagnosed:</strong> {latestAssessment?.noConditionDiagnosed ? "Yes" : "No"}</p>
-              <p><strong>Suicidal Thoughts:</strong> {latestAssessment?.suicidalThoughts ? "Yes" : "No"}</p>
+              <h3 className="text-md font-semibold text-purple-700">
+                Latest Assessment
+              </h3>
+              <p>
+                <strong>Diagnosed Subtype:</strong>{" "}
+                {latestAssessment?.diagnosedSubtype || "None"}
+              </p>
+              <p>
+                <strong>No Condition Diagnosed:</strong>{" "}
+                {latestAssessment?.noConditionDiagnosed ? "Yes" : "No"}
+              </p>
+              <p>
+                <strong>Suicidal Thoughts:</strong>{" "}
+                {latestAssessment?.suicidalThoughts ? "Yes" : "No"}
+              </p>
             </div>
           ) : (
             <p className="text-gray-500">No assessment found.</p>
@@ -80,14 +117,17 @@ const QuestionnaireResponses = ({ patientEmail }) => {
                 onClick={() => setShowResponses(!showResponses)}
                 className="flex items-center gap-2 text-md font-semibold text-purple-700 hover:underline"
               >
-                Response Summary {showResponses ? <FaChevronUp /> : <FaChevronDown />}
+                Response Summary{" "}
+                {showResponses ? <FaChevronUp /> : <FaChevronDown />}
               </button>
 
               {showResponses && (
-                <ul className="list-disc pl-5 mt-2 bg-white p-3 border rounded-lg shadow-sm">
+                <ul className="list-disc pl-5 mt-2 bg-white p-3 border rounded-xl shadow-sm">
                   {latestResponses.map((response, index) => (
                     <li key={index} className="mb-2 ms-3">
-                      <strong>Question:</strong> {response.questionText || "N/A"}<br />
+                      <strong>Question:</strong>{" "}
+                      {response.questionText || "N/A"}
+                      <br />
                       <strong>Response:</strong> {response.response || "N/A"}
                     </li>
                   ))}
