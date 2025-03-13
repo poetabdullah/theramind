@@ -4,7 +4,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons 
 const slides = [
   {
     id: 1,
-    image: '/img/slider1.jpeg',
+    image: "/img/slider1.jpeg",
     title: "TheraMind",
     description:
       "Get ready to conquer your mind by the best mental health services backed by psychology experts, AI-personalized recommendations, and several free beneficial resources.",
@@ -55,7 +55,9 @@ const BannerSlider = () => {
         <div className="content">
           <h1>{slides[currentSlide].title}</h1>
           <p>{slides[currentSlide].description}</p>
-          <a href="/" className="cta-button">Get Started</a>
+          <a href="/signup" className="cta-button">
+            Get Started
+          </a>
           {/* <button className="cta-button">Get Started</button> */}
         </div>
 
