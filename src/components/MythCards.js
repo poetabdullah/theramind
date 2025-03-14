@@ -5,28 +5,28 @@ const MythCards = () => {
   // Array of myth and fact pairs
   const mythsAndFacts = [
     {
-      myth: "❌ Depression is just feeling sad.",
-      fact: "✅ Fact: Depression is a medical condition that affects mood, thoughts, and body functions."
+      myth: "❌ Myth: If you can function, your Mental Health isn't that bad.",
+      fact: "✅ Fact: High-functioning individuals can still struggle with serious mental health conditions."
     },
     {
-      myth: "❌ Therapy is only for people with severe mental illness.",
+      myth: "❌ Myth: Therapy is only for people with severe mental illness.",
       fact: "✅ Fact: Therapy helps anyone dealing with stress, anxiety, or life transitions."
     },
     {
-      myth: "❌ Mental health problems are a sign of weakness.",
+      myth: "❌ Myth: Mental health problems are a sign of weakness.",
       fact: "✅ Fact: Mental health conditions are medical issues, not character flaws."
     },
     {
-      myth: "❌ Children don't experience mental health problems.",
-      fact: "✅ Fact: Mental health issues can affect people of all ages, including children."
+      myth: "❌ Myth: Talking about Mental Health makes things worse.",
+      fact: "✅ Fact: Open conversations about Mental Health reduce stigma and encourage people to seek help."
     },
     {
       myth: "❌ People with mental illness are violent and dangerous.",
       fact: "✅ Fact: Most people with mental illness are not violent and are more likely to be victims than perpetrators."
     },
     {
-      myth: "❌ You can just 'snap out of' mental health problems.",
-      fact: "✅ Fact: Recovery from mental health conditions requires proper treatment and support."
+      myth: "❌ You can just 'snap out of' Mental Health problems.",
+      fact: "✅ Fact: Recovery from Mental Health conditions requires proper treatment and support."
     }
   ];
 
@@ -95,15 +95,15 @@ const MythCards = () => {
               >
                 <div className="flip-card w-full h-64">
                   <div className="flip-card-inner w-full h-full relative">
-                    {/* Front side - Myth */}
-                    <div className="flip-card-front w-full h-full rounded-xl shadow-xl bg-gradient-to-br from-pink-200 to-pink-300 flex flex-col items-center justify-center p-6">
+                    {/* Front side - Myth - Updated gradient from bright pink to almost white */}
+                    <div className="flip-card-front w-full h-full rounded-xl shadow-xl bg-gradient-to-r from-pink-500 to-pink-50 flex flex-col items-center justify-center p-6">
                       <p className="text-xl md:text-2xl font-bold text-center text-purple-800">
                         {item.myth}
                       </p>
                     </div>
                     
-                    {/* Back side - Fact */}
-                    <div className="flip-card-back w-full h-full rounded-xl shadow-xl bg-gradient-to-br from-orange-200 to-orange-300 flex flex-col items-center justify-center p-6">
+                    {/* Back side - Fact - Updated gradient from bright orange to almost white */}
+                    <div className="flip-card-back w-full h-full rounded-xl shadow-xl bg-gradient-to-r from-orange-500 to-orange-50 flex flex-col items-center justify-center p-6">
                       <p className="text-xl md:text-2xl font-bold text-center text-purple-800">
                         {item.fact}
                       </p>
