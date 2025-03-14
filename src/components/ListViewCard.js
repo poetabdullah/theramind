@@ -26,7 +26,7 @@ const ListViewCard = ({
 
   return (
     <div
-      className="mb-8 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border border-gray-100 hover:border-l-4 hover:border-l-gray-300 cursor-pointer group"
+      className="mb-8 p-6 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border border-gray-100 hover:border-l-4 hover:border-l-gray-300 cursor-pointer group"
       onClick={() => navigate(link || `/content/${id}`)}
     >
       {/* Tags Section */}

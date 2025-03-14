@@ -264,8 +264,9 @@ const Navbar = () => {
                       <img
                         src={user.photoURL}
                         alt={user.displayName}
-                        className="w-10 h-10 rounded-full border-2 border-white"
+                        className="w-10 h-10 rounded-full border-2 border-indigo-500"
                       />
+
                       <span className="text-gray-300 font medium hover:text-orange-400 transition-colors duration-200">
                         {user.displayName}
                       </span>
@@ -453,7 +454,7 @@ const Navbar = () => {
                           <img
                             src={user.photoURL}
                             alt={user.displayName}
-                            className="w-10 h-10 rounded-full border-2 border-white"
+                            className="w-10 h-10 rounded-full border-2 border-indigo-500"
                           />
                           <span className="text-gray-300 font-medium hover:text-orange-500 transition-colors duration-200">
                             {user.displayName}
