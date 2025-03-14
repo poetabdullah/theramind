@@ -55,7 +55,7 @@ const BannerSlider = () => {
         <div className="content">
           <h1>{slides[currentSlide].title}</h1>
           <p>{slides[currentSlide].description}</p>
-          <a href="/" className="cta-button">Get Started</a>
+          <a href="/questionnaire" className="cta-button">Get Started</a>
           {/* <button className="cta-button">Get Started</button> */}
         </div>
 

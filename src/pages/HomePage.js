@@ -2,6 +2,7 @@ import React from 'react';
 import BannerSlider from '../components/BannerSlider';
 import Services from '../components/Services';
 import HowItWorks from '../components/HowItWorks';
+import MythCards from '../components/MythCards';
 import MeditationSection from '../components/MeditationSection';
 import FeatureSection from '../components/FeatureSection';
 import Testimonial from '../components/Testimonial';
@@ -17,6 +18,7 @@ const HomePage = () => (
     <BannerSlider />
     <Services />
     <HowItWorks />
+    <MythCards />
     <TestPrompt />
     <MeditationSection/>
     <EducationSection/>
