@@ -56,7 +56,6 @@ const BannerSlider = () => {
           <h1>{slides[currentSlide].title}</h1>
           <p>{slides[currentSlide].description}</p>
           <a href="/signup" className="cta-button">Get Started</a>
-          {/* <button className="cta-button">Get Started</button> */}
         </div>
 
         {/* Navigation Arrows */}
