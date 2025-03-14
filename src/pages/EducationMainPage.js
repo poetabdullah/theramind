@@ -1,4 +1,4 @@
-// Education Main Page
+// Education Main Page 
 import React, { useEffect, useState, memo } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -93,8 +93,8 @@ export default function EducationMainPage() {
       {/* Banner Section */}
       <motion.div
         className={`text-white py-20 text-center transition-all duration-1000 ${animationCompleted
-            ? "bg-gradient-to-r from-purple-600 to-orange-500"
-            : ""
+          ? "bg-gradient-to-r from-purple-600 to-orange-500"
+          : ""
           }`}
         initial={{
           background: "conic-gradient(from 0deg, #ff8000, #8a2be2, #ff8000)",
