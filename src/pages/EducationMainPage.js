@@ -14,6 +14,7 @@ export default function EducationMainPage() {
   const [error, setError] = useState(null);
   const [animationCompleted, setAnimationCompleted] = useState(false);
 
+  // Update in useEffect function
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,21 +42,49 @@ export default function EducationMainPage() {
     fetchData();
   }, []);
 
+  // The selectUniqueTagItems function
   const selectUniqueTagItems = (items, maxCount) => {
+    if (items.length === 0) return [];
+
+    // Shuffle the items first
+    const shuffledItems = [...items].sort(() => 0.5 - Math.random());
+
+    // Step 1: Try to select items with unique tags first
     const tagMap = new Map();
-    const shuffledItems = items.sort(() => 0.5 - Math.random());
+    const selectedItems = new Set();
 
     shuffledItems.forEach((item) => {
+      if (selectedItems.size >= maxCount) return;
+
       const tags = Object.values(item.selectedTags || {});
-      for (const tag of tags) {
-        if (!tagMap.has(tag) && tagMap.size < maxCount) {
-          tagMap.set(tag, item);
-          break;
+
+      // If the item has tags, try to find a unique one
+      if (tags.length > 0) {
+        for (const tag of tags) {
+          if (!tagMap.has(tag) && selectedItems.size < maxCount) {
+            tagMap.set(tag, true);
+            selectedItems.add(item);
+            break;
+          }
         }
+      }
+      // If no unique tag was found but we still need items, add it anyway
+      else if (selectedItems.size < maxCount && !selectedItems.has(item)) {
+        selectedItems.add(item);
       }
     });
 
-    return Array.from(tagMap.values());
+    // Step 2: If we still need more items, add any remaining ones
+    if (selectedItems.size < maxCount) {
+      for (const item of shuffledItems) {
+        if (selectedItems.size >= maxCount) break;
+        if (!selectedItems.has(item)) {
+          selectedItems.add(item);
+        }
+      }
+    }
+
+    return Array.from(selectedItems);
   };
 
   return (

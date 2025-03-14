@@ -76,10 +76,15 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link
               to="/"
-              className="text-2xl font-bold text-gray-300 hover:text-orange-400 transition-colors duration-200 no-underline"
+              className="flex items-center space-x-3 text-gray-300 hover:text-orange-400 transition-colors duration-200 no-underline"
               onClick={() => setMenuOpen(false)}
             >
-              TheraMind
+              <img
+                src="img/TheraMindLogo.jpg"
+                alt="TheraMind Logo"
+                className="w-12 h-12 rounded-full object-cover border-1 border-purple-700"
+              />
+              <span className="text-2xl font-bold">TheraMind</span>
             </Link>
           </div>
 
@@ -141,11 +146,10 @@ const Navbar = () => {
                     </Link>
 
                     <div
-                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
-                        educationDropdownOpen
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
-                      }`}
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2"
+                        }`}
                     >
                       <div className="py-1">
                         <Link
@@ -165,12 +169,6 @@ const Navbar = () => {
                       </div>
                     </div>
                   </div>
-                  <Link
-                    to="/contact-us"
-                    className="text-gray-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
-                  >
-                    Contact
-                  </Link>
                 </>
               ) : (
                 <>
@@ -203,11 +201,10 @@ const Navbar = () => {
                     </Link>
 
                     <div
-                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
-                        educationDropdownOpen
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
-                      }`}
+                      className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2"
+                        }`}
                     >
                       <div className="py-1">
                         <Link
@@ -259,13 +256,14 @@ const Navbar = () => {
                   {user.photoURL && (
                     <Link
                       to="/patient-dashboard"
-                      className="flex items-center space-x-2 no-underline" // Add no-underline here
+                      className="flex items-center space-x-2 no-underline"
                     >
                       <img
                         src={user.photoURL}
                         alt={user.displayName}
-                        className="w-10 h-10 rounded-full border-2 border-white"
+                        className="w-10 h-10 rounded-full border-1 border-indigo-500"
                       />
+
                       <span className="text-gray-300 font medium hover:text-orange-400 transition-colors duration-200">
                         {user.displayName}
                       </span>
@@ -284,17 +282,15 @@ const Navbar = () => {
 
           {/* Mobile Menu Overlay */}
           <div
-            className={`${
-              menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
-            } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
+            className={`${menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
+              } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
             onClick={() => setMenuOpen(false)}
           />
 
           {/* Mobile Menu Drawer */}
           <div
-            className={`${
-              menuOpen ? "translate-x-0" : "translate-x-full"
-            } fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-purple-700 via-violet-600 to-indigo-700 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
+            className={`${menuOpen ? "translate-x-0" : "translate-x-full"
+              } fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-purple-700 via-violet-600 to-indigo-700 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto z-50`}
           >
             <div className="flex justify-end p-4">
               <button
@@ -363,13 +359,6 @@ const Navbar = () => {
                       </Link>
                     </div>
                   </div>
-                  <Link
-                    to="/ContactUs"
-                    className="block text-gray-300 hover:text-orange-400 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Contact
-                  </Link>
                 </>
               ) : (
                 <>
@@ -453,7 +442,7 @@ const Navbar = () => {
                           <img
                             src={user.photoURL}
                             alt={user.displayName}
-                            className="w-10 h-10 rounded-full border-2 border-white"
+                            className="w-10 h-10 rounded-full border-1 border-indigo-500"
                           />
                           <span className="text-gray-300 font-medium hover:text-orange-500 transition-colors duration-200">
                             {user.displayName}

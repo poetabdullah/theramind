@@ -6,7 +6,7 @@ import {
   where,
   getDocs,
   updateDoc,
-  doc
+  doc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import ListViewCard from "../components/ListViewCard";
@@ -216,7 +216,7 @@ const PatientDashboard = () => {
             placeholder="Enter your location"
             value={detailFormData.location}
             onChange={handleDetailChange}
-            className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${detailErrors.location ? "border-red-500" : "border-gray-300"
+            className={`block w-full p-3 border rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${detailErrors.location ? "border-red-500" : "border-gray-300"
               }`}
           />
           {detailErrors.location && (
@@ -236,7 +236,7 @@ const PatientDashboard = () => {
                   key={option}
                   type="button"
                   onClick={() => handleBirthHistoryChange(option)}
-                  className={`px-4 py-2 rounded-lg transition focus:outline-none ${detailFormData.birthHistory === option
+                  className={`px-4 py-2 rounded-2xl transition focus:outline-none ${detailFormData.birthHistory === option
                     ? "bg-gradient-to-r from-purple-600 to-orange-500 text-white"
                     : "bg-gray-200 hover:bg-gray-300"
                     }`}
@@ -276,7 +276,7 @@ const PatientDashboard = () => {
     return (
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Mental Health Conditions */}
-        <div className="bg-white p-6 mb-6 rounded-lg shadow border border-purple-100">
+        <div className="bg-white p-6 mb-6 rounded-2xl shadow border border-purple-100">
           <h3 className="text-xl font-semibold mb-4 text-purple-700">
             Mental Health Conditions
           </h3>
@@ -308,7 +308,7 @@ const PatientDashboard = () => {
         </div>
 
         {/* Family History */}
-        <div className="bg-white p-6 mb-6 rounded-lg shadow border border-purple-100">
+        <div className="bg-white p-6 mb-6 rounded-2xl shadow border border-purple-100">
           <h3 className="text-xl font-semibold mb-4 text-purple-700">
             Family Mental Health History
           </h3>
@@ -333,7 +333,7 @@ const PatientDashboard = () => {
         </div>
 
         {/* Significant Trauma */}
-        <div className="bg-white p-6 mb-6 rounded-lg shadow border border-purple-100">
+        <div className="bg-white p-6 mb-6 rounded-2xl shadow border border-purple-100">
           <h3 className="text-xl font-semibold mb-4 text-purple-700">
             Significant Trauma
           </h3>
@@ -358,7 +358,7 @@ const PatientDashboard = () => {
         </div>
 
         {/* Childhood Challenges */}
-        <div className="bg-white p-6 mb-6 rounded-lg shadow border border-purple-100">
+        <div className="bg-white p-6 mb-6 rounded-2xl shadow border border-purple-100">
           <h3 className="text-xl font-semibold mb-4 text-purple-700">
             Childhood Challenges
           </h3>
@@ -411,7 +411,7 @@ const PatientDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-200 via-violet-200 to-indigo-300 flex flex-col">
       <div className="flex-grow p-6">
-        <div className="rounded-lg p-6 bg-transparent">
+        <div className="rounded-2xl p-6 bg-transparent">
           {/* Profile Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-6">
@@ -430,7 +430,7 @@ const PatientDashboard = () => {
             </div>
 
             {isEditing && (
-              <div className="bg-white shadow-lg rounded-lg p-6 border border-purple-100">
+              <div className="bg-white shadow-lg rounded-2xl p-6 border border-purple-100">
                 <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent mb-6">
                   {currentStep === 1
                     ? "Personal Details"
@@ -442,7 +442,7 @@ const PatientDashboard = () => {
           </div>
 
           {/* Patient Info */}
-          <div className="bg-white shadow-lg rounded-lg p-4 border border-purple-100 mb-8 overflow-x-auto">
+          <div className="bg-white shadow-lg rounded-2xl p-4 border border-purple-100 mb-8 overflow-x-auto">
             <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent mb-4">
               Patient Information
             </h2>
@@ -520,16 +520,16 @@ const PatientDashboard = () => {
           </div>
 
           {/* Integrating QuestionnaireResponse Component */}
-<div className="mb-8">
-  <div className="flex justify-between items-center mb-6">
-    <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
-      Questionnaire Assessment Response Summary
-    </h2>
-  </div>
-  
-  {/* Pass the email from the user state */}
-  {user && <QuestionnaireResponses patientEmail={user.email} />}
-</div>
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
+                Questionnaire Assessment Response Summary
+              </h2>
+            </div>
+
+            {/* Pass the email from the user state */}
+            {user && <QuestionnaireResponses patientEmail={user.email} />}
+          </div>
 
           {/* Patient Stories Section */}
           <div className="mb-8">
@@ -552,7 +552,7 @@ const PatientDashboard = () => {
             ) : error ? (
               <div className="py-8 text-center text-red-500">{error}</div>
             ) : patientStories.length === 0 ? (
-              <div className="py-8 text-center text-gray-500 bg-white rounded-lg border border-purple-100 shadow">
+              <div className="py-8 text-center text-gray-500 bg-white rounded-2xl border border-purple-100 shadow">
                 You have not shared any patient stories yet.
               </div>
             ) : (
