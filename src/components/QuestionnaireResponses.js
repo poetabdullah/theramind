@@ -13,6 +13,7 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 const QuestionnaireResponses = ({ patientEmail }) => {
   const [latestResponses, setLatestResponses] = useState([]);
   const [latestAssessment, setLatestAssessment] = useState(null);
+  const [formattedDate, setFormattedDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showResponses, setShowResponses] = useState(false);
 
@@ -46,6 +47,15 @@ const QuestionnaireResponses = ({ patientEmail }) => {
         if (!assessmentSnapshot.empty) {
           latestAssessmentData = assessmentSnapshot.docs[0].data();
           latestTimestamp = latestAssessmentData.timestamp?.toDate();
+        }
+
+        if (latestTimestamp) {
+          const formatted = latestTimestamp.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+          setFormattedDate(formatted);
         }
         setLatestAssessment(latestAssessmentData);
 
@@ -94,6 +104,11 @@ const QuestionnaireResponses = ({ patientEmail }) => {
               <h3 className="text-md font-semibold text-purple-700">
                 Latest Assessment
               </h3>
+              {formattedDate && (
+                <p>
+                  <strong>Date:</strong> {formattedDate}
+                </p>
+              )}
               <p>
                 <strong>Diagnosed Subtype:</strong>{" "}
                 {latestAssessment?.diagnosedSubtype || "None"}
