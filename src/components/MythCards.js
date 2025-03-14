@@ -17,16 +17,16 @@ const MythCards = () => {
       fact: "✅ Fact: Mental health conditions are medical issues, not character flaws."
     },
     {
-      myth: "❌ Myth: Talking about Mental Health makes things worse.",
-      fact: "✅ Fact: Open conversations about Mental Health reduce stigma and encourage people to seek help."
+      myth: "❌ Myth: Talking about mental health makes things worse.",
+      fact: "✅ Fact: Open conversations about mental health reduce stigma and encourage people to seek help."
     },
     {
-      myth: "❌ Myth: People with mental illness are violent and dangerous.",
+      myth: "❌ People with mental illness are violent and dangerous.",
       fact: "✅ Fact: Most people with mental illness are not violent and are more likely to be victims than perpetrators."
     },
     {
-      myth: "❌ Myth: You can just 'snap out of' Mental Health problems.",
-      fact: "✅ Fact: Recovery from Mental Health conditions requires proper treatment and support."
+      myth: "❌ You can just 'snap out of' mental health problems.",
+      fact: "✅ Fact: Recovery from mental health conditions requires proper treatment and support."
     }
   ];
 
@@ -95,15 +95,15 @@ const MythCards = () => {
               >
                 <div className="flip-card w-full h-64">
                   <div className="flip-card-inner w-full h-full relative">
-                    {/* Front side - Myth - Updated gradient from bright pink to almost white */}
-                    <div className="flip-card-front w-full h-full rounded-xl shadow-xl bg-gradient-to-r from-pink-500 to-pink-50 flex flex-col items-center justify-center p-6">
+                    {/* Front side - Myth - Custom gradient */}
+                    <div className="flip-card-front w-full h-full rounded-xl shadow-xl flex flex-col items-center justify-center p-6">
                       <p className="text-xl md:text-2xl font-bold text-center text-purple-800">
                         {item.myth}
                       </p>
                     </div>
                     
-                    {/* Back side - Fact - Updated gradient from bright orange to almost white */}
-                    <div className="flip-card-back w-full h-full rounded-xl shadow-xl bg-gradient-to-r from-orange-500 to-orange-50 flex flex-col items-center justify-center p-6">
+                    {/* Back side - Fact - Custom gradient */}
+                    <div className="flip-card-back w-full h-full rounded-xl shadow-xl flex flex-col items-center justify-center p-6">
                       <p className="text-xl md:text-2xl font-bold text-center text-purple-800">
                         {item.fact}
                       </p>
@@ -116,7 +116,7 @@ const MythCards = () => {
         ))}
       </div>
 
-      {/* CSS for the flip effect */}
+      {/* CSS for the flip effect and custom gradients */}
       <style jsx>{`
         .flip-card {
           perspective: 1000px;
@@ -137,7 +137,12 @@ const MythCards = () => {
           backface-visibility: hidden;
         }
         
+        .flip-card-front {
+          background: linear-gradient(135deg, #c7a6e6, #faa1cd);
+        }
+        
         .flip-card-back {
+          background: linear-gradient(135deg, #ff8c42, #ffbd69);
           transform: rotateY(180deg);
         }
       `}</style>
