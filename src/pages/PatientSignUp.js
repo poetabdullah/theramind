@@ -199,7 +199,10 @@ const PatientSignUp = () => {
         <div className="mt-6 text-center text-sm text-white">
           <p>
             Already have an account?{" "}
-            <a href="/login" className="font-medium underline">
+            <a
+              href="/login"
+              className="text-white font-medium underline hover:text-gray-500"
+            >
               Login
             </a>
           </p>

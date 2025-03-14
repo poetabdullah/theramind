@@ -142,7 +142,7 @@ const LoginPage = () => {
               Don't have an account?{" "}
               <a
                 href="/signup"
-                className="text-purple-600 font-medium cursor-pointer hover:underline"
+                className="text-purple-600 font-medium cursor-pointer hover:text-purple-800"
               >
                 Sign up
               </a>

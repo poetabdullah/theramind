@@ -1,3 +1,4 @@
+// Component of the signup page and inspiration for the patient dashboard as well
 import React, { useState } from "react";
 
 const HealthHistoryForm = ({ onSubmit }) => {
@@ -63,6 +64,15 @@ const HealthHistoryForm = ({ onSubmit }) => {
       <h2 className="text-3xl font-bold text-center mb-6 text-orange-600">
         Step 4: Health History
       </h2>
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+        <p className="text-blue-700">
+          <span className="font-bold">Why we collect this information:</span>{" "}
+          TheraMind collects your health history to better understand your needs
+          and create a personalized treatment plan. This information helps our
+          doctors provide more effective care based on your past experiences.
+          All data is kept confidential and used only for treatment purposes.
+        </p>
+      </div>
 
       {/* Mental Health Conditions */}
       <div className="bg-gray-50 p-6 mb-6 rounded-lg shadow border">
