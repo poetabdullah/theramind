@@ -21,11 +21,11 @@ const MythCards = () => {
       fact: "✅ Fact: Open conversations about Mental Health reduce stigma and encourage people to seek help."
     },
     {
-      myth: "❌ People with mental illness are violent and dangerous.",
+      myth: "❌ Myth: People with mental illness are violent and dangerous.",
       fact: "✅ Fact: Most people with mental illness are not violent and are more likely to be victims than perpetrators."
     },
     {
-      myth: "❌ You can just 'snap out of' Mental Health problems.",
+      myth: "❌ Myth: You can just 'snap out of' Mental Health problems.",
       fact: "✅ Fact: Recovery from Mental Health conditions requires proper treatment and support."
     }
   ];
