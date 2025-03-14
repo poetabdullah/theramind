@@ -169,12 +169,6 @@ const Navbar = () => {
                       </div>
                     </div>
                   </div>
-                  <Link
-                    to="/contact-us"
-                    className="text-gray-300 hover:text-orange-400 transition-colors duration-200 text-lg no-underline"
-                  >
-                    Contact
-                  </Link>
                 </>
               ) : (
                 <>
@@ -365,13 +359,6 @@ const Navbar = () => {
                       </Link>
                     </div>
                   </div>
-                  <Link
-                    to="/ContactUs"
-                    className="block text-gray-300 hover:text-orange-400 py-2 text-lg no-underline"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Contact
-                  </Link>
                 </>
               ) : (
                 <>
