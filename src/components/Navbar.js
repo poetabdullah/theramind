@@ -82,7 +82,7 @@ const Navbar = () => {
               <img
                 src="img/TheraMindLogo.jpg"
                 alt="TheraMind Logo"
-                className="w-12 h-12 rounded-full object-cover border-2 border-indigo-300"
+                className="w-12 h-12 rounded-full object-cover border-1 border-purple-700"
               />
               <span className="text-2xl font-bold">TheraMind</span>
             </Link>
@@ -261,7 +261,7 @@ const Navbar = () => {
                       <img
                         src={user.photoURL}
                         alt={user.displayName}
-                        className="w-10 h-10 rounded-full border-2 border-indigo-500"
+                        className="w-10 h-10 rounded-full border-1 border-indigo-500"
                       />
 
                       <span className="text-gray-300 font medium hover:text-orange-400 transition-colors duration-200">
@@ -442,7 +442,7 @@ const Navbar = () => {
                           <img
                             src={user.photoURL}
                             alt={user.displayName}
-                            className="w-10 h-10 rounded-full border-2 border-indigo-500"
+                            className="w-10 h-10 rounded-full border-1 border-indigo-500"
                           />
                           <span className="text-gray-300 font-medium hover:text-orange-500 transition-colors duration-200">
                             {user.displayName}
