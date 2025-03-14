@@ -142,7 +142,7 @@ const MythCards = () => {
         }
         
         .flip-card-back {
-          background: linear-gradient(135deg, #ff8c42, #ffbd69);
+          background: linear-gradient(135deg, #ff8c42,rgb(250, 214, 167));
           transform: rotateY(180deg);
         }
       `}</style>
