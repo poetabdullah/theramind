@@ -21,7 +21,7 @@ const EducationSection = () => {
         </p>
         <div className="flex justify-start">
           <motion.a 
-            href="/education" 
+            href="/education-main" 
             className="inline-block px-6 py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white font-semibold rounded-lg shadow-md hover:from-pink-600 hover:to-orange-600 transition-all duration-300 no-underline w-auto"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
