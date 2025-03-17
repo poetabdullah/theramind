@@ -8,7 +8,7 @@ html {
 
 body {
   margin: 0;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: Playfair Display, Georgia, serif;
   color: #333;
   background-color: #f5f5f5;
 }
@@ -99,7 +99,6 @@ body {
   background: rgba(255, 255, 255, 0.9);
 }
 
-
 /* Services styles */
 .services {
   padding: 60px 20px;
@@ -124,7 +123,11 @@ body {
 }
 
 .service-card {
-  background: linear-gradient(to bottom right, rgba(233, 77, 5, 0.9), rgba(243, 150, 96, 0.9));
+  background: linear-gradient(
+    to bottom right,
+    rgba(233, 77, 5, 0.9),
+    rgba(243, 150, 96, 0.9)
+  );
   border-radius: 15px;
   padding: 30px;
   display: flex;
@@ -163,8 +166,8 @@ body {
   margin-top: auto;
   transition: transform 0.2s ease;
 }
-.service-btn:hover{
-  color:rgb(87, 26, 87);
+.service-btn:hover {
+  color: rgb(87, 26, 87);
 }
 
 .how-it-works {
@@ -368,7 +371,6 @@ body {
   }
 }
 
-
 .testimonial-section {
   text-align: center;
   margin: 2rem 0;
@@ -406,8 +408,8 @@ body {
 }
 
 .feature-section h2 {
-    margin-bottom: 25px;
-    font-weight: bolder;
+  margin-bottom: 25px;
+  font-weight: bolder;
 }
 
 .features-container {
@@ -428,7 +430,7 @@ body {
 
 .feature-card:hover {
   color: rgb(134, 61, 12);
-  transform: translateY(5px) ;
+  transform: translateY(5px);
 }
 
 .feature-card .icon {
@@ -436,7 +438,7 @@ body {
   margin-bottom: 10px;
 }
 
-.test-container{
+.test-container {
   display: flex;
   align-items: center;
   justify-content: left;
@@ -491,7 +493,7 @@ body {
 }
 .meditation-container {
   /* background: linear-gradient(135deg, #a635d6, #ff7b00); */
-  min-height: 400vh
+  min-height: 400vh;
 }
 
 /* Header */
@@ -518,14 +520,14 @@ body {
   align-items: center;
   background: white;
   border-radius: 12px;
-  padding: 20px; 
+  padding: 20px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  margin: 30px;  
+  margin: 30px;
   max-width: 1250px;
 }
 .importance-content {
   flex: 1;
-  padding: 20px; 
+  padding: 20px;
 }
 .importance-content h2 {
   font-weight: bolder;
@@ -682,7 +684,8 @@ body {
 .exercise-card.active .exercise-title,
 .exercise-card.active .steps li {
   color: white;
-} */
+}
+*/
 /*breathin */
 /* .breathing-title{
   color: orange;
@@ -821,7 +824,8 @@ body {
   font-size: 32px;
   text-align: center;
 } */
-.meditation-types,  .meditation-gallery {
+.meditation-types,
+.meditation-gallery {
   text-align: center;
   margin-bottom: 50px;
 }
@@ -847,10 +851,7 @@ body {
   /* background: linear-gradient(to right, #ff9a9e, #fad0c4); */
   background: linear-gradient(to right, #dd4600, #f1724f);
   margin-left: 20px;
-
 }
-
-
 
 /* Meditation Types Section */
 .meditation-types {

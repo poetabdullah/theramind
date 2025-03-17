@@ -216,9 +216,8 @@ const PatientDashboard = () => {
             placeholder="Enter your location"
             value={detailFormData.location}
             onChange={handleDetailChange}
-            className={`block w-full p-3 border rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-              detailErrors.location ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`block w-full p-3 border rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${detailErrors.location ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {detailErrors.location && (
             <p className="text-red-500 text-sm mt-2">{detailErrors.location}</p>
@@ -237,11 +236,10 @@ const PatientDashboard = () => {
                   key={option}
                   type="button"
                   onClick={() => handleBirthHistoryChange(option)}
-                  className={`px-4 py-2 rounded-2xl transition focus:outline-none ${
-                    detailFormData.birthHistory === option
-                      ? "bg-gradient-to-r from-purple-600 to-orange-500 text-white"
-                      : "bg-gray-200 hover:bg-gray-300"
-                  }`}
+                  className={`px-4 py-2 rounded-2xl transition focus:outline-none ${detailFormData.birthHistory === option
+                    ? "bg-gradient-to-r from-purple-600 to-orange-500 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
+                    }`}
                 >
                   {option}
                 </button>
@@ -259,13 +257,13 @@ const PatientDashboard = () => {
           <button
             type="button"
             onClick={() => setIsEditing(false)}
-            className="py-2 px-4 bg-gray-300 text-gray-700 rounded-2xl hover:bg-gray-400 transition"
+            className="py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl hover:from-purple-700 hover:to-indigo-700 transition shadow"
+            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow"
           >
             Continue
           </button>
@@ -395,13 +393,13 @@ const PatientDashboard = () => {
           <button
             type="button"
             onClick={handleBack}
-            className="py-2 px-4 bg-gray-300 text-gray-700 rounded-2xl hover:bg-gray-400 transition"
+            className="py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
           >
             Back
           </button>
           <button
             type="submit"
-            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl hover:from-purple-700 hover:to-indigo-700 transition shadow"
+            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow"
           >
             Save Changes
           </button>
@@ -513,7 +511,7 @@ const PatientDashboard = () => {
                 </span>
                 <span className="text-gray-700">
                   {patientData?.mentalHealthConditions &&
-                  patientData.mentalHealthConditions.length > 0
+                    patientData.mentalHealthConditions.length > 0
                     ? patientData.mentalHealthConditions.join(", ")
                     : "None specified"}
                 </span>
@@ -569,8 +567,8 @@ const PatientDashboard = () => {
                     date={
                       story.date_time && story.date_time.seconds
                         ? new Date(
-                            story.date_time.seconds * 1000
-                          ).toLocaleDateString()
+                          story.date_time.seconds * 1000
+                        ).toLocaleDateString()
                         : "No date available"
                     }
                     tags={story.selectedTags || []}

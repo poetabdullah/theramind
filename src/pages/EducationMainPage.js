@@ -1,3 +1,4 @@
+// Education Main Page 
 import React, { useEffect, useState, memo } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -91,11 +92,10 @@ export default function EducationMainPage() {
     <div className="bg-white">
       {/* Banner Section */}
       <motion.div
-        className={`text-white py-20 text-center transition-all duration-1000 ${
-          animationCompleted
-            ? "bg-gradient-to-r from-purple-600 to-orange-500"
-            : ""
-        }`}
+        className={`text-white py-20 text-center transition-all duration-1000 ${animationCompleted
+          ? "bg-gradient-to-r from-purple-600 to-orange-500"
+          : ""
+          }`}
         initial={{
           background: "conic-gradient(from 0deg, #ff8000, #8a2be2, #ff8000)",
         }}
@@ -103,11 +103,11 @@ export default function EducationMainPage() {
           background: animationCompleted
             ? "linear-gradient(to right, #8a2be2, #ff8000)"
             : [
-                "conic-gradient(from 0deg, #ff8000, #8a2be2, #ff8000)",
-                "conic-gradient(from 120deg, #8a2be2, #ff8000, #8a2be2)",
-                "conic-gradient(from 240deg, #ff8000, #8a2be2, #ff8000)",
-                "linear-gradient(to right, #8a2be2, #ff8000)",
-              ],
+              "conic-gradient(from 0deg, #ff8000, #8a2be2, #ff8000)",
+              "conic-gradient(from 120deg, #8a2be2, #ff8000, #8a2be2)",
+              "conic-gradient(from 240deg, #ff8000, #8a2be2, #ff8000)",
+              "linear-gradient(to right, #8a2be2, #ff8000)",
+            ],
         }}
         transition={{ duration: 4, ease: "easeInOut" }}
         onAnimationComplete={() => setAnimationCompleted(true)}
@@ -373,8 +373,8 @@ const Section = memo(
             {items.map((item) => {
               const previewText = item.content
                 ? DOMPurify.sanitize(item.content)
-                    .replace(/<[^>]+>/g, "")
-                    .substring(0, 150) + "..."
+                  .replace(/<[^>]+>/g, "")
+                  .substring(0, 150) + "..."
                 : "No content preview available.";
 
               return (
