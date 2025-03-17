@@ -388,7 +388,7 @@ const saveQuestionsToFirestore = async () => {
       category: "Chronic Stress",
       questionNumber: 26
     },
-    //Question # 28: Specific Questionnaire - Stress: Episodic Chronic Stress 
+    //Question # 28: Specific Questionnaire - Stress: Episodic Acute Stress 
     {
       id: "question27",
       text: "How often do you experience stress in episodes or bursts triggered by specific situations?",
@@ -400,7 +400,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "Episodic Chronic Stress",
+      category: "Episodic Acute Stress",
       questionNumber: 27
     },
     //Question # 29
@@ -415,7 +415,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "Episodic Chronic Stress",
+      category: "Episodic Acute Stress",
       questionNumber: 28
     },
     //Question # 30
@@ -430,7 +430,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "Episodic Chronic Stress",
+      category: "Episodic Acute Stress",
       questionNumber: 29
     },
     //Question # 31
@@ -445,7 +445,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "Episodic Chronic Stress",
+      category: "Episodic Acute Stress",
       questionNumber: 30
     },
     //Question # 32
@@ -460,7 +460,7 @@ const saveQuestionsToFirestore = async () => {
         { name: "Quite a bit", label: "A lot", score: 3 },
         { name: "Extremely", label: "Extremely", score: 4 },
       ],
-      category: "Episodic Chronic Stress",
+      category: "Episodic Acute Stress",
       questionNumber: 31
     },
     //Question # 33: Specific Questionnaire - Depression: Major Depressive Disorder 
