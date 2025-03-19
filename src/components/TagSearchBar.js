@@ -23,7 +23,7 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
   const handleTagClick = (tag) => {
     if (selectedTags.includes(tag)) {
       onSearch(selectedTags.filter((t) => t !== tag));
-    } else if (selectedTags.length < 3) {
+    } else if (selectedTags.length < 5) {
       onSearch([...selectedTags, tag]);
     }
   };
@@ -47,8 +47,8 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
 
   const filteredTags = searchInput
     ? tags.filter((tag) =>
-        tag.toLowerCase().includes(searchInput.toLowerCase())
-      )
+      tag.toLowerCase().includes(searchInput.toLowerCase())
+    )
     : tags;
 
   const primaryColor = themeColor === "orange" ? "orange" : "purple";
@@ -88,7 +88,7 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
           <h3 className="text-lg font-medium text-gray-700">
             Topic Tags
             <span className="text-sm font-normal text-gray-500 ml-2">
-              (Select up to 3)
+              (Select up to 5)
             </span>
           </h3>
         </div>
@@ -155,15 +155,13 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
                 return (
                   <div
                     key={tag}
-                    className={`p-2 cursor-pointer transition-all duration-200 ${
-                      isSelected ? getColor("light") : ""
-                    }`}
+                    className={`p-2 cursor-pointer transition-all duration-200 ${isSelected ? getColor("light") : ""
+                      }`}
                     onClick={() => handleTagClick(tag)}
                   >
                     <div
-                      className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-200 ${
-                        isSelected ? getColor("text") : "text-gray-700"
-                      } hover:bg-gray-50`}
+                      className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-200 ${isSelected ? getColor("text") : "text-gray-700"
+                        } hover:bg-gray-50`}
                     >
                       <Tag
                         size={16}
@@ -207,9 +205,8 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
         <Search size={18} />
         Search{" "}
         {selectedTags.length > 0
-          ? `with ${selectedTags.length} tag${
-              selectedTags.length > 1 ? "s" : ""
-            }`
+          ? `with ${selectedTags.length} tag${selectedTags.length > 1 ? "s" : ""
+          }`
           : ""}
       </button>
     </div>
