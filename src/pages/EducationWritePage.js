@@ -108,9 +108,9 @@ const EducationWritePage = () => {
     setSelectedTags((prevTags) =>
       prevTags.includes(tag)
         ? prevTags.filter((t) => t !== tag) // Remove tag if already selected
-        : prevTags.length < 3
-        ? [...prevTags, tag] // Add tag if limit is not reached
-        : prevTags
+        : prevTags.length < 5
+          ? [...prevTags, tag] // Add tag if limit is not reached
+          : prevTags
     );
   };
 
@@ -134,8 +134,8 @@ const EducationWritePage = () => {
       return;
     }
 
-    if (selectedTags.length < 1 || selectedTags.length > 3) {
-      setError("You must select at least 1 tag and at most 3 tags.");
+    if (selectedTags.length < 1 || selectedTags.length > 5) {
+      setError("You must select at least 1 tags and at most 5 tags.");
       setIsSubmitting(false);
       return;
     }
@@ -192,8 +192,8 @@ const EducationWritePage = () => {
           {isEditing
             ? "Edit Content"
             : userRole === "doctor"
-            ? "Write an Article"
-            : "Write Your Patient Story"}
+              ? "Write an Article"
+              : "Write Your Patient Story"}
         </h1>
 
         {error && <div className="text-red-600 mb-4">{error}</div>}
@@ -225,11 +225,10 @@ const EducationWritePage = () => {
                   key={tag}
                   type="button"
                   onClick={() => handleTagClick(tag)}
-                  className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                    selectedTags.includes(tag)
-                      ? "bg-purple-600 text-white"
-                      : "bg-purple-300 text-purple-900"
-                  } hover:bg-purple-700`}
+                  className={`px-4 py-2 rounded-full text-sm transition-colors ${selectedTags.includes(tag)
+                    ? "bg-purple-600 text-white"
+                    : "bg-purple-300 text-purple-900"
+                    } hover:bg-purple-700`}
                 >
                   {tag}
                 </button>
