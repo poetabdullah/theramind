@@ -38,7 +38,7 @@ const Footer = () => {
                 Assessment
               </Link>
               <Link
-                to="/therachat"
+                to="/splash-screen"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
               >
                 TheraChat
