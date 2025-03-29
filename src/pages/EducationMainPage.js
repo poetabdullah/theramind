@@ -182,7 +182,7 @@ export default function EducationMainPage() {
           </div>
         </div>
 
-        {/* Stats Section - Updated with your requirements */}
+        {/* Stats Section */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4"
           initial={{ opacity: 0, y: 20 }}
