@@ -47,13 +47,13 @@ const Footer = () => {
                 to="/contact-us"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
               >
-                Contact Us
+                Contact
               </Link>
               <Link
                 to="/about-us"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
               >
-                About Us
+                About
               </Link>
             </nav>
           </div>
