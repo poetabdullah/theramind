@@ -32,7 +32,7 @@ const Footer = () => {
                 Meditation
               </Link>
               <Link
-                to="/questionnaire"
+                to="/start-screen"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
               >
                 Assessment
