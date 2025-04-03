@@ -92,9 +92,9 @@ export default function EducationMainPage() {
     <div className="bg-white">
       {/* Banner Section */}
       <motion.div
-        className={`text-white py-20 text-center transition-all duration-1000 ${animationCompleted
-          ? "bg-gradient-to-r from-purple-600 to-orange-500"
-          : ""
+        className={`text-white py-20 text-center transition-all duration-1000 relative overflow-hidden ${animationCompleted
+            ? "bg-gradient-to-r from-purple-600 to-orange-500"
+            : ""
           }`}
         initial={{
           background: "conic-gradient(from 0deg, #ff8000, #8a2be2, #ff8000)",
@@ -112,10 +112,93 @@ export default function EducationMainPage() {
         transition={{ duration: 4, ease: "easeInOut" }}
         onAnimationComplete={() => setAnimationCompleted(true)}
       >
-        <h1 className="text-5xl font-extrabold tracking-wide leading-snug drop-shadow-lg">
+        {/* Night sky effect with stars and shooting stars - matched to original SplashScreen */}
+        <div className="absolute inset-0 bg-[rgba(0,0,0,0.2)]">
+          {/* Distant stars - subtle twinkling effect */}
+          {[...Array(60)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{
+                width: Math.random() * 2 + 1 + "px",
+                height: Math.random() * 2 + 1 + "px",
+                left: Math.random() * 100 + "%",
+                top: Math.random() * 100 + "%",
+                opacity: Math.random() * 0.5 + 0.2,
+              }}
+              animate={{
+                opacity: [
+                  Math.random() * 0.3 + 0.2,
+                  Math.random() * 0.5 + 0.5,
+                  Math.random() * 0.3 + 0.2,
+                ],
+              }}
+              transition={{
+                duration: Math.random() * 4 + 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+
+          {/* Shooting stars */}
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={`shooting-${i}`}
+              className="absolute h-px rounded-full bg-white origin-left"
+              style={{
+                width: Math.random() * 80 + 120 + "px",
+                left: Math.random() * 100 + "%",
+                top: Math.random() * 60 + "%",
+                opacity: 0,
+                rotate: Math.random() * 20 - 10 + "deg",
+                background: "linear-gradient(90deg, transparent, white 50%, rgba(255,255,255,0.8))",
+                boxShadow: "0 0 6px 2px rgba(255,255,255,0.4)",
+              }}
+              animate={{
+                opacity: [0, 1, 0],
+                x: ["-50%", "150%"],
+              }}
+              transition={{
+                duration: Math.random() * 0.8 + 0.6,
+                repeat: Infinity,
+                repeatDelay: Math.random() * 8 + 4,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+
+          {/* Nebula-like subtle glow spots */}
+          {[...Array(3)].map((_, i) => (
+            <motion.div
+              key={`nebula-${i}`}
+              className="absolute rounded-full blur-3xl"
+              style={{
+                width: Math.random() * 300 + 200 + "px",
+                height: Math.random() * 300 + 200 + "px",
+                left: Math.random() * 100 + "%",
+                top: Math.random() * 100 + "%",
+                background: i % 2 === 0 ? "rgba(157, 78, 221, 0.05)" : "rgba(58, 134, 255, 0.05)",
+                opacity: 0.2,
+              }}
+              animate={{
+                opacity: [0.1, 0.2, 0.1],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: Math.random() * 15 + 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Original banner content */}
+        <h1 className="text-5xl font-extrabold tracking-wide leading-snug drop-shadow-lg relative z-10">
           Welcome to TheraMind Education
         </h1>
-        <p className="mt-6 text-lg md:text-xl max-w-xl mx-auto font-light">
+        <p className="mt-6 text-lg md:text-xl max-w-xl mx-auto font-light relative z-10">
           Empowering individuals through education to foster understanding and
           support for mental health issues within the Pakistani context.{" "}
           <span className="font-semibold">
