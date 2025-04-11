@@ -12,14 +12,14 @@ const PatientDetailForm = ({ onSubmit }) => {
 
   const today = new Date();
   const maxDate = new Date(
-    today.getFullYear() - 16,
+    today.getFullYear() - 16, // Age below 16 is not shown
     today.getMonth(),
     today.getDate()
   )
     .toISOString()
     .split("T")[0];
   const minDate = new Date(
-    today.getFullYear() - 50,
+    today.getFullYear() - 50, // Age above 50 is not shown
     today.getMonth(),
     today.getDate()
   )
@@ -96,9 +96,8 @@ const PatientDetailForm = ({ onSubmit }) => {
           type="date"
           value={formData.dob}
           onChange={handleChange}
-          className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            errors.dob ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.dob ? "border-red-500" : "border-gray-300"
+            }`}
           min={minDate}
           max={maxDate}
         />
@@ -125,7 +124,7 @@ const PatientDetailForm = ({ onSubmit }) => {
         )}
       </div>
 
-      {/* Birth History (Only if Female) */}
+      {/* Birth History (Only if Female gender is selected) */}
       {formData.gender === "Female" && (
         <div className="mb-5">
           <label className="block font-medium text-gray-700">
@@ -139,11 +138,10 @@ const PatientDetailForm = ({ onSubmit }) => {
                 onClick={() =>
                   setFormData({ ...formData, birthHistory: option })
                 }
-                className={`px-4 py-2 rounded-lg transition focus:outline-none ${
-                  formData.birthHistory === option
-                    ? "bg-indigo-500 text-white"
-                    : "bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-lg transition focus:outline-none ${formData.birthHistory === option
+                  ? "bg-indigo-500 text-white"
+                  : "bg-gray-200"
+                  }`}
               >
                 {option}
               </button>
@@ -164,9 +162,8 @@ const PatientDetailForm = ({ onSubmit }) => {
           placeholder="Enter your location"
           value={formData.location}
           onChange={handleChange}
-          className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            errors.location ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`block w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.location ? "border-red-500" : "border-gray-300"
+            }`}
         />
         {errors.location && (
           <p className="text-red-500 text-sm mt-2">{errors.location}</p>

@@ -36,6 +36,7 @@ const PatientSignUp = () => {
   const [error, setError] = useState({});
   const navigate = useNavigate();
 
+  // Ensures that even if a user is cached from a previous session, a new Google sign-in popup is always triggered, preventing silent sign-ins or stale sessions.
   useEffect(() => {
     const cleanupAuth = async () => {
       try {
@@ -54,7 +55,7 @@ const PatientSignUp = () => {
   }, [step]);
 
   const generateCaptcha = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // CAPTCHA avoids ambiguous characters like "O", "0", "I", "1" for usability purposes
     let captcha = "";
     for (let i = 0; i < 6; i++) {
       captcha += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -62,6 +63,10 @@ const PatientSignUp = () => {
     setCaptchaCode(captcha);
   };
 
+  // Here's what we wanna do, on success:
+  // Checks if user is already in Firestore
+  // If yes → navigate to patient dashboard
+  // If not → move to CAPTCHA step and prefill name/email in userData
   const handleGoogleSignUp = async () => {
     setError({});
     try {

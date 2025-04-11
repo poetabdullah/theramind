@@ -1,23 +1,30 @@
 import React from "react";
 
+// Parent State → Props → EnterCaptchaForm → Visual Display (since it is a component)
+// User Input → setUserInput → Parent State
+// "Verify" Click → onSubmit() → Parent Handles Logic
+
+
+
 const EnterCaptchaForm = ({
   captchaCode,
-  userInput,
-  setUserInput,
+  userInput, // code entered by the user
+  setUserInput, // Function to update userInput in the parent
   onSubmit,
   error,
 }) => {
   // Generate random distortion values for each character
+  // Takes captchaCode (e.g., "3KD9A") and splits it into an array of characters: ["3", "K", "D", "9", "A"]
   const generateDistortionProps = () => {
     const chars = captchaCode.split("");
     return chars.map(() => ({
-      rotation: Math.floor(Math.random() * 30) - 15,
-      xOffset: Math.floor(Math.random() * 6) - 3,
-      yOffset: Math.floor(Math.random() * 6) - 3,
-      fontSize: Math.floor(Math.random() * 8) + 24, // Random size between 24-32px
+      rotation: Math.floor(Math.random() * 30) - 15, // -15 to +14 degrees	Tilts the character left/right (CSS rotate)
+      xOffset: Math.floor(Math.random() * 6) - 3, // 	-3 to +2 px	Moves the character horizontally (CSS translateX)
+      yOffset: Math.floor(Math.random() * 6) - 3, // -3 to +2 px	Moves the character vertically (CSS translateY)
+      fontSize: Math.floor(Math.random() * 8) + 24, // 24 to 31 px	Makes font size inconsistent per character
     }));
   };
-
+  // This visual distortion mimics the behavior of the actual CAPTCHA Forms.
   const charProps = generateDistortionProps();
 
   return (
