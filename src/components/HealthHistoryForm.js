@@ -12,6 +12,8 @@ const HealthHistoryForm = ({ onSubmit }) => {
   const [error, setError] = useState({});
 
   const handleChange = (e) => {
+    //Adds/removes checkbox value from mentalHealthConditions array.
+    // Uses filter() to remove when unchecked, spread operator to add when checked.
     const { name, value } = e.target;
     if (e.target.type === "checkbox") {
       setFormData((prevData) => {
