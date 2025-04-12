@@ -17,7 +17,7 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
-const genAI = new GoogleGenerativeAI("AIzaSyBGcLuZeHs3iIUUrQTc26jOdFJH4r8iGA4");
+const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const TheraChat = () => {
@@ -187,9 +187,8 @@ const TheraChat = () => {
 
         {/* Sidebar */}
         <div
-          className={`${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } transition-transform duration-300 ease-in-out md:translate-x-0 fixed md:relative z-10 h-screen`}
+          className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } transition-transform duration-300 ease-in-out md:translate-x-0 fixed md:relative z-10 h-screen`}
         >
           <Sidebar
             conversations={conversations}
@@ -236,21 +235,19 @@ const TheraChat = () => {
                     ? "calc(100vh - 160px)"
                     : "calc(100vh - 160px - 48px)",
               }}
-              // Adjust height based on whether headline is shown
+            // Adjust height based on whether headline is shown
             >
               {messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex w-full ${
-                    msg.sender === "user" ? "justify-end" : "justify-start"
-                  } animate-fade-in`}
+                  className={`flex w-full ${msg.sender === "user" ? "justify-end" : "justify-start"
+                    } animate-fade-in`}
                 >
                   <div
-                    className={`${
-                      msg.sender === "user"
+                    className={`${msg.sender === "user"
                         ? "bg-gradient-to-r from-indigo-800 to-indigo-500 text-white"
                         : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
-                    } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
+                      } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
                   >
                     <ReactMarkdown
                       components={{
