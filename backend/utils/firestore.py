@@ -1,4 +1,4 @@
-# Since we won't use db.sqlite3, you can configure Django to use Firestore for database-like operations.
+# Since we won't use db.sqlite3, hence we can configure Django to use Firestore for database-like operations.
 # Add a utility for interacting with Firestore:
 
 from firebase_admin import firestore
