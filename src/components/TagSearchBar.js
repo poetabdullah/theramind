@@ -1,15 +1,16 @@
-// Searches the tags
 import React, { useState, useEffect, useRef } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { X, Search, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { db } from "../firebaseConfig.js";
 
+// Handles the search functionality on the list pages
 const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
   const [tags, setTags] = useState([]);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
-  const searchBarRef = useRef(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false); // whether the tag dropdown is open
+  const [searchInput, setSearchInput] = useState(""); // value entered in the search box
+  const searchBarRef = useRef(null); // for detecting clicks outside the dropdown (to close it)
 
+  // Fetches all available tags from the firestore DB
   useEffect(() => {
     const fetchTags = async () => {
       const tagsCollection = collection(db, "tags");
@@ -20,6 +21,7 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
     fetchTags();
   }, []);
 
+  // Click to select the tags
   const handleTagClick = (tag) => {
     if (selectedTags.includes(tag)) {
       onSearch(selectedTags.filter((t) => t !== tag));
@@ -28,17 +30,21 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
     }
   };
 
+  // Clicking on the cross or reselect the tag to remove it from the search box
   const handleRemoveTag = (tag) => {
     onSearch(selectedTags.filter((t) => t !== tag));
   };
 
+  // Close down the dropdown if the click is registered outside it
   const handleClickOutside = (event) => {
     if (searchBarRef.current && !searchBarRef.current.contains(event.target)) {
+      // contains() check if the registered click is inside the search box/dropdown
       setDropdownOpen(false);
     }
   };
 
   useEffect(() => {
+    // mousedown detects the click
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -49,10 +55,11 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
     ? tags.filter((tag) =>
       tag.toLowerCase().includes(searchInput.toLowerCase())
     )
-    : tags;
+    : tags; // In case that the input is empty, it returns all of the tags
 
   const primaryColor = themeColor === "orange" ? "orange" : "purple";
   const getColor = (type) => {
+    // orange theme colors for the article list page, purple theme colors for patient story list page
     const colors = {
       orange: {
         primary: "bg-orange-600",
@@ -86,7 +93,7 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
         <div className="mb-2 flex items-center">
           <Tag className={`mr-2 ${getColor("text")}`} size={18} />
           <h3 className="text-lg font-medium text-gray-700">
-            Topic Tags
+            Content Tags
             <span className="text-sm font-normal text-gray-500 ml-2">
               (Select up to 5)
             </span>
@@ -126,6 +133,7 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
                 )} text-white px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5 shadow-sm transition-all duration-200 hover:shadow-md`}
               >
                 <span>{tag}</span>
+                {/* Pill shaped tags */}
                 <X
                   size={14}
                   className="cursor-pointer hover:bg-white/20 rounded-full p-0.5 transition-colors"
@@ -146,7 +154,7 @@ const TagSearchBar = ({ onSearch, selectedTags, themeColor }) => {
             )}
           </div>
         </div>
-
+        {/* Dropdown  */}
         {dropdownOpen && (
           <div className="absolute w-full bg-white border rounded-xl mt-2 shadow-xl z-10 max-h-64 overflow-y-auto transition-all duration-300 divide-y divide-gray-100">
             {filteredTags.length > 0 ? (
