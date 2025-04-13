@@ -1,4 +1,4 @@
-// File: /components/MentalHealthIllustration.js
+// Purely a visual code with SVG affects for the EducationMainPage.js
 import React from "react";
 
 const MentalHealthIllustration = () => {
