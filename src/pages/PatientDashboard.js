@@ -14,14 +14,18 @@ import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import QuestionnaireResponses from "../components/QuestionnaireResponses";
 
+// Patient Dashboard is the area patient is directed to on login
 const PatientDashboard = () => {
   const [user, setUser] = useState(null);
   const [patientStories, setPatientStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // Checks if the user is editing the data
   const [patientData, setPatientData] = useState(null);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1); // Checks which area of the edit is the patient on based on the steps
+
+  // These forms have been defined as per the logic used in during the sign up process
+  // Components not used due to the nature of the defined components and their logic
   const navigate = useNavigate();
   // Form state
   const [detailFormData, setDetailFormData] = useState({
@@ -53,7 +57,8 @@ const PatientDashboard = () => {
 
   useEffect(() => {
     if (patientData) {
-      // Initialize form data with existing patient data
+      // Initialize form data with existing patient data from the database
+      // Same as during the sign up process, excluding the few areas that can't be edited.
       setDetailFormData({
         birthHistory: patientData.birthHistory || "",
         location: patientData.location || "",
@@ -168,6 +173,10 @@ const PatientDashboard = () => {
     return Object.keys(newError).length === 0;
   };
 
+  // Data is editable step by step
+  // Step 1: Can Edit the location
+  // Step 2: Can edit the mental health conditions
+
   const handleContinue = (e) => {
     e.preventDefault();
     if (validateDetailForm()) {
@@ -224,7 +233,7 @@ const PatientDashboard = () => {
           )}
         </div>
 
-        {/* Birth History (Only if Female) */}
+        {/* Birth History (Only if gender is Female) */}
         {patientData && patientData.gender === "Female" && (
           <div className="mb-5">
             <label className="block font-medium text-purple-700">
@@ -557,6 +566,7 @@ const PatientDashboard = () => {
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Uses the ListViewCard to show the preview of the author's stories */}
                 {patientStories.map((story) => (
                   <ListViewCard
                     key={story.id}
