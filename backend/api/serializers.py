@@ -2,6 +2,13 @@
 from rest_framework import serializers
 from .models import Article, PatientStory
 
+"""
+Serializers are part of Django REST Framework (DRF) and are used to convert Django model instances to JSON, and vice versa.
+
+Converts complex data such as in the models → JSON (for API responses).
+Serializers are also implemented for potential future use.
+"""
+
 
 class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
