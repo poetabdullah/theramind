@@ -7,7 +7,7 @@ const OAuthSignUp = ({ onSuccess }) => {
         Step 1: Sign Up with Google
       </h2>
       <button
-        onClick={onSuccess}
+        onClick={onSuccess} // 	The onClick event on the button triggers the onSuccess() function, and onSuccess is a function prop.
         className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-orange-500 hover:from-purple-700 hover:via-indigo-700 hover:to-orange-600 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center"
       >
         <svg

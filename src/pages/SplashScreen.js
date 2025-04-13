@@ -12,6 +12,8 @@ const SplashScreen = () => {
   const [user, setUser] = useState(null);
   const [gradientAngle, setGradientAngle] = useState(0);
 
+  // Checks if the user exists in the "patients" or "doctors" collection
+  // Makes sure that the user is logged in.
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, async (loggedInUser) => {
@@ -43,7 +45,7 @@ const SplashScreen = () => {
   // Enhanced animation for gradient rotation
   useEffect(() => {
     const animateGradient = () => {
-      setGradientAngle((prev) => (prev + 0.5) % 360);
+      setGradientAngle((prev) => (prev + 0.5) % 360); // A rotating linear gradient background is created by continuously updating the angle
     };
 
     const interval = setInterval(animateGradient, 30);
@@ -75,9 +77,10 @@ const SplashScreen = () => {
         className="flex justify-center items-center min-h-screen w-full relative overflow-hidden"
         style={backgroundStyle}
       >
-        {/* Professional night sky effect with shooting stars */}
+        {/* Night sky effect with shooting stars */}
         <div className="absolute inset-0 bg-[rgba(0,0,0,0.2)]">
-          {/* Distant stars - subtle twinkling effect */}
+          {/* Distant twinkling stars - subtle twinkling effect */}
+          {/* Random size, position, opacity. Fades in and out in a loop for a twinkling effect. High number of small dots to simulate a distant starfield. */}
           {[...Array(60)].map((_, i) => (
             <motion.div
               key={i}
@@ -105,6 +108,7 @@ const SplashScreen = () => {
           ))}
 
           {/* Shooting stars */}
+          {/* Long, thin lines with glowing white trails. Animate diagonally across the screen with random delays and durations. Creates the effect of occasional shooting stars. */}
           {[...Array(5)].map((_, i) => (
             <motion.div
               key={`shooting-${i}`}
@@ -132,6 +136,7 @@ const SplashScreen = () => {
           ))}
 
           {/* Nebula-like subtle glow spots */}
+          {/* Large, blurred, low-opacity blobs. Very slow pulsing effect. */}
           {[...Array(3)].map((_, i) => (
             <motion.div
               key={`nebula-${i}`}
@@ -163,14 +168,16 @@ const SplashScreen = () => {
           transition={{ duration: 1, ease: "easeOut" }}
           className="text-center z-10"
         >
+          {/* Fade-in animation in which the heading appears */}
           <motion.h1
             className="text-6xl font-extrabold text-white drop-shadow-lg"
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
           >
-            Welcome to <span className="text-white">TheraChat</span>
+            Welcome to TheraChat
           </motion.h1>
+          {/* Same fade-in animation for the paragraph as well. */}
           <motion.p
             className="text-lg text-gray-200 mt-4"
             initial={{ opacity: 0 }}
@@ -179,6 +186,7 @@ const SplashScreen = () => {
           >
             Your AI-powered mental health companion
           </motion.p>
+          {/* Button comes up from the bottom */}
           <motion.button
             className="mt-8 px-6 py-3 text-lg font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-lg hover:scale-105 hover:from-purple-500 hover:to-indigo-500 transition-transform"
             initial={{ opacity: 0, y: 30 }}

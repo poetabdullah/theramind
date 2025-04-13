@@ -8,7 +8,6 @@ import Sidebar from "../components/TheraChat Sidebar";
 import { db } from "../firebaseConfig";
 import {
   collection,
-  getDocs,
   doc,
   setDoc,
   updateDoc,
@@ -17,7 +16,7 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
-const genAI = new GoogleGenerativeAI("AIzaSyBGcLuZeHs3iIUUrQTc26jOdFJH4r8iGA4");
+const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const TheraChat = () => {
@@ -43,7 +42,7 @@ const TheraChat = () => {
       }
     });
 
-    // Handle mobile view - close sidebar by default on small screens
+    // Handle mobile view - close sidebar by default on small screens to make the screen easier to navigate
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
@@ -51,11 +50,13 @@ const TheraChat = () => {
 
   useEffect(() => {
     if (chatContainerRef.current) {
+      // Auto-scrolls the chat window down whenever messages change.
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // Fetches the current user's conversations by recency
   const fetchConversations = (userId) => {
     const conversationsRef = collection(db, "conversations");
     onSnapshot(conversationsRef, (snapshot) => {
@@ -66,17 +67,18 @@ const TheraChat = () => {
       setConversations(userConversations);
     });
   };
-
+  // When the new chat starts, it resets the chat
   const startNewConversation = () => {
     setCurrentConversation(null);
     setMessages([]);
     setHideHeadline(false);
-    // Close sidebar on mobile after selecting a conversation
+    // Auto closes the sidebar on mobile after selecting a conversation, or starting a new conversation
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
   };
 
+  // Handles the selected past conversations, finds the selected conversation and displays it to the user
   const handleSelectConversation = (conversationId) => {
     const selectedChat = conversations.find(
       (conv) => conv.id === conversationId
@@ -92,30 +94,35 @@ const TheraChat = () => {
     }
   };
 
+  // Handles the sidebar toggle
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // Generate an appropriate title of the conversation
   const createTitle = (text) => {
     // Create a meaningful title from the first message
     return text.length > 30 ? `${text.substring(0, 30)}...` : text;
   };
 
-  const sendMessage = async () => {
-    if (input.trim() === "") return;
-    if (messages.length === 0) setHideHeadline(true);
+  const sendMessage = async () => { // Awaits for external processes with Gemini
+    if (input.trim() === "") return; // Prevents sending blank messages.
+    if (messages.length === 0) setHideHeadline(true); //Hides the initial headlines once the conversation starts
 
+    // Temporarily stores the user's messages in chat
     const userMessage = { text: input, sender: "user", timestamp: Date.now() };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput("");
-    setLoading(true);
+    setLoading(true); // Shows "typing..."
 
     try {
-      const result = await model.generateContent(input);
-      let aiResponse = result?.response?.text();
+      const result = await model.generateContent(input); // Function of Gemini SDK
+      let aiResponse = result?.response?.text(); // Extracts the text of the response
       if (!aiResponse || typeof aiResponse !== "string") {
         aiResponse = "I couldn't process that, please try again.";
       }
+
+      // For the processing of the Gemini's response
       const botMessage = {
         text: aiResponse,
         sender: "ai",
@@ -123,9 +130,11 @@ const TheraChat = () => {
       };
 
       const updatedMessages = [...messages, userMessage, botMessage];
+      // Updates the React state (setMessages) so it renders in the chat window
       setMessages(updatedMessages);
 
       if (user) {
+        // Makes sure that the user is authenticated
         if (!currentConversation) {
           // Create a new conversation
           const chatRef = doc(collection(db, "conversations"));
@@ -141,6 +150,7 @@ const TheraChat = () => {
           };
 
           await setDoc(chatRef, newConversation);
+          // Keeps a copy in currentConversation state so we know which session is active
           setCurrentConversation(newConversation);
         } else {
           // Update existing conversation
@@ -170,6 +180,7 @@ const TheraChat = () => {
         },
       ]);
     } finally {
+      // Whether success or error, hide the typing animation
       setLoading(false);
     }
   };
@@ -187,9 +198,8 @@ const TheraChat = () => {
 
         {/* Sidebar */}
         <div
-          className={`${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } transition-transform duration-300 ease-in-out md:translate-x-0 fixed md:relative z-10 h-screen`}
+          className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } transition-transform duration-300 ease-in-out md:translate-x-0 fixed md:relative z-10 h-screen`}
         >
           <Sidebar
             conversations={conversations}
@@ -236,22 +246,21 @@ const TheraChat = () => {
                     ? "calc(100vh - 160px)"
                     : "calc(100vh - 160px - 48px)",
               }}
-              // Adjust height based on whether headline is shown
+            // Adjust height based on whether headline is shown
             >
               {messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex w-full ${
-                    msg.sender === "user" ? "justify-end" : "justify-start"
-                  } animate-fade-in`}
+                  className={`flex w-full ${msg.sender === "user" ? "justify-end" : "justify-start"
+                    } animate-fade-in`}
                 >
                   <div
-                    className={`${
-                      msg.sender === "user"
-                        ? "bg-gradient-to-r from-indigo-800 to-indigo-500 text-white"
-                        : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
-                    } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
+                    className={`${msg.sender === "user"
+                      ? "bg-gradient-to-r from-indigo-800 to-indigo-500 text-white"
+                      : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
+                      } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
                   >
+                    {/* Gemini responds in markdown and that text needs to be processed in order to display it accurately */}
                     <ReactMarkdown
                       components={{
                         p: ({ node, ...props }) => (
@@ -286,6 +295,7 @@ const TheraChat = () => {
             </div>
 
             {/* Input area - fixed height */}
+            {/* This style of height and width is carefully curated and was widely tested as per the sidebar. It earlier made the UI area practically non-functional. */}
             <div className="w-full bg-white border-t border-gray-100 py-4">
               <div className="max-w-3xl mx-auto px-4">
                 <div className="flex items-center w-full space-x-3">
