@@ -20,18 +20,19 @@ const ArticlesListPage = () => {
     fetchArticles();
   }, [page, selectedTags]);
 
+  // Fetches the articles from the backend, all or selected by the tags
   const fetchArticles = () => {
     setLoading(true);
     setNoResults(false);
     let url = `http://127.0.0.1:8000/api/get_articles/?page=${page}`;
-    if (selectedTags.length > 0) {
+    if (selectedTags.length > 0) { // Adds tags as a comma-separated query string if any are selected.
       url += `&tags=${selectedTags.join(",")}`;
     }
     axios
       .get(url)
       .then((response) => {
         let filteredArticles = response.data.results || [];
-        if (selectedTags.length > 0) {
+        if (selectedTags.length > 0) { // Search logic to filter the articles
           filteredArticles = filteredArticles.filter((article) =>
             selectedTags.every((tag) =>
               Object.values(article.selectedTags || {}).includes(tag)
@@ -52,9 +53,11 @@ const ArticlesListPage = () => {
       });
   };
 
+  // Define the pages, which limit the articles to 10 max on a page
   const nextPage = () => setPage((prev) => Math.min(prev + 1, totalPages));
   const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
 
+  // Resets the selected tags and returns all of the articles in DB
   const resetSearch = () => {
     setSelectedTags([]);
     setPage(1);
@@ -63,6 +66,7 @@ const ArticlesListPage = () => {
 
   return (
     <div className="bg-gradient-to-br from-orange-100 via-amber-50 to-orange-100 min-h-screen">
+      {/* Orange gradient rotating banner */}
       <motion.div
         className="text-white py-20 text-center transition-all duration-1000 bg-gradient-to-r from-orange-900 via-orange-700 to-orange-500"
         initial={{
@@ -72,11 +76,11 @@ const ArticlesListPage = () => {
           background: animationCompleted
             ? "linear-gradient(to right, #ff4500, #ff8c00)"
             : [
-                "conic-gradient(from 0deg, #ff4500, #ff8c00, #ff4500)",
-                "conic-gradient(from 120deg, #ff8c00, #ff4500, #ff8c00)",
-                "conic-gradient(from 240deg, #ff4500, #ff8c00, #ff4500)",
-                "linear-gradient(to right, #ff4500, #ff8c00)",
-              ],
+              "conic-gradient(from 0deg, #ff4500, #ff8c00, #ff4500)",
+              "conic-gradient(from 120deg, #ff8c00, #ff4500, #ff8c00)",
+              "conic-gradient(from 240deg, #ff4500, #ff8c00, #ff4500)",
+              "linear-gradient(to right, #ff4500, #ff8c00)",
+            ],
         }}
         transition={{ duration: 4, ease: "easeInOut" }}
         onAnimationComplete={() => setAnimationCompleted(true)}
@@ -123,6 +127,7 @@ const ArticlesListPage = () => {
         ) : (
           <>
             <div className="space-y-6">
+              {/* Article preview card */}
               {articles.map((article) => (
                 <ListViewCard
                   key={article.id}
@@ -145,11 +150,10 @@ const ArticlesListPage = () => {
                 <button
                   onClick={prevPage}
                   disabled={page === 1}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    page === 1
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 text-white hover:from-orange-700 hover:via-orange-600 hover:to-orange-500"
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${page === 1
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 text-white hover:from-orange-700 hover:via-orange-600 hover:to-orange-500"
+                    }`}
                 >
                   Previous
                 </button>
@@ -161,11 +165,10 @@ const ArticlesListPage = () => {
                 <button
                   onClick={nextPage}
                   disabled={page === totalPages}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    page === totalPages
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 text-white hover:from-orange-700 hover:via-orange-600 hover:to-orange-500"
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${page === totalPages
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 text-white hover:from-orange-700 hover:via-orange-600 hover:to-orange-500"
+                    }`}
                 >
                   Next
                 </button>
