@@ -1,13 +1,17 @@
 import React from "react";
 import { PlusCircle, MessageCircle, X } from "lucide-react";
 
+// PlusCircle --> For starting a new conversation
+// MessageCircle --> Conversation item icon
+// X --> Cross/closing the sidebar
+
+// Acts as the left side panel for holding the previous conversations.
 const Sidebar = ({
-  conversations,
-  onSelectConversation,
-  selectedConversation,
-  onNewConversation,
-  isOpen,
-  onToggle,
+  conversations, // array of chat objects (from Firestore)
+  onSelectConversation, // function to load a convo by ID
+  selectedConversation, // the currently selected convo
+  onNewConversation, // new convo
+  onToggle, // on mobile view, toggle opens/closes the sidebar
 }) => {
   return (
     <div className="h-screen w-64 bg-white shadow-lg flex flex-col overflow-hidden border-r border-gray-200 relative">
@@ -53,18 +57,16 @@ const Sidebar = ({
               <li key={chat.id}>
                 <button
                   onClick={() => onSelectConversation(chat.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg flex items-start transition-colors ${
-                    selectedConversation?.id === chat.id
-                      ? "bg-purple-100 text-purple-700"
-                      : "hover:bg-gray-100"
-                  }`}
+                  className={`w-full text-left px-3 py-2 rounded-lg flex items-start transition-colors ${selectedConversation?.id === chat.id
+                    ? "bg-purple-100 text-purple-700"
+                    : "hover:bg-gray-100"
+                    }`}
                 >
                   <MessageCircle
-                    className={`w-4 h-4 mt-0.5 mr-2 flex-shrink-0 ${
-                      selectedConversation?.id === chat.id
-                        ? "text-purple-600"
-                        : "text-gray-500"
-                    }`}
+                    className={`w-4 h-4 mt-0.5 mr-2 flex-shrink-0 ${selectedConversation?.id === chat.id
+                      ? "text-purple-600"
+                      : "text-gray-500"
+                      }`}
                   />
                   <span className="text-sm truncate flex-1">
                     {chat.title || "New conversation"}
