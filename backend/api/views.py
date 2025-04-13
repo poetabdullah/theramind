@@ -5,6 +5,10 @@ from rest_framework import status
 from .models import Article, PatientStory
 from .serializers import ArticleSerializer, PatientStorySerializer
 import json
+import firebase_admin
+from firebase_admin import firestore, credentials, initialize_app
+from google.oauth2 import service_account
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
@@ -16,6 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 
 from utils.firestore import add_document
+
 
 from firebase_admin import credentials
 from firebase_admin import credentials, initialize_app
