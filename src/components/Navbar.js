@@ -7,14 +7,15 @@ import { doc, getDoc } from "firebase/firestore";
 import { Menu, X, ChevronDown } from "lucide-react";
 
 const Navbar = () => {
-  const [user, setUser] = useState(null);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [educationDropdownOpen, setEducationDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null); // user object
+  const [isRegistered, setIsRegistered] = useState(false); // logged in patients
+  const [loading, setLoading] = useState(true); // block render unless firebase checks auth state
+  const [menuOpen, setMenuOpen] = useState(false); // checks if the menu is open
+  const [educationDropdownOpen, setEducationDropdownOpen] = useState(false); // drop-down for education tile
   const dropdownRef = useRef(null);
   const auth = getAuth();
 
+  // When mobile menu opens, scrolling is disabled to prevent background interaction
   useEffect(() => {
     // Prevent scrolling when mobile menu is open
     if (menuOpen) {
@@ -28,6 +29,8 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
+
+  // Check if the patient is registered
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -57,6 +60,7 @@ const Navbar = () => {
     };
   }, []);
 
+  // Handles the logout functionality --> Exists the session (Calls Firebase signOut)
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -70,6 +74,7 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-purple-700 via-violet-600 to-indigo-700 text-white shadow-lg">
+      {/* Logo and website name remains same in all views */}
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
@@ -88,7 +93,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Menu Button (Mobile) */}
+          {/* Menu Button (Mobile)  or a hamburger */}
           <div className="flex lg:hidden">
             <button
               className="text-gray-300 hover:text-orange-400 p-2"
@@ -99,6 +104,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
+          {/* Different nav links for logged in vs logged out users  */}
           <div className="hidden lg:flex lg:items-center lg:justify-between lg:flex-1 lg:ml-12">
             {/* Nav Links */}
             <div className="flex items-center justify-center flex-1 space-x-12">
@@ -130,7 +136,7 @@ const Navbar = () => {
                     TheraChat
                   </Link>
 
-                  {/* Education Dropdown */}
+                  {/* Education Dropdown upon hover */}
                   <div
                     className="relative group"
                     ref={dropdownRef}
@@ -252,7 +258,8 @@ const Navbar = () => {
               </div>
             ) : (
               isRegistered && (
-                <div className="flex items-center space-x-4">
+                < div className="flex items-center space-x-4">
+                  {/* If the user is registered: */}
                   {user.photoURL && (
                     <Link
                       to="/patient-dashboard"
@@ -281,6 +288,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Overlay */}
+          {/* The background of other screen elements become transparent black if menu opens */}
           <div
             className={`${menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
               } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
@@ -464,7 +472,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-    </nav>
+    </nav >
   );
 };
 
