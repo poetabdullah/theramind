@@ -10,7 +10,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import Footer from "../components/Footer";
-import ReactQuill from "react-quill";
+import ReactQuill from "react-quill"; // React Quill to process the written content styling
 import "react-quill/dist/quill.snow.css";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -62,6 +62,7 @@ const EducationWritePage = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Fetches all of the available tags that can be selected
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -77,6 +78,7 @@ const EducationWritePage = () => {
     fetchTags();
   }, []);
 
+  // Fetches the article / story data if in editing mode
   useEffect(() => {
     const fetchDocumentData = async () => {
       if (isEditing && docId) {
@@ -104,6 +106,7 @@ const EducationWritePage = () => {
     fetchDocumentData();
   }, [isEditing, docId, type]);
 
+  // Can select up to 5 tags
   const handleTagClick = (tag) => {
     setSelectedTags((prevTags) =>
       prevTags.includes(tag)
@@ -114,6 +117,7 @@ const EducationWritePage = () => {
     );
   };
 
+  // Checks the error conditions for the docs
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -207,7 +211,7 @@ const EducationWritePage = () => {
             className="w-full text-4xl font-semibold text-purple-900 bg-transparent border-b-2 border-gray-400 outline-none focus:ring-0 focus:border-purple-500 placeholder-gray-400"
             required
           />
-
+          {/* Write/Edit the main content in the React Quill structure */}
           <ReactQuill
             value={content}
             onChange={setContent}
