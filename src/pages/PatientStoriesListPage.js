@@ -116,7 +116,25 @@ const PatientStoriesListPage = () => {
         </h2>
 
         {loading ? (
-          <div>Loading...</div>
+          <motion.div
+            className="py-10 flex flex-col items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <motion.div
+              className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-700 to-indigo-500"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.7, 1, 0.7]
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <p className="text-purple-700 mt-4 font-medium">Loading patient stories...</p>
+          </motion.div>
         ) : error ? (
           <div className="text-red-500">{error}</div>
         ) : noResults ? (
