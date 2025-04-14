@@ -288,7 +288,11 @@ const TheraChat = () => {
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-purple-500 text-white rounded-2xl px-5 py-3 shadow-lg max-w-md text-left">
-                    Typing...
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "600ms" }}></div>
+                    </div>
                   </div>
                 </div>
               )}
