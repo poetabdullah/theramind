@@ -387,9 +387,26 @@ export default function EducationMainPage() {
 
       {/* Loading and Error Handling */}
       {loading && (
-        <p className="text-center text-gray-600">Loading content...</p>
+        <motion.div
+          className="py-12 flex flex-col items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-orange-500"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.7, 1, 0.7]
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <p className="text-gray-600 mt-4 font-medium">Loading inspiring content...</p>
+        </motion.div>
       )}
-      {error && <p className="text-center text-red-600">{error}</p>}
 
       {/* Articles Section */}
       {!loading && !error && (
