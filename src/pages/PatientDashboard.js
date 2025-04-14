@@ -1,5 +1,5 @@
 // Patient's dashboard
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   collection,
   query,
@@ -43,17 +43,6 @@ const PatientDashboard = () => {
   const [detailErrors, setDetailErrors] = useState({});
   const [healthErrors, setHealthErrors] = useState({});
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((authUser) => {
-      if (authUser) {
-        setUser(authUser);
-        fetchPatientData(authUser.email);
-      } else {
-        navigate("/login"); // Redirect to login if not authenticated
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
 
   useEffect(() => {
     if (patientData) {
@@ -73,7 +62,7 @@ const PatientDashboard = () => {
     }
   }, [patientData]);
 
-  const fetchPatientData = async (email) => {
+  const fetchPatientData = useCallback(async (email) => {
     try {
       const q = query(collection(db, "patients"), where("email", "==", email));
       const querySnapshot = await getDocs(q);
@@ -85,7 +74,21 @@ const PatientDashboard = () => {
     } catch (error) {
       console.error("Error fetching patient data:", error);
     }
-  };
+  }, []);  // Empty dependency array
+
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        setUser(authUser);
+        fetchPatientData(authUser.email);
+      } else {
+        navigate("/login");
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate, fetchPatientData]);
+
 
   const fetchPatientStories = async (email) => {
     try {
@@ -534,6 +537,12 @@ const PatientDashboard = () => {
               <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
                 Questionnaire Assessment Response Summary
               </h2>
+              <button
+                onClick={() => navigate("/start-screen")}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition"
+              >
+                Take Questionnaire
+              </button>
             </div>
 
             {/* Pass the email from the user state */}
