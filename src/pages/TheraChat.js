@@ -284,7 +284,7 @@ const TheraChat = () => {
                   </div>
                 </div>
               ))}
-
+              {/* Loading animation when the AI is responding */}
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-purple-500 text-white rounded-2xl px-5 py-3 shadow-lg max-w-md text-left">
