@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "axios"; // used for API requests to Django
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Footer from "../components/Footer";
 
@@ -10,12 +10,12 @@ const EducationDetailView = () => {
   const pathParts = pathname.split("/");
   const type = pathParts[1] === "stories" ? "stories" : "articles";
 
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loggedInUser, setLoggedInUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [data, setData] = useState(null); // article or story data
+  const [error, setError] = useState(null); // tracks errors
+  const [loggedInUser, setLoggedInUser] = useState(null); // sees if the user is logged in
+  const [loading, setLoading] = useState(true); // loading: for fetching from backend
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // pop-up to see the delete
+  const [deleteSuccess, setDeleteSuccess] = useState(false); // successfully deleted
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const EducationDetailView = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setLoggedInUser(user || null);
     });
-
+    // Fetches the data from the backend: article or a story
     const fetchData = async () => {
       const apiUrl =
         process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -55,6 +55,7 @@ const EducationDetailView = () => {
     return () => unsubscribe();
   }, [id, type]);
 
+  // Handles the editing mode, fetches the data from the website and navigates to the EducationWritePage.js
   const handleEdit = () => {
     navigate("/write-education", {
       state: {
@@ -68,6 +69,7 @@ const EducationDetailView = () => {
     });
   };
 
+  // Deletes the specific article / story (only if the user is logged in)
   const handleDelete = async () => {
     const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
     try {
@@ -94,7 +96,7 @@ const EducationDetailView = () => {
     );
   }
 
-  // Fixed logic: Check if user is logged in first, then compare emails
+  // Check if user is logged in first, then compare emails
   const isAuthor =
     loggedInUser &&
     loggedInUser.email &&
@@ -104,7 +106,7 @@ const EducationDetailView = () => {
   return (
     <div className="bg-gradient-to-b from-purple-100 via-indigo-50 to-white min-h-screen flex flex-col">
       <div className="max-w-4xl mx-auto flex-grow py-12 px-6 md:px-8 lg:px-4">
-        {/* Article Header with improved styling */}
+        {/* Content Header */}
         <header className="mb-10 border-b border-purple-300 pb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-800 via-indigo-700 to-purple-900 leading-normal pb-12">
             {data.title}
@@ -139,7 +141,7 @@ const EducationDetailView = () => {
           )}
         </header>
 
-        {/* Article Content with improved readability */}
+        {/* Article/Story Content */}
         <article className="prose prose-lg max-w-none text-gray-800 leading-relaxed">
           <div
             className="prose-headings:text-indigo-800 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-7 prose-p:my-5 prose-a:text-orange-600 prose-a:no-underline prose-a:font-medium prose-a:hover:underline prose-li:my-1 prose-li:text-gray-700"
@@ -186,7 +188,7 @@ const EducationDetailView = () => {
         )}
       </div>
 
-      {/* Enhanced Delete Modal */}
+      {/* Delete Modal: Pop up to confirm if the user wanna deletes something */}
       {showDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
           <div className="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full mx-4 transform transition-all">

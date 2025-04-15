@@ -5,6 +5,10 @@ from rest_framework import status
 from .models import Article, PatientStory
 from .serializers import ArticleSerializer, PatientStorySerializer
 import json
+import firebase_admin
+from firebase_admin import firestore, credentials, initialize_app
+from google.oauth2 import service_account
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
@@ -17,13 +21,14 @@ from rest_framework.decorators import api_view, permission_classes
 
 from utils.firestore import add_document
 
-import firebase_admin
+
 from firebase_admin import credentials
 from firebase_admin import credentials, initialize_app
 from google.oauth2 import service_account
 from django.views.decorators.csrf import csrf_exempt
 
 
+# This ensures Firebase is only initialized once (even if views are imported multiple times)
 if not firebase_admin._apps:
     credentials = service_account.Credentials.from_service_account_file(
         "C:/Users/user/VSCodeJSProjects/React/theramind/backend/firebase_admin_credentials.json"
@@ -33,6 +38,7 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
+# Opens up the detail view of the specific article / patient story
 class ArticleDetailView(APIView):
     def get(self, request, pk, format=None):
         try:
@@ -115,12 +121,14 @@ def submit_content(request):
         return Response({"error": str(e)}, status=500)
 
 
+# Custom Pagination that limits the 10 articles/stories per page for better readability
 class CustomPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 50
 
 
+# Request to get the articles by recency in paginated format for the list page
 @api_view(["GET"])
 def get_articles(request):
     """Retrieve paginated articles, with optional filtering by tag."""
@@ -152,6 +160,7 @@ def get_articles(request):
     )
 
 
+# # Request to get the patient stories by recency in paginated format for the list page
 @api_view(["GET"])
 def get_patient_stories(request):
     """Retrieve paginated patient stories, with optional filtering by tag."""
@@ -183,6 +192,7 @@ def get_patient_stories(request):
     )
 
 
+# Get an individual article requested
 @api_view(["GET"])
 def get_article(request, article_id):
     """Retrieve a single article by ID."""
@@ -194,6 +204,7 @@ def get_article(request, article_id):
     return Response({"error": "Article not found"}, status=404)
 
 
+# Get an individual patient story requested
 @api_view(["GET"])
 @csrf_exempt
 def get_patient_story(request, story_id):
@@ -213,6 +224,7 @@ def get_patient_story(request, story_id):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+# Create a new article
 @api_view(["POST"])
 def create_article(request):
     """Create a new article."""
@@ -234,6 +246,7 @@ def create_article(request):
     )
 
 
+# Create a new patient story
 @api_view(["POST"])
 def create_patient_story(request):
     """Create a new patient story."""
@@ -253,6 +266,7 @@ def create_patient_story(request):
     return Response({"message": "Story created successfully", "id": new_story_ref.id})
 
 
+# Update the existing article from the DB
 @api_view(["PUT"])
 def update_article(request, article_id):
     """Update an article."""
@@ -268,6 +282,7 @@ def update_article(request, article_id):
     return Response({"message": "Article updated successfully"})
 
 
+# Update the existing patient stroy from the DB
 @api_view(["PUT"])
 def update_patient_story(request, story_id):
     """Update a patient story."""
@@ -283,6 +298,7 @@ def update_patient_story(request, story_id):
     return Response({"message": "Story updated successfully"})
 
 
+# Delete the specific article on the author's request
 @api_view(["DELETE"])
 def delete_article(request, article_id):
     """Delete an article."""
@@ -296,6 +312,7 @@ def delete_article(request, article_id):
     return Response({"message": "Article deleted successfully"})
 
 
+# Delete the specific patient story on the author's request
 @api_view(["DELETE"])
 def delete_patient_story(request, story_id):
     """Delete a patient story."""

@@ -1,6 +1,6 @@
 import pyrebase
 
-# Firebase configuration (matches your `firebaseConfig.js`)
+# Firebase configuration (matches the `firebaseConfig.js` file)
 firebase_config = {
     "apiKey": "AIzaSyCI_qHj3Ou0jlICgsKkeLzqwR9NTl0Tkqo",
     "authDomain": "thera-mind.firebaseapp.com",
