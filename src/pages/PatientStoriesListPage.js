@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import PageBanner from "../components/PageBanner";
 import ListViewCard from "../components/ListViewCard";
 import Footer from "../components/Footer";
 import TagSearchBar from "../components/TagSearchBar";
@@ -20,18 +19,19 @@ const PatientStoriesListPage = () => {
     fetchStories();
   }, [page, selectedTags]);
 
+  // Fetches the patient stories from backend
   const fetchStories = () => {
     setLoading(true);
     setNoResults(false);
     let url = `http://127.0.0.1:8000/api/get_patient_stories/?page=${page}`;
-    if (selectedTags.length > 0) {
+    if (selectedTags.length > 0) { // / Adds tags as a comma-separated query string if any are selected.
       url += `&tags=${selectedTags.join(",")}`;
     }
     axios
       .get(url)
       .then((response) => {
         let filteredStories = response.data.results || [];
-        if (selectedTags.length > 0) {
+        if (selectedTags.length > 0) { // Search logic to filter the stories by tags
           filteredStories = filteredStories.filter((story) =>
             selectedTags.every((tag) => story.selectedTags?.includes(tag))
           );
@@ -52,9 +52,11 @@ const PatientStoriesListPage = () => {
       });
   };
 
+  // Define the pages, which limit the stories to 10 max on a page
   const nextPage = () => setPage((prev) => Math.min(prev + 1, totalPages));
   const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
 
+  // // Resets the selected tags and returns all of the stories in DB
   const resetSearch = () => {
     setSelectedTags([]);
     setPage(1);
@@ -63,6 +65,7 @@ const PatientStoriesListPage = () => {
 
   return (
     <div className="bg-gradient-to-br from-purple-300 via-violet-200 to-indigo-300 min-h-screen">
+      {/* Purple gradient rotating banner */}
       <motion.div
         className="text-white py-20 text-center transition-all duration-1000 bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400"
         initial={{
@@ -72,11 +75,11 @@ const PatientStoriesListPage = () => {
           background: animationCompleted
             ? "linear-gradient(to right, #4b0082, #800080)"
             : [
-                "conic-gradient(from 0deg, #800080, #4b0082, #800080)",
-                "conic-gradient(from 120deg, #4b0082, #800080, #4b0082)",
-                "conic-gradient(from 240deg, #800080, #4b0082, #800080)",
-                "linear-gradient(to right, #4b0082, #800080)",
-              ],
+              "conic-gradient(from 0deg, #800080, #4b0082, #800080)",
+              "conic-gradient(from 120deg, #4b0082, #800080, #4b0082)",
+              "conic-gradient(from 240deg, #800080, #4b0082, #800080)",
+              "linear-gradient(to right, #4b0082, #800080)",
+            ],
         }}
         transition={{ duration: 4, ease: "easeInOut" }}
         onAnimationComplete={() => setAnimationCompleted(true)}
@@ -113,7 +116,25 @@ const PatientStoriesListPage = () => {
         </h2>
 
         {loading ? (
-          <div>Loading...</div>
+          <motion.div
+            className="py-10 flex flex-col items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <motion.div
+              className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-700 to-indigo-500"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.7, 1, 0.7]
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <p className="text-purple-700 mt-4 font-medium">Loading patient stories...</p>
+          </motion.div>
         ) : error ? (
           <div className="text-red-500">{error}</div>
         ) : noResults ? (
@@ -124,6 +145,7 @@ const PatientStoriesListPage = () => {
         ) : (
           <>
             <div className="space-y-6">
+              {/* Story preview card */}
               {stories.map((story) => (
                 <ListViewCard
                   key={story.id}
@@ -146,11 +168,10 @@ const PatientStoriesListPage = () => {
                 <button
                   onClick={prevPage}
                   disabled={page === 1}
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                    page === 1
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600"
-                  }`}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${page === 1
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600"
+                    }`}
                 >
                   Previous
                 </button>
@@ -162,11 +183,10 @@ const PatientStoriesListPage = () => {
                 <button
                   onClick={nextPage}
                   disabled={page === totalPages}
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                    page === totalPages
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700"
-                  }`}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${page === totalPages
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700"
+                    }`}
                 >
                   Next
                 </button>

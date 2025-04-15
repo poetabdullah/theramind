@@ -1,5 +1,5 @@
 // Patient's dashboard
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   collection,
   query,
@@ -14,14 +14,18 @@ import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import QuestionnaireResponses from "../components/QuestionnaireResponses";
 
+// Patient Dashboard is the area patient is directed to on login
 const PatientDashboard = () => {
   const [user, setUser] = useState(null);
   const [patientStories, setPatientStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // Checks if the user is editing the data
   const [patientData, setPatientData] = useState(null);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1); // Checks which area of the edit is the patient on based on the steps
+
+  // These forms have been defined as per the logic used in during the sign up process
+  // Components not used due to the nature of the defined components and their logic
   const navigate = useNavigate();
   // Form state
   const [detailFormData, setDetailFormData] = useState({
@@ -39,21 +43,11 @@ const PatientDashboard = () => {
   const [detailErrors, setDetailErrors] = useState({});
   const [healthErrors, setHealthErrors] = useState({});
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((authUser) => {
-      if (authUser) {
-        setUser(authUser);
-        fetchPatientData(authUser.email);
-      } else {
-        navigate("/login"); // Redirect to login if not authenticated
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
 
   useEffect(() => {
     if (patientData) {
-      // Initialize form data with existing patient data
+      // Initialize form data with existing patient data from the database
+      // Same as during the sign up process, excluding the few areas that can't be edited.
       setDetailFormData({
         birthHistory: patientData.birthHistory || "",
         location: patientData.location || "",
@@ -68,7 +62,7 @@ const PatientDashboard = () => {
     }
   }, [patientData]);
 
-  const fetchPatientData = async (email) => {
+  const fetchPatientData = useCallback(async (email) => {
     try {
       const q = query(collection(db, "patients"), where("email", "==", email));
       const querySnapshot = await getDocs(q);
@@ -80,7 +74,21 @@ const PatientDashboard = () => {
     } catch (error) {
       console.error("Error fetching patient data:", error);
     }
-  };
+  }, []);  // Empty dependency array
+
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        setUser(authUser);
+        fetchPatientData(authUser.email);
+      } else {
+        navigate("/login");
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate, fetchPatientData]);
+
 
   const fetchPatientStories = async (email) => {
     try {
@@ -168,6 +176,10 @@ const PatientDashboard = () => {
     return Object.keys(newError).length === 0;
   };
 
+  // Data is editable step by step
+  // Step 1: Can Edit the location
+  // Step 2: Can edit the mental health conditions
+
   const handleContinue = (e) => {
     e.preventDefault();
     if (validateDetailForm()) {
@@ -224,7 +236,7 @@ const PatientDashboard = () => {
           )}
         </div>
 
-        {/* Birth History (Only if Female) */}
+        {/* Birth History (Only if gender is Female) */}
         {patientData && patientData.gender === "Female" && (
           <div className="mb-5">
             <label className="block font-medium text-purple-700">
@@ -525,6 +537,12 @@ const PatientDashboard = () => {
               <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
                 Questionnaire Assessment Response Summary
               </h2>
+              <button
+                onClick={() => navigate("/start-screen")}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition"
+              >
+                Take Questionnaire
+              </button>
             </div>
 
             {/* Pass the email from the user state */}
@@ -557,6 +575,7 @@ const PatientDashboard = () => {
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Uses the ListViewCard to show the preview of the author's stories */}
                 {patientStories.map((story) => (
                   <ListViewCard
                     key={story.id}

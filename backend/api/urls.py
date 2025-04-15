@@ -1,4 +1,14 @@
-# api/urls.py
+"""
+Exposes the backend functionality (like CRUD for articles/stories) for frontend by defining the following for the views.py file:
+
+- GET routes (fetching data)
+
+- POST routes (creating data)
+
+- PUT routes (updating data)
+
+- DELETE routes (removing data)
+"""
 
 from django.urls import path
 from .views import (

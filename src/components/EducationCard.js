@@ -2,32 +2,33 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 
+// Preview cards for articles and stories on EducationMainPage.js
 const EducationCard = ({ id, title, author, date, tags, content, type }) => {
   const navigate = useNavigate();
   const detailPageUrl =
     type === "article"
       ? `/articles/${id}`
       : type === "story"
-      ? `/stories/${id}`
-      : `/content/${id}`;
+        ? `/stories/${id}`
+        : `/content/${id}`;
 
-  // Set colors based on content type
+  // Set colors based on content type: orange for articles, purple for patient stories
   const colors =
     type === "article"
       ? {
-          badge: "bg-orange-600",
-          title: "text-orange-800",
-          author: "text-orange-600",
-          tag: "bg-orange-100 text-orange-700 hover:bg-orange-200",
-        }
+        badge: "bg-orange-600",
+        title: "text-orange-800",
+        author: "text-orange-600",
+        tag: "bg-orange-100 text-orange-700 hover:bg-orange-200",
+      }
       : {
-          badge: "bg-purple-600",
-          title: "text-purple-800",
-          author: "text-purple-600",
-          tag: "bg-purple-100 text-purple-700 hover:bg-purple-200",
-        };
+        badge: "bg-purple-600",
+        title: "text-purple-800",
+        author: "text-purple-600",
+        tag: "bg-purple-100 text-purple-700 hover:bg-purple-200",
+      };
 
-  // Format type for display
+  // Format type for display: This ensures the badge or label shown in the card looks polished and readable (Article, Story)
   const typeLabel = type
     ? type.charAt(0).toUpperCase() + type.slice(1)
     : "Content";
@@ -55,7 +56,7 @@ const EducationCard = ({ id, title, author, date, tags, content, type }) => {
         {date ? new Date(date).toLocaleDateString() : "Unknown Date"}
       </p>
 
-      {/* Content Preview - Original version */}
+      {/* Content Preview */}
       <p
         className="text-gray-700 text-sm line-clamp-3 mb-4"
         dangerouslySetInnerHTML={{

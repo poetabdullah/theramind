@@ -15,13 +15,14 @@ export default function EducationMainPage() {
   const [error, setError] = useState(null);
   const [animationCompleted, setAnimationCompleted] = useState(false);
 
-  // Update in useEffect function
+  // Fetches the articles and stories from backend
   useEffect(() => {
     const fetchData = async () => {
       try {
         const apiUrl =
           process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
+        // Promise.all saves a bit time while fetching
         const [articlesRes, storiesRes] = await Promise.all([
           axios.get(`${apiUrl}/get_articles/`),
           axios.get(`${apiUrl}/get_patient_stories/`),
@@ -43,7 +44,7 @@ export default function EducationMainPage() {
     fetchData();
   }, []);
 
-  // The selectUniqueTagItems function
+  // The selectUniqueTagItems function: So that the education main page contains articles/stories from various tags rather than just random ones
   const selectUniqueTagItems = (items, maxCount) => {
     if (items.length === 0) return [];
 
@@ -91,10 +92,11 @@ export default function EducationMainPage() {
   return (
     <div className="bg-white">
       {/* Banner Section */}
+      {/* Phase I: Just a rotating animation of purple and orange colors */}
       <motion.div
         className={`text-white py-20 text-center transition-all duration-1000 relative overflow-hidden ${animationCompleted
-            ? "bg-gradient-to-r from-purple-600 to-orange-500"
-            : ""
+          ? "bg-gradient-to-r from-purple-600 to-orange-500"
+          : ""
           }`}
         initial={{
           background: "conic-gradient(from 0deg, #ff8000, #8a2be2, #ff8000)",
@@ -112,7 +114,8 @@ export default function EducationMainPage() {
         transition={{ duration: 4, ease: "easeInOut" }}
         onAnimationComplete={() => setAnimationCompleted(true)}
       >
-        {/* Night sky effect with stars and shooting stars - matched to original SplashScreen */}
+        {/* Phase II: Adding the star like effect on the banner */}
+        {/* Night sky effect with stars and shooting stars - matched to original SplashScreen.js page */}
         <div className="absolute inset-0 bg-[rgba(0,0,0,0.2)]">
           {/* Distant stars - subtle twinkling effect */}
           {[...Array(60)].map((_, i) => (
@@ -384,9 +387,26 @@ export default function EducationMainPage() {
 
       {/* Loading and Error Handling */}
       {loading && (
-        <p className="text-center text-gray-600">Loading content...</p>
+        <motion.div
+          className="py-12 flex flex-col items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-orange-500"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.7, 1, 0.7]
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <p className="text-gray-600 mt-4 font-medium">Loading inspiring content...</p>
+        </motion.div>
       )}
-      {error && <p className="text-center text-red-600">{error}</p>}
 
       {/* Articles Section */}
       {!loading && !error && (

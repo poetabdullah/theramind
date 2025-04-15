@@ -7,8 +7,8 @@ import { collection, addDoc } from "firebase/firestore";
 const StarIcon = ({ filled, onClick, onMouseEnter, onMouseLeave }) => (
   <svg
     onClick={onClick}
-    onMouseEnter={onMouseEnter}
-    onMouseLeave={onMouseLeave}
+    onMouseEnter={onMouseEnter} // When mouse hovers over the stars
+    onMouseLeave={onMouseLeave} // When mouse leaves the star
     className="cursor-pointer transition-transform duration-200 transform hover:scale-110"
     width="32"
     height="32"
