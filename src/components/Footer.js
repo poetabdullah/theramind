@@ -62,7 +62,7 @@ const Footer = () => {
             <h3 className="text-xl font-semibold mb-6">Resources</h3>
             <nav className="space-y-4">
               <Link
-                to="/EducationMain"
+                to="/education-main"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
               >
                 Education
