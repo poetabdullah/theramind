@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
+		"@emailjs/browser": "^4.4.1",
 		"@google/generative-ai": "^0.22.0",
 		"@popperjs/core": "^2.11.8",
 		"@reduxjs/toolkit": "^2.6.0",

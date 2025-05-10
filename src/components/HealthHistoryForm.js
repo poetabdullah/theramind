@@ -64,7 +64,7 @@ const HealthHistoryForm = ({ onSubmit }) => {
       className="max-w-2xl mx-auto p-6 bg-white shadow-xl rounded-xl"
     >
       <h2 className="text-3xl font-bold text-center mb-6 text-orange-600">
-        Step 4: Health History
+        Step 5: Health History
       </h2>
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
         <p className="text-blue-700">
