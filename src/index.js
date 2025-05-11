@@ -6,6 +6,7 @@ import App from "./App";
 import "./App.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js//bootstrap.bundle.min.js';
+import emailjs from '@emailjs/browser';
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -13,3 +14,8 @@ root.render(
     <App />
   </BrowserRouter>
 );
+
+emailjs.init({
+  publicKey: 'qSC9QChymUGrSFCY5',
+  blockHeadless: true                // prevents headless‑browser abuse
+});
