@@ -18,6 +18,7 @@ import EducationWritePage from "./pages/EducationWritePage";
 import SplashScreen from "./pages/SplashScreen";
 import Testimonial from "./pages/Testimonial";
 import PatientDashboard from "./pages/PatientDashboard";
+import AppointmentBooking from './components/AppointmentBooking';
 
 const App = () => (
   <div>
@@ -41,6 +42,7 @@ const App = () => (
       <Route path="/splash-screen" element={<SplashScreen />} />
       <Route path="/testimonial" element={<Testimonial />} />
       <Route path="/patient-dashboard" element={<PatientDashboard />} />
+      <Route path="/appointment-booking" element={<AppointmentBooking />} />
     </Routes>
   </div>
 );

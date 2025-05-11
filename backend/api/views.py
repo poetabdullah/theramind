@@ -329,3 +329,4 @@ def delete_patient_story(request, story_id):
 @api_view(["GET"])
 def test_cors(request):
     return Response({"message": "CORS is working!"})
+
