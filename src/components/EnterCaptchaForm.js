@@ -29,8 +29,8 @@ const EnterCaptchaForm = ({
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
-      <h2 className="text-xl font-bold text-center text-purple-600 mb-4">
-        Verify You're Human
+      <h2 className="text-3xl font-bold text-center mb-6 text-orange-600">
+        Step 3: Verify You're Human (CAPTCHA)
       </h2>
       <p className="text-sm text-gray-600 text-center mb-4">
         Enter the code shown below:
