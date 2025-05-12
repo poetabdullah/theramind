@@ -14,7 +14,7 @@ import EnterTwoFactorForm from "../components/EnterTwoFactorForm";
 import Footer from "../components/Footer";
 
 const steps = [
-  "Sign Up with Google",  // 1
+  "Sign Up",  // 1
   "Enter 2FA",            // 2
   "Enter CAPTCHA",        // 3
   "Enter Details",        // 4
