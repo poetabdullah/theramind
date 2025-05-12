@@ -19,6 +19,7 @@ import SplashScreen from "./pages/SplashScreen";
 import Testimonial from "./pages/Testimonial";
 import PatientDashboard from "./pages/PatientDashboard";
 import AppointmentBooking from './components/AppointmentBooking';
+import DoctorSignUp from "./pages/DoctorSignUp";
 
 const App = () => (
   <div>
@@ -43,6 +44,7 @@ const App = () => (
       <Route path="/testimonial" element={<Testimonial />} />
       <Route path="/patient-dashboard" element={<PatientDashboard />} />
       <Route path="/appointment-booking" element={<AppointmentBooking />} />
+      <Route path="/doctor-signup" element={<DoctorSignUp />} />
     </Routes>
   </div>
 );
