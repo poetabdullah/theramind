@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 
 export default function UploadInput({
     label,
@@ -7,9 +7,21 @@ export default function UploadInput({
     setFile,
 }) {
     const inputId = `upload-input-${label.replace(/\s+/g, "-").toLowerCase()}`;
+    const fileInputRef = useRef(null);
 
     const handleFileChange = (e) => {
-        if (e.target.files?.[0]) setFile(e.target.files[0]);
+        if (e.target.files?.[0]) {
+            setFile(e.target.files[0]);
+            // Reset the input value to allow the same file to be selected again
+            e.target.value = '';
+        }
+    };
+
+    const handleUploadClick = () => {
+        // Simply trigger the click on the file input element
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
     };
 
     return (
@@ -19,32 +31,35 @@ export default function UploadInput({
             </label>
             <div
                 className="relative flex items-center justify-center h-32 border-2 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
-                onClick={() => document.getElementById(inputId).click()}
+                onClick={handleUploadClick}
             >
                 <input
                     id={inputId}
                     type="file"
                     accept={accept}
                     onChange={handleFileChange}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    className="hidden"
+                    ref={fileInputRef}
                 />
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 w-full px-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 mx-auto mb-1"
-                        fill="none"
+                        width="24"
+                        height="24"
                         viewBox="0 0 24 24"
+                        fill="none"
                         stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mx-auto mb-1"
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M4 12l4 4m0 0l4-4m-4 4V4"
-                        />
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
-                    <p className="text-sm">Click or drag file here</p>
-                    <p className="text-xs text-gray-400">Supported: images, PDF, DOC</p>
+                    <p className="text-sm text-gray-600">Click or drag file here</p>
+                    <p className="text-xs text-gray-400 mt-1">Supported: images, PDF, DOC</p>
                 </div>
             </div>
             {file && (
