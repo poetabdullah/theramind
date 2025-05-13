@@ -244,7 +244,7 @@ const Navbar = () => {
             {!user ? (
               <div className="flex items-center space-x-4 ml-12">
                 <Link
-                  to="/signup"
+                  to="/signup-landing"
                   className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2.5 rounded-lg hover:from-fuchsia-600 hover:to-purple-600 shadow-md transition-colors duration-200 text-base font-medium no-underline"
                 >
                   Sign Up
@@ -423,7 +423,7 @@ const Navbar = () => {
               {!user ? (
                 <div className="space-y-4 pt-6 pb-8">
                   <Link
-                    to="/signup"
+                    to="/signup-landing"
                     className="block text-center bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2.5 rounded-lg hover:from-fuchsia-600 hover:to-purple-600 transition-colors duration-200 text-base font-medium no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
