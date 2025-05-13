@@ -3,7 +3,7 @@ import { GoogleAuthProvider, signOut, signInWithPopup } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ref as storageRef, uploadBytes, getDownloadURL, getStorage } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebaseConfig";  // removed storage import
+import { auth, db } from "../firebaseConfig";
 import StepProgress from "../components/StepProgress";
 import OAuthSignUp from "../components/OAuthSignUp";
 import DoctorDetails from "../components/DoctorDetails";
