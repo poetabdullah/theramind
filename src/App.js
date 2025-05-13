@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
@@ -19,6 +19,8 @@ import SplashScreen from "./pages/SplashScreen";
 import Testimonial from "./pages/Testimonial";
 import PatientDashboard from "./pages/PatientDashboard";
 import AppointmentBooking from './components/AppointmentBooking';
+import DoctorSignUp from "./pages/DoctorSignUp";
+import SignUpLandingPage from "./pages/SignUpLandingPage";
 
 const App = () => (
   <div>
@@ -42,7 +44,8 @@ const App = () => (
       <Route path="/splash-screen" element={<SplashScreen />} />
       <Route path="/testimonial" element={<Testimonial />} />
       <Route path="/patient-dashboard" element={<PatientDashboard />} />
-      <Route path="/appointment-booking" element={<AppointmentBooking />} />
+      <Route path="/doctor-signup" element={<DoctorSignUp />} />
+      <Route path="signup-landing" element={<SignUpLandingPage />} />
     </Routes>
   </div>
 );

@@ -14,7 +14,7 @@ import EnterTwoFactorForm from "../components/EnterTwoFactorForm";
 import Footer from "../components/Footer";
 
 const steps = [
-  "Sign Up with Google",  // 1
+  "Sign Up",  // 1
   "Enter 2FA",            // 2
   "Enter CAPTCHA",        // 3
   "Enter Details",        // 4
@@ -153,7 +153,7 @@ const PatientSignUp = () => {
         <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-xl">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-purple-700">
-              Create Your TheraMind Account
+              Create Your Patient TheraMind Account
             </h1>
             <p className="text-gray-600 mt-2">
               Step {step} of {steps.length}

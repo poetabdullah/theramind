@@ -1,5 +1,5 @@
 {
-	"name": "theramind-homepage",
+	"name": "theramind",
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
@@ -10,7 +10,7 @@
 		"@reduxjs/toolkit": "^2.6.0",
 		"@svgr/plugin-svgo": "^8.1.0",
 		"@svgr/webpack": "^8.1.0",
-		"axios": "^1.8.3",
+		"axios": "^1.9.0",
 		"bootstrap": "^5.3.3",
 		"cra-template": "1.2.0",
 		"css-select": "^5.1.0",
@@ -21,13 +21,14 @@
 		"nth-check": "^2.1.1",
 		"postcss": "^8.5.3",
 		"react": "^18.2.0",
+		"react-datepicker": "^8.3.0",
 		"react-dom": "^18.2.0",
 		"react-icons": "^5.5.0",
 		"react-markdown": "^10.0.0",
-		"react-quill": "^2.0.0",
+		"react-quill": "^0.0.2",
 		"react-redux": "^9.2.0",
 		"react-router-dom": "^6.28.2",
-		"react-scripts": "^5.0.1",
+		"react-scripts": "^3.0.1",
 		"resolve-url-loader": "^5.0.0",
 		"string-strip-html": "^13.4.8",
 		"svgo": "^3.3.2"
