@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
@@ -43,8 +43,6 @@ const App = () => (
       <Route path="/splash-screen" element={<SplashScreen />} />
       <Route path="/testimonial" element={<Testimonial />} />
       <Route path="/patient-dashboard" element={<PatientDashboard />} />
-      <Route path="/appointment-booking" element={<AppointmentBooking />} />
-      <Route path="/doctor-signup" element={<DoctorSignUp />} />
     </Routes>
   </div>
 );
