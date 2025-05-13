@@ -46,6 +46,7 @@ export default function DoctorSignUp() {
         verified: false,
         status: "pending",
     });
+
     const [error, setError] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
@@ -80,8 +81,10 @@ export default function DoctorSignUp() {
     };
 
     const updateField = (field, value) => setDoctor(d => ({ ...d, [field]: value }));
+
     const updateArray = (arr, idx, key, value) => {
-        const copy = doctor[arr].map((item, i) => i === idx ? { ...item, [key]: value } : item);
+        const copy = [...doctor[arr]];
+        copy[idx] = { ...copy[idx], [key]: value };
         setDoctor(d => ({ ...d, [arr]: copy }));
     };
 
@@ -94,12 +97,6 @@ export default function DoctorSignUp() {
             const user = auth.currentUser; // Ensure user is signed in
 
             if (!user) throw new Error("User is not authenticated. Please sign in first.");
-
-            // Now upload the profilePic and other files
-            let profilePicUrl = null;
-            if (doctor.profilePic) {
-                profilePicUrl = await uploadFile(`doctors/${doctor.email}/profilePic`, doctor.profilePic);
-            }
 
             // Upload education files
             const education = await Promise.all(doctor.education.map(async (edu, i) => {
@@ -118,7 +115,7 @@ export default function DoctorSignUp() {
             // Prepare the data for Firestore
             const dataToSave = {
                 ...doctor,
-                profilePic: profilePicUrl,
+                profilePic: doctor.profilePic || null,  // Comes from Google photoURL
                 education,
                 experiences,
                 createdAt: new Date(),
