@@ -62,23 +62,54 @@ export default function DoctorSignUp() {
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: "select_account" });
             const { user } = await signInWithPopup(auth, provider);
-            const docRef = doc(db, "doctors", user.email);
-            const snap = await getDoc(docRef);
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.status === "approved") return navigate("/doctor-dashboard");
-                setError(data.status === "pending"
-                    ? "Your application is still pending approval."
-                    : "Your application has been rejected. Contact TheraMind for more information.");
-                return navigate("/");
+            const email = user.email;
+
+            const doctorRef = doc(db, "doctors", email);
+            const patientRef = doc(db, "patients", email);
+
+            const [doctorSnap, patientSnap] = await Promise.all([
+                getDoc(doctorRef),
+                getDoc(patientRef),
+            ]);
+
+            if (doctorSnap.exists()) {
+                const doctorData = doctorSnap.data();
+                switch (doctorData.status) {
+                    case "approved":
+                        navigate("/doctor-dashboard");
+                        return;
+                    case "pending":
+                        setError("Your application is still pending approval.");
+                        await signOut(auth);
+                        return;
+                    case "rejected":
+                        setError("Your application has been rejected. Contact TheraMind for more information.");
+                        await signOut(auth);
+                        navigate("/");
+                        return;
+                    default:
+                        setError("Unknown status. Please contact support.");
+                        await signOut(auth);
+                        return;
+                }
+            } else if (patientSnap.exists()) {
+                navigate("/patient-dashboard");
+                return;
+            } else {
+                setDoctor(d => ({
+                    ...d,
+                    uid: user.uid,
+                    email: user.email,
+                    fullName: user.displayName || "",
+                }));
+                setStep(2);
             }
-            setDoctor(d => ({ ...d, uid: user.uid, email: user.email, fullName: user.displayName || "" }));
-            setStep(2);
         } catch (err) {
             console.error("OAuth Error:", err);
             setError(err.message || "Google sign-in failed. Please try again.");
         }
     };
+
 
     const updateField = (field, value) => setDoctor(d => ({ ...d, [field]: value }));
 
