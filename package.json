@@ -6,6 +6,7 @@
 		"@emailjs/browser": "^4.4.1",
 		"@google/generative-ai": "^0.22.0",
 		"@popperjs/core": "^2.11.8",
+		"@react-oauth/google": "^0.12.2",
 		"@reduxjs/toolkit": "^2.6.0",
 		"@svgr/plugin-svgo": "^8.1.0",
 		"@svgr/webpack": "^8.1.0",
