@@ -44,10 +44,6 @@ export default function DoctorDetails({ data, onChange, onNext, onBack }) {
             errs.push("Contact number must be valid and at least 11 digits.");
         }
 
-        // Profile picture required
-        if (!data.profilePic) {
-            errs.push("Please upload a profile picture.");
-        }
 
         setErrors(errs);
         return errs.length === 0;
@@ -117,14 +113,6 @@ export default function DoctorDetails({ data, onChange, onNext, onBack }) {
                     />
                 </div>
 
-                {/* Profile Picture */}
-                <div>
-                    <UploadInput
-                        label="Profile Picture"
-                        file={data.profilePic}
-                        setFile={(file) => onChange("profilePic", file)}
-                    />
-                </div>
             </div>
 
             {/* Navigation buttons */}
