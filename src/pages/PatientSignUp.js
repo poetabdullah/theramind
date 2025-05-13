@@ -1,4 +1,4 @@
-// PatientSignUp.js (Updated for CAPTCHA)
+// PatientSignUp.js (Updated for 2FA and CAPTCHA)
 
 import React, { useState, useEffect } from "react";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
@@ -10,13 +10,15 @@ import OAuthSignUp from "../components/OAuthSignUp";
 import PatientDetailForm from "../components/PatientDetailForm";
 import HealthHistoryForm from "../components/HealthHistoryForm";
 import EnterCaptchaForm from "../components/EnterCaptchaForm";
+import EnterTwoFactorForm from "../components/EnterTwoFactorForm";
 import Footer from "../components/Footer";
 
 const steps = [
-  "Sign Up with Google",
-  "Enter CAPTCHA",
-  "Enter Details",
-  "Health History",
+  "Sign Up",  // 1
+  "Enter 2FA",            // 2
+  "Enter CAPTCHA",        // 3
+  "Enter Details",        // 4
+  "Health History",       // 5
 ];
 
 const PatientSignUp = () => {
@@ -48,8 +50,9 @@ const PatientSignUp = () => {
     cleanupAuth();
   }, []);
 
+  // Generate new CAPTCHA whenever step 3 is reached
   useEffect(() => {
-    if (step === 2) {
+    if (step === 3) {
       generateCaptcha();
     }
   }, [step]);
@@ -61,12 +64,13 @@ const PatientSignUp = () => {
       captcha += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setCaptchaCode(captcha);
+    setUserInput(""); // Clear any previous user input when generating new captcha
   };
 
-  // Here's what we wanna do, on success:
+  // Step 1: Handle Google Sign-Up
   // Checks if user is already in Firestore
   // If yes → navigate to patient dashboard
-  // If not → move to CAPTCHA step and prefill name/email in userData
+  // If not → move to 2FA step (step 2) and prefill name/email in userData
   const handleGoogleSignUp = async () => {
     setError({});
     try {
@@ -83,7 +87,7 @@ const PatientSignUp = () => {
         // If user exists, navigate directly to dashboard
         navigate("/patient-dashboard");
       } else {
-        // If new user, proceed with signup steps
+        // If new user, proceed with signup steps - move to 2FA (step 2)
         setUserData({ name: user.displayName || "", email: user.email || "" });
         setStep(2);
       }
@@ -93,45 +97,47 @@ const PatientSignUp = () => {
     }
   };
 
+  // Step 2: 2FA Verification
+  // This is handled by the EnterTwoFactorForm component which calls onSuccess to proceed to step 3 (CAPTCHA)
+
+  // Step 3: CAPTCHA Verification
   const handleVerifyCaptcha = () => {
     if (userInput.trim().toUpperCase() === captchaCode.toUpperCase()) {
-      setStep(3);
+      setStep(4); // Move to Enter Details step (step 4)
       setError({});
     } else {
       setError({ general: "Invalid CAPTCHA. Please try again." });
-      generateCaptcha();
+      generateCaptcha(); // Generate a new CAPTCHA if verification fails
     }
   };
 
-  const handleStepThreeSubmit = (data) => {
+  // Step 4: Patient Details Form
+  const handlePatientDetailsSubmit = (data) => {
     if (data.dob && data.location) {
       setUserData({ ...userData, ...data });
-      setStep(4);
+      setStep(5); // Move to Health History step (step 5)
       setError({});
     } else {
       setError({ general: "Please fill in all required fields." });
     }
   };
 
-  const handleStepFourSubmit = async (historyData) => {
-    const finalData = {
-      ...userData,
-      ...historyData,
-      createdAt: new Date(),
-      userId: auth.currentUser ? auth.currentUser.uid : Date.now().toString(),
-    };
-
+  // Step 5: Health History Form + Save to Firestore
+  const handleHealthHistorySubmit = async (historyData) => {
     try {
-      const userDoc = await getDoc(doc(db, "patients", finalData.email));
-      if (!userDoc.exists()) {
-        await setDoc(doc(db, "patients", finalData.email), finalData);
-        navigate("/patient-dashboard");
-      } else {
-        navigate("/patient-dashboard");
-      }
+      const finalData = {
+        ...userData,
+        ...historyData,
+        createdAt: new Date(),
+        userId: auth.currentUser ? auth.currentUser.uid : Date.now().toString(),
+      };
+
+      // Save the complete patient record to Firestore
+      await setDoc(doc(db, "patients", finalData.email), finalData);
+      navigate("/patient-dashboard");
     } catch (err) {
       console.error("Error saving user data:", err);
-      setError({ general: "Failed to save user data. Please try again." });
+      setError({ general: "Failed to save your health history. Please try again." });
     }
   };
 
@@ -176,6 +182,14 @@ const PatientSignUp = () => {
             {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
 
             {step === 2 && (
+              <EnterTwoFactorForm
+                email={userData.email}
+                onSuccess={() => setStep(3)}
+                error={error.general}
+              />
+            )}
+
+            {step === 3 && (
               <EnterCaptchaForm
                 captchaCode={captchaCode}
                 setUserInput={setUserInput}
@@ -184,17 +198,17 @@ const PatientSignUp = () => {
               />
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <PatientDetailForm
-                onSubmit={handleStepThreeSubmit}
+                onSubmit={handlePatientDetailsSubmit}
                 error={error}
                 initialData={userData}
               />
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <HealthHistoryForm
-                onSubmit={handleStepFourSubmit}
+                onSubmit={handleHealthHistorySubmit}
                 error={error}
               />
             )}

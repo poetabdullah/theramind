@@ -82,6 +82,7 @@ const Questionnaire = () => {
     }
   }, [currentQuestionIndex, responses]);
 
+  // Destructuring: To pull out properties from an input field selected by a user
   const changeEvent = (event) => {
     const { name, value } = event.target;
     setResponses((prev) => {

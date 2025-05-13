@@ -77,7 +77,7 @@ const PatientDetailForm = ({ onSubmit }) => {
       className="bg-white p-6 md:p-8 rounded-xl shadow-md max-w-lg mx-auto"
     >
       <h2 className="text-2xl font-bold text-center mb-4 text-indigo-700">
-        Step 3: Additional Details
+        Step 4: Additional Details
       </h2>
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
         <p className="text-yellow-700 font-medium">
