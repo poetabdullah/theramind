@@ -58,7 +58,7 @@ export default function DoctorSignUp() {
     const handleGoogleSignUp = async () => {
         setError("");
         try {
-            await signOut(auth);
+            await signOut(auth); // Ensure clean sign-in
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: "select_account" });
             const { user } = await signInWithPopup(auth, provider);
@@ -74,7 +74,21 @@ export default function DoctorSignUp() {
 
             if (doctorSnap.exists()) {
                 const doctorData = doctorSnap.data();
-                switch (doctorData.status) {
+                const status = doctorData.status;
+
+                if (!status) {
+                    // Handle edge case: doctor doc exists, but status is missing
+                    setDoctor(d => ({
+                        ...d,
+                        uid: user.uid,
+                        email: user.email,
+                        fullName: user.displayName || "",
+                    }));
+                    setStep(2);
+                    return;
+                }
+
+                switch (status) {
                     case "approved":
                         navigate("/doctor-dashboard");
                         return;
@@ -88,7 +102,7 @@ export default function DoctorSignUp() {
                         navigate("/");
                         return;
                     default:
-                        setError("Unknown status. Please contact support.");
+                        setError("Unknown application status. Please contact support.");
                         await signOut(auth);
                         return;
                 }
@@ -96,6 +110,7 @@ export default function DoctorSignUp() {
                 navigate("/patient-dashboard");
                 return;
             } else {
+                // New user: no doctor or patient entry yet
                 setDoctor(d => ({
                     ...d,
                     uid: user.uid,
@@ -109,6 +124,7 @@ export default function DoctorSignUp() {
             setError(err.message || "Google sign-in failed. Please try again.");
         }
     };
+
 
 
     const updateField = (field, value) => setDoctor(d => ({ ...d, [field]: value }));

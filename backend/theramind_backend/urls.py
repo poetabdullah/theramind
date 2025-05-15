@@ -18,9 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from .views import home
+from . import views
 
 urlpatterns = [
     path("", home, name="home"),  # Root URL redirects to React app
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
+    path("api/book-appointment/", views.book_appointment, name = 'book-appointment'),
 ]
