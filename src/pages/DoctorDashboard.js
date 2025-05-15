@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from "../firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import DoctorInfoCard from '../components/DoctorInfoCard';
 import DoctorEducationCard from '../components/DoctorEducationCard';
 import DoctorExperienceCard from '../components/DoctorExperienceCard';
 import DoctorBioCard from '../components/DoctorBioCard';
+import ListViewCard from '../components/ListViewCard';
 
 // Main Dashboard Component
 const DoctorDashboard = () => {
@@ -14,6 +15,9 @@ const DoctorDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [editingSection, setEditingSection] = useState(null);
+    const [articles, setArticles] = useState([]);
+    const [loadingArticles, setLoadingArticles] = useState(true);
+    const [articlesError, setArticlesError] = useState(null);
     const navigate = useNavigate();
 
     // Handle logout - Modified to redirect immediately
@@ -58,6 +62,48 @@ const DoctorDashboard = () => {
 
         fetchDoctorData();
     }, [navigate]);
+
+    // Fetch doctor's articles
+    useEffect(() => {
+        const fetchArticles = async () => {
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
+
+                setLoadingArticles(true);
+
+                // Query articles collection for documents authored by the current user
+                const articlesRef = collection(db, "articles");
+                const articlesQuery = query(articlesRef, where("authorEmail", "==", user.email));
+                const querySnapshot = await getDocs(articlesQuery);
+
+                const articlesList = [];
+                querySnapshot.forEach((doc) => {
+                    articlesList.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                // Sort articles by creation date (newest first)
+                articlesList.sort((a, b) => {
+                    const dateA = a.createdAt?.seconds || 0;
+                    const dateB = b.createdAt?.seconds || 0;
+                    return dateB - dateA;
+                });
+
+                setArticles(articlesList);
+                setArticlesError(null);
+            } catch (err) {
+                console.error("Error fetching articles:", err);
+                setArticlesError("Failed to load your articles");
+            } finally {
+                setLoadingArticles(false);
+            }
+        };
+
+        fetchArticles();
+    }, []);
 
     // Handle save for different sections
     const handleSave = async (section, updatedData) => {
@@ -170,6 +216,53 @@ const DoctorDashboard = () => {
                             setIsEditing={(editing) => setEditingSection(editing ? "bio" : null)}
                             handleSave={handleSave}
                         />
+
+                        {/* Articles Section - Added mt-12 for more margin from previous card */}
+                        <div className="mt-12 mb-8">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-semibold bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                                    Your Medical Articles
+                                </h2>
+                                <button
+                                    onClick={() => navigate("/write-article")}
+                                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg shadow hover:from-orange-600 hover:to-yellow-600 transition"
+                                >
+                                    Write an Article
+                                </button>
+                            </div>
+
+                            {loadingArticles ? (
+                                <div className="py-8 text-center text-gray-500">
+                                    Loading your articles...
+                                </div>
+                            ) : articlesError ? (
+                                <div className="py-8 text-center text-red-500">{articlesError}</div>
+                            ) : articles.length === 0 ? (
+                                <div className="py-8 text-center text-gray-500 bg-white rounded-2xl border border-orange-100 shadow">
+                                    You have not published any medical articles yet.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {articles.map((article) => (
+                                        <ListViewCard
+                                            key={article.id}
+                                            id={article.id}
+                                            title={article.title}
+                                            content={article.content || "No content available"}
+                                            author={article.author || doctorData.fullName}
+                                            date={
+                                                article.createdAt && article.createdAt.seconds
+                                                    ? new Date(article.createdAt.seconds * 1000).toLocaleDateString()
+                                                    : "No date available"
+                                            }
+                                            tags={article.tags || []}
+                                            link={`/articles/${article.id}`}
+                                            type="article"
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </>
                 )}
             </main>
