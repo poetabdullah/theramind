@@ -169,26 +169,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <nav className="bg-gradient-to-r from-purple-700 via-indigo-600 to-orange-600 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-white">TheraMind Admin Portal</h1>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-4 text-white">{currentUser?.email}</span>
-              <button
-                onClick={handleLogout}
-                className="bg-white text-indigo-600 hover:bg-gray-100 font-medium py-2 px-4 rounded-lg transition duration-200"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Notifications */}
