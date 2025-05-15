@@ -16,14 +16,15 @@ const DoctorDashboard = () => {
     const [editingSection, setEditingSection] = useState(null);
     const navigate = useNavigate();
 
-    // Handle logout
-    const handleLogout = async () => {
-        try {
-            await signOut(auth);
-            navigate("/login");
-        } catch (error) {
+    // Handle logout - Modified to redirect immediately
+    const handleLogout = () => {
+        // Navigate to login page immediately when logout is pressed
+        navigate("/login");
+
+        // Perform the actual logout operation in the background
+        signOut(auth).catch((error) => {
             console.error("Error signing out: ", error);
-        }
+        });
     };
 
     // Fetch doctor data
