@@ -26,3 +26,6 @@ export const auth = getAuth(app); // Export Firebase Auth instance
 export const provider = new GoogleAuthProvider(); // Create and export Google Auth provider
 export const db = getFirestore(app); // Export Firestore instance
 export default app; // Export the app instance
+
+console.log("API KEY:", process.env.REACT_APP_FIREBASE_API_KEY);
+

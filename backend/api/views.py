@@ -8,6 +8,10 @@ import json
 import firebase_admin
 from firebase_admin import firestore, credentials, initialize_app
 from google.oauth2 import service_account
+#Calendar API 
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from django.core.mail import send_email
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -330,3 +334,71 @@ def delete_patient_story(request, story_id):
 def test_cors(request):
     return Response({"message": "CORS is working!"})
 
+#OAuth Credentials From Firestore
+doc_ref = db.collection("doctors").document(doctor_email)
+doc_data = doc_ref.get().to_dict()
+
+creds = Credentials(
+    token = doc_data['access_token'],
+    refresh_token = doc_data['refresh_token'],
+    token_uri = 'https://oauth2.googleapis.com/token',
+    client_id = '996770367618-1u5ib31uqm033hf0n353rc45qt7r2gpg.apps.googleusercontent.com',
+    client_secret = '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',
+)
+
+#Calendar API Client Initialization
+calendar = build('calendar', v3, credentials = creds)
+
+#Event Object
+event = {
+    'summary': 'TheraMind Therapy Session',
+    'start': {'dateTime': start_time, 'timeZone': 'UTC'},
+    'end': {'dateTime': end_time, 'timeZone': 'UTC'},
+    'attendees': [
+        {'email': doctor_email},
+        {'email': patient_email},
+    ],
+    'conferenceData': {
+        'createRequest': {
+            'requestId': f"meet-{datetime.utcnow().timestamp()}",
+            'conferenceSolutionKey': {'type': 'hangoutsMeet'}
+        }
+    }
+}
+
+#Inserting Event Into Google Calendar
+event = calendar.events().insert(
+    calendarId = 'primary',
+    body = event,
+    conferenceDataVersion = 1
+).execute()
+
+meet_link = event['hangoutLink']
+calendar_event_id = event['id']
+
+#Send Appointment Email
+subject = 'TheraMind Appointment Confirmation'
+message = f"""
+Hi,
+
+Your therapy session has been booked.
+
+🕒 Time: {start_time} UTC
+🔗 Google Meet Link: {meet_link}
+
+Thanks,
+TheraMind Team
+"""
+send_mail(subject, message, 'theramind.web@gmail.com', [doctor_email, patient_email])
+
+#Storing Appointment Details In Firestore Database
+db.collection('appointments').add({
+    'doctor_email': doctor_email,
+    'patient_email': patient_email,
+    'start_time': start_time,
+    'end_time': end_time,
+    'calendar_event_id' = calendar_event_id,
+    'meet_link': meet_link,
+    'status': 'booked',
+    'created_at': datetime.utcnow().isoformat()
+})
