@@ -5,6 +5,8 @@ import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { Menu, X, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 const Navbar = () => {
   const [user, setUser] = useState(null); // user object
@@ -15,6 +17,9 @@ const Navbar = () => {
   const [educationDropdownOpen, setEducationDropdownOpen] = useState(false); // drop-down for education tile
   const dropdownRef = useRef(null);
   const auth = getAuth();
+
+
+  const navigate = useNavigate();
 
   // When mobile menu opens, scrolling is disabled to prevent background interaction
   useEffect(() => {
@@ -89,9 +94,11 @@ const Navbar = () => {
       setUserType(null);
       setIsApprovedDoctor(false);
       setMenuOpen(false);
+      navigate("/login");
     } catch (error) {
       console.error("Error signing out:", error);
     }
+
   };
 
   // Get dashboard link based on user type
