@@ -13,6 +13,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from theramind_backend.config import db, initialize_firebase
+from google.cloud import firestore
+
 
 from datetime import datetime
 import pytz
