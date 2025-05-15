@@ -1,7 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import axios from 'axios'
 
-const AppointmentBooking = () => {
+const AppointmentBooking = () => { 
+	const [form, setForm] = useState({
+
+
+
+
+
+
+
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
