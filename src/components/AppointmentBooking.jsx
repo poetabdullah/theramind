@@ -19,6 +19,7 @@ const AppointmentBooking = () => {
 				'http://localhost:8080/api/book-appointment',
 				form
 			);
+			console.log('Booked appointment response:', response.data);
 			alert(
 				'Appointment booked successfully! Check your email for confirmation.'
 			);
@@ -110,13 +111,13 @@ const AppointmentBooking = () => {
 					/>
 					<motion.button
 						type="submit"
-						className="bg-blue-500 text-white p-2 rounded"
+						className="bg-blue-500 text-white p-2 rounded px-2"
 					>
 						Book Appointment
 					</motion.button>
 					<motion.button
 						type="button"
-						className="bg-red-500 text-white p-2 rounded"
+						className="bg-red-500 text-white p-2 rounded px-2"
 						onClick={() => cancelAppointment('appointmentId')}
 					>
 						Cancel Appointment
