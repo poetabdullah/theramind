@@ -44,7 +44,7 @@ const Navbar = () => {
         const doctorDocSnap = await getDoc(doctorDocRef);
 
         // Check if user is an admin
-        const adminDocRef = doc(db, "admins", currentUser.email);
+        const adminDocRef = doc(db, "admin", currentUser.email);
         const adminDocSnap = await getDoc(adminDocRef);
 
         if (patientDocSnap.exists()) {
@@ -106,6 +106,32 @@ const Navbar = () => {
       default:
         return "/";
     }
+  };
+
+  // Get user's initials for avatar
+  const getUserInitials = () => {
+    if (user?.displayName) {
+      const nameParts = user.displayName.split(' ');
+      if (nameParts.length >= 2) {
+        return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+      }
+      return user.displayName[0].toUpperCase();
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    return "U";
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (user?.displayName) {
+      return user.displayName;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return "User";
   };
 
   // Determine if we should render logged-in navigation
@@ -191,8 +217,8 @@ const Navbar = () => {
 
                     <div
                       className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2"
                         }`}
                     >
                       <div className="py-1">
@@ -246,8 +272,8 @@ const Navbar = () => {
 
                     <div
                       className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2"
                         }`}
                     >
                       <div className="py-1">
@@ -296,21 +322,18 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                {user.photoURL && (
-                  <Link
-                    to={getDashboardLink()}
-                    className="flex items-center space-x-2 no-underline"
-                  >
-                    <img
-                      src={user.photoURL}
-                      alt={user.displayName}
-                      className="w-10 h-10 rounded-full border-1 border-indigo-500"
-                    />
-                    <span className="text-gray-300 font-medium hover:text-orange-400 transition-colors duration-200">
-                      {user.displayName}
-                    </span>
-                  </Link>
-                )}
+                <Link
+                  to={getDashboardLink()}
+                  className="flex items-center space-x-2 no-underline"
+                >
+                  {/* Always display user initials instead of profile picture */}
+                  <div className="w-10 h-10 rounded-full bg-indigo-400 flex items-center justify-center text-white font-medium border-1 border-indigo-500">
+                    {getUserInitials()}
+                  </div>
+                  <span className="text-gray-300 font-medium hover:text-orange-400 transition-colors duration-200">
+                    {getUserDisplayName()}
+                  </span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2.5 rounded-lg hover:from-fuchsia-600 hover:to-purple-600 transition-colors duration-200 font-medium"
@@ -473,22 +496,19 @@ const Navbar = () => {
               ) : (
                 <div className="pt-6 pb-8">
                   <div className="flex items-center space-x-4 mb-4">
-                    {user.photoURL && (
-                      <Link
-                        to={getDashboardLink()}
-                        className="flex items-center space-x-2"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        <img
-                          src={user.photoURL}
-                          alt={user.displayName}
-                          className="w-10 h-10 rounded-full border-1 border-indigo-500"
-                        />
-                        <span className="text-gray-300 font-medium hover:text-orange-500 transition-colors duration-200">
-                          {user.displayName}
-                        </span>
-                      </Link>
-                    )}
+                    <Link
+                      to={getDashboardLink()}
+                      className="flex items-center space-x-2"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {/* Always display user initials in mobile menu as well */}
+                      <div className="w-10 h-10 rounded-full bg-indigo-400 flex items-center justify-center text-white font-medium border-1 border-indigo-500">
+                        {getUserInitials()}
+                      </div>
+                      <span className="text-gray-300 font-medium hover:text-orange-500 transition-colors duration-200">
+                        {getUserDisplayName()}
+                      </span>
+                    </Link>
                   </div>
                   <button
                     onClick={handleLogout}
