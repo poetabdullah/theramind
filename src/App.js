@@ -49,6 +49,7 @@ const App = () => (
       <Route path="/signup-landing" element={<SignUpLandingPage />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+      <Route path="/appointment-booking" element={<AppointmentBooking />} />
     </Routes>
   </div>
 );
