@@ -4,47 +4,24 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Article, PatientStory
 from .serializers import ArticleSerializer, PatientStorySerializer
-import json
-import firebase_admin
-from firebase_admin import firestore, credentials, initialize_app
-from google.oauth2 import service_account
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime
-
-# Libraries For Calendar & Email APIs
-import datetime
-import pytz
-import smtplib
-from email.mime.text import MIMEText
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-
-
-from firebase_admin import firestore
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
 
-from utils.firestore import add_document
-
-
-from firebase_admin import credentials
-from firebase_admin import credentials, initialize_app
-from google.oauth2 import service_account
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from theramind_backend.config import db, initialize_firebase
 
-# This ensures Firebase is only initialized once (even if views are imported multiple times)
-if not firebase_admin._apps:
-    credentials = service_account.Credentials.from_service_account_file(
-        "C:/Users/user/VSCodeJSProjects/React/theramind/backend/firebase_admin_credentials.json"
-    )
-    firebase_admin.initialize_app(credentials)
+from datetime import datetime
+import pytz
+import json
+import os
 
-db = firestore.client()
+# Google API imports:
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 
 # Opens up the detail view of the specific article / patient story
@@ -345,7 +322,14 @@ def test_cors(request):
 
 # Google API Setup (also not in views.py)
 SCOPES = ["http://www.googleapis.com/auth/calendar"]
-SERVICE_ACCOUNT_FILE = r"C:\Users\Computer World\theramind\backend\calendar_access.json"
+
+# Get the absolute path to the backend folder (one level above this file)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+# Correct path to calendar_access.json inside backend/
+SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "calendar_access.json")
+
+# Load credentials and initialize calendar service
 calendar_credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES
 )
