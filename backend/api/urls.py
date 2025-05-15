@@ -48,5 +48,6 @@ urlpatterns = [
         name="delete_patient_story",
     ),
     path("test-cors/", test_cors, name="test-cors"),
-    path("api/book-appointment/", views.book_appointment, name= 'book-appointment'),
+    # remove api, views. and book appointment will get an id
+    path("api/book-appointment/", views.book_appointment, name="book-appointment"),
 ]
