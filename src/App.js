@@ -22,7 +22,7 @@ import AppointmentBooking from './components/AppointmentBooking';
 import DoctorSignUp from "./pages/DoctorSignUp";
 import SignUpLandingPage from "./pages/SignUpLandingPage";
 import AdminDashboard from "./pages/AdminDashboard";
-
+import DoctorDashboard from "./pages/DoctorDashboard";
 const App = () => (
   <div>
     <Navbar />
@@ -48,7 +48,7 @@ const App = () => (
       <Route path="/doctor-signup" element={<DoctorSignUp />} />
       <Route path="/signup-landing" element={<SignUpLandingPage />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
-
+      <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
       <Route path="/appointment-booking" element={<AppointmentBooking />} />
     </Routes>
   </div>

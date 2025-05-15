@@ -4,38 +4,26 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Article, PatientStory
 from .serializers import ArticleSerializer, PatientStorySerializer
-import json
-import firebase_admin
-from firebase_admin import firestore, credentials, initialize_app
-from google.oauth2 import service_account
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime
-
-from firebase_admin import firestore
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
 
-from utils.firestore import add_document
-
-
-from firebase_admin import credentials
-from firebase_admin import credentials, initialize_app
-from google.oauth2 import service_account
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from theramind_backend.config import db, initialize_firebase
+from google.cloud import firestore
 
-# This ensures Firebase is only initialized once (even if views are imported multiple times)
-if not firebase_admin._apps:
-    credentials = service_account.Credentials.from_service_account_file(
-        "C:/Users/user/VSCodeJSProjects/React/theramind/backend/firebase_admin_credentials.json"
-    )
-    firebase_admin.initialize_app(credentials)
 
-db = firestore.client()
+from datetime import datetime
+import pytz
+import json
+import os
+
+# Google API imports:
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 
 # Opens up the detail view of the specific article / patient story
@@ -330,3 +318,159 @@ def delete_patient_story(request, story_id):
 def test_cors(request):
     return Response({"message": "CORS is working!"})
 
+
+# Appointment code:
+# ____________________________________________________________________________________
+
+# Google API Setup (also not in views.py)
+SCOPES = ["http://www.googleapis.com/auth/calendar"]
+
+# Get the absolute path to the backend folder (one level above this file)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+# Correct path to calendar_access.json inside backend/
+SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "calendar_access.json")
+
+# Load credentials and initialize calendar service
+calendar_credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+)
+calendar_service = build("calendar", "v3", credentials=calendar_credentials)
+
+
+@csrf_exempt
+def book_appointment(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        name = data["name"]
+        email = data["email"]
+        doctor_email = data["doctor"]
+        datetime_str = data["datetime"]
+        dt = datetime.datetime.fromisoformat(datetime_str)
+        timezone = "Asia/Islamabad"
+        start_time = dt.astimezone(pytz.timezone(timezone))
+        end_time = start_time + datetime.timedelta(minutes=30)
+
+        event = {
+            "summary": f"Appointment with {name}",
+            "description": f"TheraMind Therapy Session",
+            "start": {"dateTime": start_time.isoformat(), "timeZone": timezone},
+            "end": {"dateTime": end_time.isoformat(), "timeZone": timezone},
+            "attendees": [{"email": doctor_email}, {"email": email}],
+            "conferenceData": {
+                "createRequest": {
+                    "requestId": f"{email}-{dt.timestamp()}",
+                    "conferenceSolutionKey": {"type": "hangoutsMeet"},
+                }
+            },
+        }
+
+        created_event = (
+            calendar_service.events()
+            .insert(calendarId="primary", body=event, conferenceDataVersion=1)
+            .execute()
+        )
+
+        meet_link = created_event.get("hangoutLink")
+
+        # Store in Firestore
+        appointment_data = {
+            "name": name,
+            "email": email,
+            "doctor": doctor_email,
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat(),
+            "meet_link": meet_link,
+        }
+        db.collection("appointments").add(appointment_data)
+
+        # Sending Email
+        subject = "Appointment Confirmed"
+        message = f"Hi {name}, \nYour appointment with the doctor has been scheduled. \n\nGoogle Meet Link: {meet_link}\nThanks,\nTheraMind"
+        send_email(email, subject, message)
+        send_email(doctor_email, "New Appointment Booked", message)
+
+        return JsonResponse({"message": "Appointment booked", "meet_link": meet_link})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+# not in view.py
+def send_email(to_email, subject, body):
+    from_email = "theramind.web@gmail.com"
+    password = "TheraMind2024"
+
+    message = MIMEText(body)
+    message["Subject"] = subject
+    message["From"] = from_email
+    message["To"] = to_email
+    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    server.login(from_email, password)
+    server.sendmail(from_email, [to_email], message.as_string())
+    server.quit()
+
+
+# Cancel Appointment
+@csrf_exempt
+def cancel_appointment(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        event_id = data["event_id"]
+
+        try:
+            calendar_service.events().delete(
+                calendarId="primary", eventId=event_id
+            ).execute()
+        except Exception as e:
+            return JsonResponse(
+                {"error": "Failed to delete from Google Calendar", "details": str(e)},
+                status=500,
+            )
+
+        # Delete Record From Firestore Database
+        appointments = (
+            db.collection("appointments").where("event_id", "==, event_id").get()
+        )
+        for appointment in appointments:
+            appointment.reference.delete()
+
+        return JsonResponse({"message": "Appointment cancelled successfully"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+# Rescheduling Appointment
+@csrf_exempt
+def reschedule_appointment(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        event_id = data["event_id"]
+        new_datetime = datetime.datetime.fromisoformat(data["new_dattime"])
+        timezone = "Asia/Islamabad"
+        start_time = new_datetime.astimezone(pytz.timezone(timezone))
+        end_time = start_time + datetime.timedelta(minutes=30)
+
+        try:
+            updated_event = {
+                "start": {"dateTime": start_time.isoformat(), "timeZone": timezone},
+                "end": {"dateTime": end_time.isoformat(), "timeZone": timezone},
+            }
+            calendar_service.events().patch(
+                calendarId="primary", eventId=event_id, body=updated_event
+            ).execute()
+
+            # Updating The Record In Firestore Database
+            appointments = (
+                db.collection("appointments").where("event_id", "==", event_id).get()
+            )
+            for appointment in appointments:
+                appointment.reference.update(
+                    {
+                        "start_time": start_time.isoformat(),
+                        "end_time": end_time.isoformat(),
+                    }
+                )
+            return JsonResponse({"message": "Appointment Rescheduled Successfully"})
+        except Exception as e:
+            return JsonResponse(
+                {"error": "Failed to reschedule", "details": str(e)}, status=500
+            )
+    return JsonResponse({"error": "Invalid request"}, status=400)
