@@ -8,7 +8,8 @@ import { Menu, X, ChevronDown } from "lucide-react";
 
 const Navbar = () => {
   const [user, setUser] = useState(null); // user object
-  const [isRegistered, setIsRegistered] = useState(false); // logged in patients
+  const [userType, setUserType] = useState(null); // "admin", "patient", "doctor", or null
+  const [isApprovedDoctor, setIsApprovedDoctor] = useState(false); // for doctors with approved status
   const [loading, setLoading] = useState(true); // block render unless firebase checks auth state
   const [menuOpen, setMenuOpen] = useState(false); // checks if the menu is open
   const [educationDropdownOpen, setEducationDropdownOpen] = useState(false); // drop-down for education tile
@@ -29,17 +30,37 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
-
-  // Check if the patient is registered
+  // Check user type and status
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const userDocRef = doc(db, "patients", currentUser.email);
-        const docSnap = await getDoc(userDocRef);
-        setIsRegistered(docSnap.exists());
+        // Check if user is a patient
+        const patientDocRef = doc(db, "patients", currentUser.email);
+        const patientDocSnap = await getDoc(patientDocRef);
+
+        // Check if user is a doctor
+        const doctorDocRef = doc(db, "doctors", currentUser.email);
+        const doctorDocSnap = await getDoc(doctorDocRef);
+
+        // Check if user is an admin
+        const adminDocRef = doc(db, "admins", currentUser.email);
+        const adminDocSnap = await getDoc(adminDocRef);
+
+        if (patientDocSnap.exists()) {
+          setUserType("patient");
+        } else if (doctorDocSnap.exists()) {
+          setUserType("doctor");
+          // Check if doctor is approved
+          setIsApprovedDoctor(doctorDocSnap.data().status === "approved");
+        } else if (adminDocSnap.exists()) {
+          setUserType("admin");
+        } else {
+          setUserType(null);
+        }
       } else {
-        setIsRegistered(false);
+        setUserType(null);
+        setIsApprovedDoctor(false);
       }
       setLoading(false);
     });
@@ -60,17 +81,35 @@ const Navbar = () => {
     };
   }, []);
 
-  // Handles the logout functionality --> Exists the session (Calls Firebase signOut)
+  // Handles the logout functionality --> Exits the session (Calls Firebase signOut)
   const handleLogout = async () => {
     try {
       await signOut(auth);
       setUser(null);
-      setIsRegistered(false);
+      setUserType(null);
+      setIsApprovedDoctor(false);
       setMenuOpen(false);
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
+
+  // Get dashboard link based on user type
+  const getDashboardLink = () => {
+    switch (userType) {
+      case "admin":
+        return "/admin-dashboard";
+      case "doctor":
+        return "/doctor-dashboard";
+      case "patient":
+        return "/patient-dashboard";
+      default:
+        return "/";
+    }
+  };
+
+  // Determine if we should render logged-in navigation
+  const isLoggedIn = user && userType;
 
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-purple-700 via-violet-600 to-indigo-700 text-white shadow-lg">
@@ -93,7 +132,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Menu Button (Mobile)  or a hamburger */}
+          {/* Menu Button (Mobile) or a hamburger */}
           <div className="flex lg:hidden">
             <button
               className="text-gray-300 hover:text-orange-400 p-2"
@@ -104,11 +143,10 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          {/* Different nav links for logged in vs logged out users  */}
           <div className="hidden lg:flex lg:items-center lg:justify-between lg:flex-1 lg:ml-12">
             {/* Nav Links */}
             <div className="flex items-center justify-center flex-1 space-x-12">
-              {user ? (
+              {isLoggedIn ? (
                 <>
                   <Link
                     to="/about-us"
@@ -153,8 +191,8 @@ const Navbar = () => {
 
                     <div
                       className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
-                        ? "opacity-100 visible translate-y-0"
-                        : "opacity-0 invisible -translate-y-2"
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible -translate-y-2"
                         }`}
                     >
                       <div className="py-1">
@@ -208,8 +246,8 @@ const Navbar = () => {
 
                     <div
                       className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-violet-600 ring-1 ring-black ring-opacity-5 transition-all duration-200 ${educationDropdownOpen
-                        ? "opacity-100 visible translate-y-0"
-                        : "opacity-0 invisible -translate-y-2"
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible -translate-y-2"
                         }`}
                     >
                       <div className="py-1">
@@ -241,7 +279,7 @@ const Navbar = () => {
             </div>
 
             {/* Desktop Auth Buttons */}
-            {!user ? (
+            {!isLoggedIn ? (
               <div className="flex items-center space-x-4 ml-12">
                 <Link
                   to="/signup-landing"
@@ -257,38 +295,33 @@ const Navbar = () => {
                 </Link>
               </div>
             ) : (
-              isRegistered && (
-                < div className="flex items-center space-x-4">
-                  {/* If the user is registered: */}
-                  {user.photoURL && (
-                    <Link
-                      to="/patient-dashboard"
-                      className="flex items-center space-x-2 no-underline"
-                    >
-                      <img
-                        src={user.photoURL}
-                        alt={user.displayName}
-                        className="w-10 h-10 rounded-full border-1 border-indigo-500"
-                      />
-
-                      <span className="text-gray-300 font medium hover:text-orange-400 transition-colors duration-200">
-                        {user.displayName}
-                      </span>
-                    </Link>
-                  )}{" "}
-                  <button
-                    onClick={handleLogout}
-                    className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2.5 rounded-lg hover:from-fuchsia-600 hover:to-purple-600 transition-colors duration-200 font-medium"
+              <div className="flex items-center space-x-4">
+                {user.photoURL && (
+                  <Link
+                    to={getDashboardLink()}
+                    className="flex items-center space-x-2 no-underline"
                   >
-                    Logout
-                  </button>
-                </div>
-              )
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName}
+                      className="w-10 h-10 rounded-full border-1 border-indigo-500"
+                    />
+                    <span className="text-gray-300 font-medium hover:text-orange-400 transition-colors duration-200">
+                      {user.displayName}
+                    </span>
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2.5 rounded-lg hover:from-fuchsia-600 hover:to-purple-600 transition-colors duration-200 font-medium"
+                >
+                  Logout
+                </button>
+              </div>
             )}
           </div>
 
           {/* Mobile Menu Overlay */}
-          {/* The background of other screen elements become transparent black if menu opens */}
           <div
             className={`${menuOpen ? "opacity-50 visible" : "opacity-0 invisible"
               } fixed inset-0 bg-black transition-opacity duration-300 lg:hidden`}
@@ -310,7 +343,7 @@ const Navbar = () => {
             </div>
 
             <div className="px-4 py-2 space-y-6">
-              {user ? (
+              {isLoggedIn ? (
                 <>
                   <Link
                     to="/about-us"
@@ -388,7 +421,7 @@ const Navbar = () => {
                   <div className="py-2">
                     <Link
                       to="/education-main"
-                      className="block text-gray-300 hover:text-orange-400py-2 text-lg no-underline"
+                      className="block text-gray-300 hover:text-orange-400 py-2 text-lg no-underline"
                       onClick={() => setMenuOpen(false)}
                     >
                       Education
@@ -411,7 +444,7 @@ const Navbar = () => {
                     </div>
                   </div>
                   <Link
-                    to="/ContactUs"
+                    to="/contact-us"
                     className="block text-gray-300 hover:text-orange-400 py-2 text-lg no-underline"
                     onClick={() => setMenuOpen(false)}
                   >
@@ -420,7 +453,7 @@ const Navbar = () => {
                 </>
               )}
 
-              {!user ? (
+              {!isLoggedIn ? (
                 <div className="space-y-4 pt-6 pb-8">
                   <Link
                     to="/signup-landing"
@@ -438,41 +471,38 @@ const Navbar = () => {
                   </Link>
                 </div>
               ) : (
-                isRegistered && (
-                  <div className="pt-6 pb-8">
-                    <div className="flex items-center space-x-4 mb-4">
-                      {user.photoURL && (
-                        <Link
-                          to="/patient-dashboard"
-                          className="flex items-center space-x-2"
-                          onClick={() => setMenuOpen(false)}
-                        >
-                          <img
-                            src={user.photoURL}
-                            alt={user.displayName}
-                            className="w-10 h-10 rounded-full border-1 border-indigo-500"
-                          />
-                          <span className="text-gray-300 font-medium hover:text-orange-500 transition-colors duration-200">
-                            {user.displayName}
-                          </span>
-                        </Link>
-                      )}
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2.5 rounded-lg hover:from-fuchsia-600 hover:to-purple-600 transition-colors duration-200 font-medium"
-                    >
-                      {" "}
-                      Logout
-                    </button>
+                <div className="pt-6 pb-8">
+                  <div className="flex items-center space-x-4 mb-4">
+                    {user.photoURL && (
+                      <Link
+                        to={getDashboardLink()}
+                        className="flex items-center space-x-2"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <img
+                          src={user.photoURL}
+                          alt={user.displayName}
+                          className="w-10 h-10 rounded-full border-1 border-indigo-500"
+                        />
+                        <span className="text-gray-300 font-medium hover:text-orange-500 transition-colors duration-200">
+                          {user.displayName}
+                        </span>
+                      </Link>
+                    )}
                   </div>
-                )
+                  <button
+                    onClick={handleLogout}
+                    className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2.5 rounded-lg hover:from-fuchsia-600 hover:to-purple-600 transition-colors duration-200 font-medium"
+                  >
+                    Logout
+                  </button>
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
-    </nav >
+    </nav>
   );
 };
 
