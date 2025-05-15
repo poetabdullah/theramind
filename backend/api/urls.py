@@ -25,6 +25,7 @@ from .views import (
     get_patient_story,
     test_cors,
 )
+from . import views
 
 urlpatterns = [
     path("get_articles/", get_articles, name="get_articles"),
@@ -47,4 +48,5 @@ urlpatterns = [
         name="delete_patient_story",
     ),
     path("test-cors/", test_cors, name="test-cors"),
+    path("api/book-appointment/", views.book_appointment, name= 'book-appointment'),
 ]
