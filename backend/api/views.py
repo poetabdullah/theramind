@@ -340,11 +340,11 @@ def test_cors(request):
 
 #Google API Setup
 SCOPES = ['http://www.googleapis.com/auth/calendar']
-SERVICE_ACCOUNT_FILE = 'thera-mind-d023bc1f97fb.json'
-Credentials = service_account.Credentials.from_service_account_file(
+SERVICE_ACCOUNT_FILE = r'C:\Users\Computer World\theramind\backend\calendar_access.json'
+calendar_credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes = SCOPES
 )
-calendar_service = build('calendar', 'v3', credentials=credentials)
+calendar_service = build('calendar', 'v3', credentials=calendar_credentials)
 
 @csrf_exempt
 def book_appointment(request):
@@ -394,7 +394,7 @@ def book_appointment(request):
 
         #Sending Email
         subject = "Appointment Confirmed"
-        message = f"Hi {name}, \n\Your appointment with the doctor has been scheduled. \n\nGoogle Meet Link: {meet_link}\n\Thanks,\nTheraMind"
+        message = f"Hi {name}, \nYour appointment with the doctor has been scheduled. \n\nGoogle Meet Link: {meet_link}\nThanks,\nTheraMind"
         send_email(email, subject, message)
         send_email(doctor_email, "New Appointment Booked", message)
 

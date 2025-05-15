@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "thera-mind",
+  "private_key_id": "d023bc1f97fbf70491f4c4f4a1f96dabb700d41c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCk7KIccVFnA5wK\nol2Uz2v0UY/UAvZkW87wJZ+fswMyaF+Tt4pVvGSPjw7A5GHS3etIP82nR/eg4Jc4\n1wbG/zKTh1RZl5EO8idELKP3R6Ln6Im2PxgMSYSf7tg20U67libk710r+Lf5xRqB\naRX+EFpowMsYNAMt6GEhrj9kON0DsyzQhu2vGOxiJgFcJ4laek+BwEV/PrictRaG\nIQt6TSQTMnx0u4Ms+20+l1ujQF/T6YgzPz1wsK53td5Mj9W+c90QUoIBG4R/N2/7\n9GYA9HMnbO5jTxFW3m3/05qUyK7VBwicpxXhwsST5JcfUAn0lUJrxC6U3oOwXNaL\nfNRPQXYtAgMBAAECggEAJoHx3/49aXYYSwtaGlLL/AHHOVNvwEMHcF74hEtB5dUk\n69KhBB+2wyY95Z/tj1StiPMMy5AsK24FIQpj1LblUjj44upWvkygCnT529ToHonX\nDaxxqvzHcKhN5467eWU3s6CH+qpaGoGBDNJChk2/LlJFmWMbku59L2YF+xqj0Cb3\nS0XnE+9dqSw3TkMINGiFrnupdIR/i/NXC0JehvdzjIc9tjppeEK9A0jOhi1CiguP\n6qILOxK6dwpJiEfC1gycXqyL/q7l+IkrngtMqL+RO0A/VSXgc1AU/8WPvTDFqHNu\nd2o9J67EVhn+9NFI5OrSd7zr67JSTUqEQaKACvpigQKBgQDjxGw96vENhYTpw64U\n3gkPwu3fWwBxWwSX+oWQX8veFJf4Ir5rFbt6g7ldbD8ofigvbUTnS5c3RSKTk2Z4\npx3yW0RBslGVrkkKNox6iiHs6V0gOAxbzAWRkWnVWpQpglFm8B6b3m0eHjEqMxTt\nXdLgDqo1Y+JLdfe1EGkJ2q6GEQKBgQC5Xg94wuB5b8DngYyE7JZJkNNnYGeRBxYx\n8jRcmXOL29Nk8af6TOpnZ0mz8428HVcuCsWKFtAYpPYfSHsv9Qx3P/cE3OCKacGG\nipGIJ6+6Bjnr25s3etgvyCSEXrN8b5ElKAVfPyDZvSpKPrR5iVjDJzVIPwjEXRzM\nbHnqSMSiXQKBgF217yL6ivsZODpFvFXxlKDbfqsq8d+xpw4wkMt53pMcvfnlsZq1\nclFR6O47HzE11qrMtlDDlQ+0bilxt/NkLroMOuUczNxcvMhq8Rlpw9OJoDslVFBg\nfNoLjhOuFM+PQparrKxMs3B0052dLrsKozx0TCtzUSPjAWuJuO3I/41BAoGAGnc4\nhEhmnk/7XdJcSrowtu4rkM3t24IEhDsNiM8L9UL8iqQKFK2YpgzUNBIpAVu7D8LP\n82hQa8RZs5u4ot882WXTkekrUffJfrkYEDWCXG/5Iximr6Qla6UKua9/ttuDAKgX\nJEMyIIRmnlUXlWaruqlFbTw6tzaIHxO50F51XK0CgYEA0u9MRVrp4iQgHY39j6CE\nthYlqEzA8oHUR1e8kINUvSORysBFJr0M5skPCyR4Q55v7I9rFRsZk9HAj8U1G19Z\n47RXsXPyBDZ8pyqdNfXHc/B9O2bEUYRETF8hX56lmsTtiR9khEQ8d3YQ5mUiGMZz\nXxPcQ4Jqx4pVBWDFXgfh2ZA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "calendar-access@thera-mind.iam.gserviceaccount.com",
+  "client_id": "110521417502332284258",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/calendar-access%40thera-mind.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
