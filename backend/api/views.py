@@ -336,3 +336,316 @@ def delete_patient_story(request, story_id):
 @api_view(["GET"])
 def test_cors(request):
     return Response({"message": "CORS is working!"})
+
+
+# --------------------------- TREATMENT PLAN VIEWS --------------------------------
+
+
+@api_view(["POST"])
+def create_treatment_plan(request):
+    """
+    Create a new treatment plan with initial version.
+    """
+    data = request.data
+    try:
+        doctor_email = data.get("doctor_email")
+        doctor_name = data.get("doctor_name")
+        patient_email = data.get("patient_email")
+        patient_name = data.get("patient_name")
+        goals = data.get("goals", [])
+
+        if not all([doctor_email, doctor_name, patient_email, patient_name, goals]):
+            return Response({"error": "Missing required fields"}, status=400)
+
+        plan_ref = db.collection("treatment_plans").document()
+        version_ref = plan_ref.collection("versions").document()
+
+        now = datetime.utcnow()
+        plan_ref.set(
+            {
+                "doctor_email": doctor_email,
+                "doctor_name": doctor_name,
+                "patient_email": patient_email,
+                "patient_name": patient_name,
+                "is_terminated": False,
+                "created_at": now,
+            }
+        )
+
+        version_ref.set(
+            {
+                "start_date": now,
+                "end_date": now,
+                "weekly_score": 0,
+                "goals": goals,
+            }
+        )
+
+        return Response(
+            {
+                "message": "Treatment plan created",
+                "plan_id": plan_ref.id,
+                "version_id": version_ref.id,
+            }
+        )
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+def terminate_treatment_plan(request, plan_id):
+    """
+    Terminates the treatment plan, making it non-editable.
+    """
+    try:
+        plan_ref = db.collection("treatment_plans").document(plan_id)
+        plan_ref.update({"is_terminated": True})
+        return Response({"message": "Plan terminated successfully"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+def get_treatment_plan_versions(request, plan_id):
+    """
+    Retrieve all plan versions by date for one treatment plan.
+    Each treatment plan has a version before it is updated. A newly updated treatment plan will be stored in a new version.
+    """
+    try:
+        versions = (
+            db.collection("treatment_plans")
+            .document(plan_id)
+            .collection("versions")
+            .order_by("start_date")
+            .stream()
+        )
+        result = [{**v.to_dict(), "version_id": v.id} for v in versions]
+
+        return Response(result)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+def get_treatment_plan_version(request, plan_id, version_id):
+    """
+    Return full treatment plan version including goals/actions.
+    """
+    try:
+        version_ref = (
+            db.collection("treatment_plans")
+            .document(plan_id)
+            .collection("versions")
+            .document(version_id)
+        )
+        version = version_ref.get()
+        if version.exists:
+            return Response(version.to_dict())
+        return Response({"error": "Version not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["PUT"])
+def update_current_week_actions(request, plan_id, version_id):
+    """
+    Allows updating actions/goals in the current version only.
+    """
+    try:
+        updated_goals = request.data.get("goals", [])
+        version_ref = (
+            db.collection("treatment_plans")
+            .document(plan_id)
+            .collection("versions")
+            .document(version_id)
+        )
+
+        version = version_ref.get()
+        if not version.exists:
+            return Response({"error": "Version not found"}, status=404)
+
+        version_ref.update({"goals": updated_goals, "end_date": datetime.utcnow()})
+
+        return Response({"message": "Plan version updated"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+def mark_action_complete(request, plan_id, version_id):
+    """
+    Mark an action as completed by doctor or patient (based on role).
+    Request should include:
+    - goal_id: str
+    - action_id: str
+    - role: "doctor" or "patient"
+    """
+    try:
+        goal_id = request.data.get("goal_id")
+        action_id = request.data.get("action_id")
+        role = request.data.get("role")  # Expected: "doctor" or "patient"
+
+        if not all([goal_id, action_id, role]):
+            return Response({"error": "Missing required fields"}, status=400)
+
+        # Get the version document
+        version_ref = (
+            db.collection("treatment_plans")
+            .document(plan_id)
+            .collection("versions")
+            .document(version_id)
+        )
+        version_doc = version_ref.get()
+
+        if not version_doc.exists:
+            return Response({"error": "Version not found"}, status=404)
+
+        version_data = version_doc.to_dict()
+        goals = version_data.get("goals", [])
+        goal_found = False
+        action_updated = False
+
+        # Update only the relevant goal/action pair
+        for goal in goals:
+            if goal.get("id") == goal_id:
+                goal_found = True
+                for action in goal.get("actions", []):
+                    if action.get("id") == action_id:
+                        if action.get("assigned_to") != role:
+                            return Response(
+                                {
+                                    "error": "Permission denied: cannot complete this action"
+                                },
+                                status=403,
+                            )
+                        action["is_completed"] = True
+                        action_updated = True
+
+        if not goal_found:
+            return Response({"error": "Goal not found in this version"}, status=404)
+        if not action_updated:
+            return Response({"error": "Action not found or not permitted"}, status=404)
+
+        version_ref.update({"goals": goals})
+        return Response({"message": "Action marked as complete"})
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+def calculate_weekly_performance(request, plan_id, version_id):
+    """
+    Calculates and stores weekly score based on completed actions.
+    """
+    try:
+        version_ref = (
+            db.collection("treatment_plans")
+            .document(plan_id)
+            .collection("versions")
+            .document(version_id)
+        )
+        version_doc = version_ref.get()
+
+        if not version_doc.exists:
+            return Response({"error": "Version not found"}, status=404)
+
+        version_data = version_doc.to_dict()
+        goals = version_data.get("goals", [])
+
+        total_points = 0
+        earned_points = 0
+
+        for goal in goals:
+            for action in goal.get("actions", []):
+                weight = int(action.get("priority", 1))  # default to 1 if missing
+                total_points += weight
+                if action.get("is_completed"):
+                    earned_points += weight
+
+        score = (earned_points / total_points) * 100 if total_points > 0 else 0
+        version_ref.update({"weekly_score": round(score, 2)})
+
+        return Response({"weekly_score": round(score, 2)})
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+def get_treatment_plans_by_user(request, role, email):
+    """
+    Get all plans for a doctor or patient by email.
+    role: "doctor" or "patient"
+    """
+    try:
+        query = db.collection("treatment_plans").where(f"{role}_email", "==", email)
+        docs = query.stream()
+        plans = [{**doc.to_dict(), "plan_id": doc.id} for doc in docs]
+
+        return Response(plans)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+def delete_action_from_version(request, plan_id, version_id):
+    """
+    Delete a specific action from a goal in the current version.
+    """
+    try:
+        goal_id = request.data.get("goal_id")
+        action_id = request.data.get("action_id")
+
+        version_ref = (
+            db.collection("treatment_plans")
+            .document(plan_id)
+            .collection("versions")
+            .document(version_id)
+        )
+        version_doc = version_ref.get()
+        if not version_doc.exists:
+            return Response({"error": "Version not found"}, status=404)
+
+        data = version_doc.to_dict()
+        updated_goals = []
+
+        for goal in data["goals"]:
+            if goal["id"] == goal_id:
+                goal["actions"] = [a for a in goal["actions"] if a["id"] != action_id]
+            updated_goals.append(goal)
+
+        version_ref.update({"goals": updated_goals})
+        return Response({"message": "Action deleted"})
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+def delete_goal_from_version(request, plan_id, version_id):
+    """
+    Delete an entire goal (and its actions) from the version.
+    """
+    try:
+        goal_id = request.data.get("goal_id")
+
+        version_ref = (
+            db.collection("treatment_plans")
+            .document(plan_id)
+            .collection("versions")
+            .document(version_id)
+        )
+        version_doc = version_ref.get()
+        if not version_doc.exists:
+            return Response({"error": "Version not found"}, status=404)
+
+        data = version_doc.to_dict()
+        updated_goals = [g for g in data["goals"] if g["id"] != goal_id]
+
+        version_ref.update({"goals": updated_goals})
+        return Response({"message": "Goal deleted"})
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
