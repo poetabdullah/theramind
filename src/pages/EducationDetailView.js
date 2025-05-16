@@ -57,11 +57,12 @@ const EducationDetailView = () => {
 
   // Handles the editing mode, fetches the data from the website and navigates to the EducationWritePage.js
   const handleEdit = () => {
+    const coll = type === "stories" ? "patient_stories" : "articles";
     navigate("/write-education", {
       state: {
         isEditing: true,
         id,
-        type,
+        type: coll,            // now exactly "articles" or "patient_stories"
         title: data.title,
         content: data.content,
         selectedTags: data.selectedTags ? Object.values(data.selectedTags) : [],

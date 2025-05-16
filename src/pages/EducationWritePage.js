@@ -19,7 +19,7 @@ const EducationWritePage = () => {
   const location = useLocation();
   const isEditing = location.state?.isEditing || false;
   const docId = location.state?.id || null;
-  const type = location.state?.type || "";
+  const type = location.state?.type || "";  // now "articles" or "patient_stories"
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -83,8 +83,7 @@ const EducationWritePage = () => {
     const fetchDocumentData = async () => {
       if (isEditing && docId) {
         try {
-          const collectionName =
-            type === "article" ? "articles" : "patient_stories";
+          const collectionName = type;  // exactly "articles" or "patient_stories"
           const docRef = doc(db, collectionName, docId);
           const docSnap = await getDoc(docRef);
 
@@ -148,8 +147,12 @@ const EducationWritePage = () => {
       const user = auth.currentUser;
       if (!user) throw new Error("User not logged in");
 
-      const collectionName =
-        userRole === "doctor" ? "articles" : "patient_stories";
+      // If editing, use the passed-in `type`; otherwise fallback on role
+      const collectionName = isEditing
+        ? type                                    // "articles" or "patient_stories"
+        : (userRole === "doctor"
+          ? "articles"
+          : "patient_stories");
 
       if (isEditing && docId) {
         const docRef = doc(db, collectionName, docId);
