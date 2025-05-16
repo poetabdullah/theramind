@@ -231,7 +231,7 @@ const DoctorDashboard = () => {
                                 </h2>
                                 <button
                                     onClick={() => navigate("/write-education")}
-                                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg shadow hover:from-orange-600 hover:to-yellow-600 transition"
+                                    className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500  text-white rounded-lg shadow hover:from-orange-500 hover:to-orange-600 transition"
                                 >
                                     Write an Article
                                 </button>
