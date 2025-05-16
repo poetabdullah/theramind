@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import firebase from 'firebase/app';
-import 'firebase/firestore';
+import { db } from '../firebaseConfig.js';
+import {
+	doc,
+	getDocs,
+	query,
+	where,
+	collection,
+	deleteDoc,
+	updateDoc,
+	arrayUnion,
+	arrayRemove,
+} from 'firebase/firestore';
+
+import {
+	sendCancelEmail,
+	sendRescheduleEmail,
+} from './AppointmentConfirmationEmail.js';
+
 import { motion } from 'framer-motion';
-import { sendCancelEmail } from './AppointmentCancelEmail';
 
 const AppointmentCancelReschedule = ({ userEmail }) => {
 	const [appointments, setAppointments] = useState([]);
@@ -11,77 +25,93 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
 
 	useEffect(() => {
 		const fetchAppointments = async () => {
-			const snapshot = await db
-				.collection('appointments')
-				.where('patientEmail', '==', userEmail)
-				.get();
-
-			setAppointments(
-				snapshot.docs.map(doc => ({
-					id: doc.id,
-					...doc.data(),
-				}))
-			);
+			try {
+				const appointmentsRef = collection(db, 'appointments');
+				const q = query(appointmentsRef, where('patientEmail', '==', userEmail));
+				const snapshot = await getDocs(q);
+				setAppointments(
+					snapshot.docs.map(doc => ({
+						id: doc.id,
+						...doc.data(),
+					}))
+				);
+			} catch (error) {
+				console.error('Error fetching appointments:', error);
+			}
 		};
 		fetchAppointments();
 	}, [userEmail]);
 
 	const cancelAppointment = async (
 		appointmentId,
-		doctorId,
+		doctorEmail,
 		timeslot,
 		appData
 	) => {
-		await db.collection('appointments').doc(appointmentId).delete();
+		try {
+			// Delete appointment
+			await deleteDoc(doc(db, 'appointments', appointmentId));
 
-		await db
-			.collection('doctors')
-			.doc(doctorId)
-			.update({
-				timeslots: firebase.firestore.FieldValue.arrayUnion(timeslot),
+			// Add timeslot back to doctor
+			const doctorRef = doc(db, 'doctors', doctorEmail);
+			await updateDoc(doctorRef, {
+				timeslots: arrayUnion(timeslot),
 			});
 
-		alert('Appointment cancelled successfully.');
+			alert('Appointment cancelled successfully.');
 
-		sendCancelEmail({
-			patient_name: appData.patientName,
-			doctor_name: appData.doctorName,
-			doctor_email: appData.doctorEmail,
-			patient_email: appData.patientEmail,
-			time: timeslot,
-		});
+			// Send cancellation email
+			sendCancelEmail({
+				patient_name: appData.patientName,
+				doctor_name: appData.doctorName,
+				doctor_email: appData.doctorEmail,
+				patient_email: appData.patientEmail,
+				time: timeslot,
+			});
+		} catch (error) {
+			console.error('Cancellation failed:', error);
+			alert('Something went wrong while canceling. Please try again.');
+		}
 	};
 
 	const handleReschedule = async (
 		appointmentId,
-		doctorId,
+		doctorEmail,
 		oldTimeslot,
 		appData
 	) => {
 		const newTimeslot = newTimes[appointmentId];
 		if (!newTimeslot) return alert('Please select a new time.');
 
-		const appointmentRef = db.collection('appointments').doc(appointmentId);
-		await appointmentRef.update({ timeslot: newTimeslot });
+		try {
+			// Update appointment with new time
+			const appointmentRef = doc(db, 'appointments', appointmentId);
+			await updateDoc(appointmentRef, { timeslot: newTimeslot });
 
-		const doctorRef = db.collection('doctors').doc(doctorId);
-		await doctorRef.update({
-			timeslots: firebase.firestore.FieldValue.arrayRemove(oldTimeslot),
-		});
-		await doctorRef.update({
-			timeslots: firebase.firestore.FieldValue.arrayUnion(newTimeslot),
-		});
+			// Update doctor's available timeslots
+			const doctorRef = doc(db, 'doctors', doctorEmail);
+			await updateDoc(doctorRef, {
+				timeslots: arrayRemove(oldTimeslot),
+			});
+			await updateDoc(doctorRef, {
+				timeslots: arrayUnion(newTimeslot),
+			});
 
-		alert('Appointment rescheduled successfully!');
+			alert('Appointment rescheduled successfully!');
 
-		sendCancelEmail({
-			patient_name: appData.patientName,
-			doctor_name: appData.doctorName,
-			doctor_email: appData.doctorEmail,
-			patient_email: appData.patientEmail,
-			newTime: newTimeslot,
-			meet_link: appData.meetLink,
-		});
+			// Send reschedule email
+			sendRescheduleEmail({
+				patient_name: appData.patientName,
+				doctor_name: appData.doctorName,
+				doctor_email: appData.doctorEmail,
+				patient_email: appData.patientEmail,
+				newTime: newTimeslot,
+				meet_link: appData.meetLink,
+			});
+		} catch (error) {
+			console.error('Rescheduling failed:', error);
+			alert('Something went wrong while rescheduling. Please try again.');
+		}
 	};
 
 	return (
@@ -121,7 +151,7 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
 							<button
 								className="bg-green-500 text-white px-3 py-1 rounded"
 								onClick={() =>
-									handleReschedule(app.id, app.doctorId, app.timeslot, app)
+									handleReschedule(app.id, app.doctorEmail, app.timeslot, app)
 								}
 							>
 								Reschedule
@@ -129,7 +159,7 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
 							<button
 								className="bg-red-500 text-white px-3 py-1 rounded"
 								onClick={() =>
-									cancelAppointment(app.id, app.doctorId, app.timeslot, app)
+									cancelAppointment(app.id, app.doctorEmail, app.timeslot, app)
 								}
 							>
 								Cancel

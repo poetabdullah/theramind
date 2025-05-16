@@ -19,6 +19,8 @@ import SplashScreen from "./pages/SplashScreen";
 import Testimonial from "./pages/Testimonial";
 import PatientDashboard from "./pages/PatientDashboard";
 import AppointmentBooking from './components/AppointmentBooking';
+import AppointmentCancelReschedule from './components/AppointmentCancelReschedule';
+import DoctorAppointment from './components/DoctorAppointment';
 import DoctorSignUp from "./pages/DoctorSignUp";
 import SignUpLandingPage from "./pages/SignUpLandingPage";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -50,6 +52,8 @@ const App = () => (
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
       <Route path="/appointment-booking" element={<AppointmentBooking />} />
+      <Route path="/appointment-cancel-reschedule" element={<AppointmentCancelReschedule />} />
+      <Route path="/doctor-appointment" element={<DoctorAppointment />} />
     </Routes>
   </div>
 );

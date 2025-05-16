@@ -8,6 +8,8 @@ import DoctorEducationCard from '../components/DoctorEducationCard';
 import DoctorExperienceCard from '../components/DoctorExperienceCard';
 import DoctorBioCard from '../components/DoctorBioCard';
 import ListViewCard from '../components/ListViewCard';
+import DoctorTimeslotManagement from '../components/DoctorTimeslotManagement';
+import DoctorAppointment from '../components/DoctorAppointment';
 
 // Main Dashboard Component
 const DoctorDashboard = () => {
@@ -216,6 +218,14 @@ const DoctorDashboard = () => {
                             setIsEditing={(editing) => setEditingSection(editing ? "bio" : null)}
                             handleSave={handleSave}
                         />
+                        {/* Timeslot Management Section */}
+                        <div className="mt-10">
+                            <DoctorTimeslotManagement doctorEmail={doctorData.email} />
+                        </div>
+                        {/* Doctor's Appointment Section */}
+                        <div className="mt-10">
+                            <DoctorAppointment doctorEmail={doctorData.email} />
+                        </div>
 
                         {/* Articles Section - Added mt-12 for more margin from previous card */}
                         <div className="mt-12 mb-8">

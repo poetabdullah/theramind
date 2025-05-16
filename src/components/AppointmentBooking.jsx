@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { createGoogleMeetEvent } from '../../backend/utils/google_api';
+import { createGoogleMeetEvent } from '../utils/google_api';
 import { sendAppointmentConfirmationEmail } from './AppointmentConfirmationEmail';
 import { motion } from 'framer-motion';
-import { db } from '../firebase';
+import { db } from '../firebaseConfig.js';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 
 const AppointmentBooking = () => {
 	const [doctors, setDoctors] = useState([]);
@@ -11,16 +12,26 @@ const AppointmentBooking = () => {
 	const [patientName, setPatientName] = useState('');
 	const [patientEmail, setPatientEmail] = useState('');
 
-	// Fetch doctors from Firestore
+	// ✅ Fetching doctors from Firestore using v9 modular syntax
 	useEffect(() => {
-		db.collection('doctors')
-			.get()
-			.then(snapshot => {
-				setDoctors(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-			});
+		const fetchDoctors = async () => {
+			try {
+				const doctorsCollection = collection(db, 'doctors');
+				const snapshot = await getDocs(doctorsCollection);
+				const doctorList = snapshot.docs.map(doc => ({
+					id: doc.id,
+					...doc.data(),
+				}));
+				setDoctors(doctorList);
+			} catch (error) {
+				console.error('Error fetching doctors:', error);
+			}
+		};
+
+		fetchDoctors();
 	}, []);
 
-	// Booking logic
+	// ✅ Booking logic
 	const handleBooking = async () => {
 		if (!selectedDoctor || !selectedTimeslot || !patientName || !patientEmail) {
 			alert('Please fill all fields before booking.');
@@ -40,17 +51,19 @@ const AppointmentBooking = () => {
 
 			const meetLink = event.hangoutLink;
 
-			await db.collection('appointments').add({
-				doctorId: selectedDoctor.id,
+			// ✅ Save appointment to Firestore
+			await addDoc(collection(db, 'appointments'), {
+				doctorEmail: selectedDoctor.email,
 				patientName,
 				patientEmail,
 				timeslot: selectedTimeslot,
 				meetLink,
 			});
 
+			// ✅ Send confirmation email
 			await sendAppointmentConfirmationEmail({
 				patient_name: patientName,
-				doctor_name: selectedDoctor.name,
+				doctor_name: selectedDoctor.fullName,
 				email: patientEmail,
 				time: selectedTimeslot,
 				meet_link: meetLink,
@@ -87,7 +100,7 @@ const AppointmentBooking = () => {
 					<option value="">Select a Doctor</option>
 					{doctors.map(doc => (
 						<option key={doc.email} value={doc.email}>
-							{doc.name}
+							{doc.fullName}
 						</option>
 					))}
 				</select>
