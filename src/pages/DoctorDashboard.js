@@ -64,45 +64,48 @@ const DoctorDashboard = () => {
     }, [navigate]);
 
     // Fetch doctor's articles
+    const fetchArticles = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            setLoadingArticles(true);
+
+            // Query articles collection for documents authored by the current user
+            const articlesRef = collection(db, "articles");
+            const articlesQuery = query(articlesRef, where("author_email", "==", user.email));
+            const querySnapshot = await getDocs(articlesQuery);
+
+            const articlesList = [];
+            querySnapshot.forEach((doc) => {
+                articlesList.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+
+            // Sort articles by creation date (newest first)
+            articlesList.sort((a, b) => {
+                const dateA = a.createdAt?.seconds || 0;
+                const dateB = b.createdAt?.seconds || 0;
+                return dateB - dateA;
+            });
+
+            setArticles(articlesList);
+            setArticlesError(null);
+        } catch (err) {
+            console.error("Error fetching articles:", err);
+            setArticlesError("Failed to load your articles");
+        } finally {
+            setLoadingArticles(false);
+        }
+    };
+
+    // Call fetchArticles on component mount and after auth state changes
     useEffect(() => {
-        const fetchArticles = async () => {
-            try {
-                const user = auth.currentUser;
-                if (!user) return;
-
-                setLoadingArticles(true);
-
-                // Query articles collection for documents authored by the current user
-                const articlesRef = collection(db, "articles");
-                const articlesQuery = query(articlesRef, where("authorEmail", "==", user.email));
-                const querySnapshot = await getDocs(articlesQuery);
-
-                const articlesList = [];
-                querySnapshot.forEach((doc) => {
-                    articlesList.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-
-                // Sort articles by creation date (newest first)
-                articlesList.sort((a, b) => {
-                    const dateA = a.createdAt?.seconds || 0;
-                    const dateB = b.createdAt?.seconds || 0;
-                    return dateB - dateA;
-                });
-
-                setArticles(articlesList);
-                setArticlesError(null);
-            } catch (err) {
-                console.error("Error fetching articles:", err);
-                setArticlesError("Failed to load your articles");
-            } finally {
-                setLoadingArticles(false);
-            }
-        };
-
-        fetchArticles();
+        if (auth.currentUser) {
+            fetchArticles();
+        }
     }, []);
 
     // Handle save for different sections
@@ -137,6 +140,9 @@ const DoctorDashboard = () => {
             }
 
             await updateDoc(doctorRef, updateObj);
+
+            // Refresh articles after update
+            fetchArticles();
 
         } catch (error) {
             console.error("Error saving data:", error);
@@ -224,7 +230,7 @@ const DoctorDashboard = () => {
                                     Your Medical Articles
                                 </h2>
                                 <button
-                                    onClick={() => navigate("/write-article")}
+                                    onClick={() => navigate("/write-education")}
                                     className="px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg shadow hover:from-orange-600 hover:to-yellow-600 transition"
                                 >
                                     Write an Article
