@@ -33,6 +33,7 @@
 		"react-redux": "^9.2.0",
 		"react-router-dom": "^6.28.2",
 		"react-scripts": "^5.0.1",
+		"recharts": "^2.15.3",
 		"resolve-url-loader": "^5.0.0",
 		"string-strip-html": "^13.4.8",
 		"svgo": "^3.3.2"
