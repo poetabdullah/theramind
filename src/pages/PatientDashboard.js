@@ -43,7 +43,6 @@ const PatientDashboard = () => {
   const [detailErrors, setDetailErrors] = useState({});
   const [healthErrors, setHealthErrors] = useState({});
 
-
   useEffect(() => {
     if (patientData) {
       // Initialize form data with existing patient data from the database

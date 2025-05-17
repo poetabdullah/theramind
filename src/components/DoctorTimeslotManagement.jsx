@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig.js';
-import { v4 as uuidv4 } from 'uuid';
 import { motion } from 'framer-motion';
 import ReactDatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { createGoogleMeetEvent } from '../utils/google_api.js';
-import { sendAppointmentConfirmationEmail } from './AppointmentConfirmationEmail.js';
 
 const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	const [doctorData, setDoctorData] = useState(null);
@@ -20,6 +17,20 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 		combined.setHours(time.getHours());
 		combined.setMinutes(time.getMinutes());
 		return combined.toISOString();
+	};
+
+	const formatTimeslot = isoString => {
+		const date = new Date(isoString);
+		const options = {
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: 'numeric',
+			hour12: true,
+		};
+		return date.toLocaleString(undefined, options);
 	};
 
 	useEffect(() => {
@@ -202,7 +213,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 							className="bg-white shadow-lg rounded-xl px-4 py-3 flex justify-between items-center"
 						>
 							<span className="text-gray-800 font-medium">
-								{new Date(slot).toLocaleString()}
+								{formatTimeslot(slot)}
 							</span>
 							<button
 								onClick={() => handleRemoveTimeslot(slot)}
