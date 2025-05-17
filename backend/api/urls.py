@@ -24,6 +24,16 @@ from .views import (
     get_article,
     get_patient_story,
     test_cors,
+    calculate_weekly_performance,
+    create_treatment_plan,
+    terminate_treatment_plan,
+    delete_action_from_version,
+    delete_goal_from_version,
+    update_current_week_actions,
+    get_treatment_plan_version,
+    get_treatment_plan_versions,
+    get_treatment_plans_by_user,
+    mark_action_complete,
 )
 
 urlpatterns = [
@@ -47,4 +57,56 @@ urlpatterns = [
         name="delete_patient_story",
     ),
     path("test-cors/", test_cors, name="test-cors"),
+    # ------ TREATMENT PLAN ----------
+    # Create and manage treatment plans
+    path("treatment/create/", create_treatment_plan, name="create_treatment_plan"),
+    path(
+        "treatment/<str:plan_id>/terminate/",
+        terminate_treatment_plan,
+        name="terminate_treatment_plan",
+    ),
+    # Retrieve plans by user (doctor/patient)
+    path(
+        "treatment/user/<str:role>/<str:email>/",
+        get_treatment_plans_by_user,
+        name="get_treatment_plans_by_user",
+    ),
+    # Plan versioning
+    path(
+        "treatment/<str:plan_id>/versions/",
+        get_treatment_plan_versions,
+        name="get_treatment_plan_versions",
+    ),
+    path(
+        "treatment/<str:plan_id>/version/<str:version_id>/",
+        get_treatment_plan_version,
+        name="get_treatment_plan_version",
+    ),
+    path(
+        "treatment/<str:plan_id>/version/<str:version_id>/update/",
+        update_current_week_actions,
+        name="update_current_week_actions",
+    ),
+    # Action management
+    path(
+        "treatment/<str:plan_id>/version/<str:version_id>/complete/",
+        mark_action_complete,
+        name="mark_action_complete",
+    ),
+    path(
+        "treatment/<str:plan_id>/version/<str:version_id>/delete-action/",
+        delete_action_from_version,
+        name="delete_action_from_version",
+    ),
+    path(
+        "treatment/<str:plan_id>/version/<str:version_id>/delete-goal/",
+        delete_goal_from_version,
+        name="delete_goal_from_version",
+    ),
+    # Performance
+    path(
+        "treatment/<str:plan_id>/version/<str:version_id>/calculate-score/",
+        calculate_weekly_performance,
+        name="calculate_weekly_performance",
+    ),
 ]
