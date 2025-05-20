@@ -1,5 +1,4 @@
 import React from "react";
-import { v4 as uuidv4 } from "uuid";
 import ActionItem from "./ActionItem";
 
 const GoalEditor = ({
@@ -11,6 +10,7 @@ const GoalEditor = ({
   updateAction,
   deleteAction,
   errors,
+  isEditing,
 }) => {
   return (
     <div className="mb-10 border border-gray-200 rounded-2xl shadow-md overflow-hidden">
@@ -18,18 +18,19 @@ const GoalEditor = ({
       <div className="flex items-start justify-between bg-gradient-to-r from-orange-100 to-orange-200 px-6 py-4 border-b border-gray-200">
         <div className="w-full">
           <label className="text-md font-semibold text-gray-800 mb-1 block">
-            Goal {goalIndex + 1}
+            {isEditing
+              ? `Current Goal ${goalIndex + 1}`
+              : `Goal ${goalIndex + 1}`}
           </label>
           <div className="relative">
             <textarea
               className={`w-full p-4 pr-12 rounded-xl border text-gray-800 font-medium bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent shadow-sm transition ${
-                {
-                  true: "border-red-500",
-                  false: "border-gray-300",
-                }[!!errors[`goal_${goalIndex}`]]
+                errors[`goal_${goalIndex}`]
+                  ? "border-red-500"
+                  : "border-gray-300"
               }`}
               placeholder="Enter a meaningful and specific goal description (at least 5 words)"
-              rows="2"
+              rows={2}
               value={goal.title}
               onChange={(e) => updateGoalTitle(goal.id, e.target.value)}
             />
@@ -47,7 +48,7 @@ const GoalEditor = ({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="2"
+                  strokeWidth={2}
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
@@ -71,12 +72,15 @@ const GoalEditor = ({
       {/* Actions List */}
       <div className="bg-white px-6 py-6">
         <h3 className="text-sm font-semibold text-gray-700 mb-4">
-          Assigned Actions
+          {isEditing ? "Existing Actions" : "Assigned Actions"}
         </h3>
 
         {goal.actions.length === 0 ? (
           <p className="text-sm text-gray-500 italic mb-4">
-            No actions yet. Add at least one action to this goal.
+            No actions yet.{" "}
+            {isEditing
+              ? "This goal currently has no actions."
+              : "Add at least one action to this goal."}
           </p>
         ) : (
           <div className="space-y-4 mb-4">
@@ -90,6 +94,7 @@ const GoalEditor = ({
                 updateAction={updateAction}
                 deleteAction={deleteAction}
                 errors={errors}
+                isEditing={isEditing}
               />
             ))}
           </div>
@@ -114,11 +119,12 @@ const GoalEditor = ({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
+                strokeWidth={2}
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            Add Action {goal.actions.length >= 10 && "(Max 10)"}
+            {isEditing ? "Add New Action" : "Add Action"}{" "}
+            {goal.actions.length >= 10 && "(Max 10)"}
           </button>
         </div>
       </div>
