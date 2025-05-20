@@ -8,7 +8,12 @@ const ActionItem = ({
   updateAction,
   deleteAction,
   errors,
+  isEditing,
 }) => {
+  const handleFieldChange = (field, value) => {
+    updateAction(goalId, action.id, field, value);
+  };
+
   const priorityStyles = {
     1: "bg-blue-50 border-blue-300 text-blue-800",
     2: "bg-yellow-50 border-yellow-300 text-yellow-800",
@@ -22,10 +27,12 @@ const ActionItem = ({
       } transition-all`}
     >
       <div className="flex flex-col md:flex-row md:items-start md:gap-6">
-        {/* Action Description */}
+        {/* Description */}
         <div className="flex-grow">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Action {actionIndex + 1}
+            {isEditing
+              ? `Existing Action ${actionIndex + 1}`
+              : `Action ${actionIndex + 1}`}
           </label>
           <textarea
             className={`w-full p-3 rounded-lg border text-gray-800 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
@@ -33,12 +40,10 @@ const ActionItem = ({
                 ? "border-red-500"
                 : "border-gray-300"
             }`}
-            rows="2"
+            rows={2}
             placeholder="Describe the action clearly (at least 5 words)"
             value={action.description}
-            onChange={(e) =>
-              updateAction(goalId, action.id, "description", e.target.value)
-            }
+            onChange={(e) => handleFieldChange("description", e.target.value)}
           />
           {errors[`action_${goalIndex}_${actionIndex}`] && (
             <p className="mt-1 text-sm text-red-600">
@@ -57,12 +62,7 @@ const ActionItem = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               value={action.priority}
               onChange={(e) =>
-                updateAction(
-                  goalId,
-                  action.id,
-                  "priority",
-                  parseInt(e.target.value)
-                )
+                handleFieldChange("priority", parseInt(e.target.value))
               }
             >
               <option value={1}>Low</option>
@@ -78,9 +78,7 @@ const ActionItem = ({
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               value={action.assigned_to}
-              onChange={(e) =>
-                updateAction(goalId, action.id, "assigned_to", e.target.value)
-              }
+              onChange={(e) => handleFieldChange("assigned_to", e.target.value)}
             >
               <option value="patient">Patient</option>
               <option value="doctor">Doctor</option>
@@ -90,7 +88,7 @@ const ActionItem = ({
           <button
             onClick={() => deleteAction(goalId, action.id)}
             className="mt-2 text-red-500 hover:text-red-700 transition text-sm flex items-center gap-1"
-            title="Delete Action"
+            title="Remove Action"
           >
             <svg
               className="w-5 h-5"
@@ -101,11 +99,11 @@ const ActionItem = ({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
+                strokeWidth={2}
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
               />
             </svg>
-            Remove
+            {isEditing ? "Remove Existing Action" : "Remove Action"}
           </button>
         </div>
       </div>

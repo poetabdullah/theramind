@@ -4,6 +4,9 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Defining the API_BASE as a global variable
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+
 const priorityLabels = {
   1: "Low Priority",
   2: "Medium Priority",
@@ -23,6 +26,11 @@ const TreatmentPlanSummary = ({
   doctor,
   validateForm,
   clearForm,
+  isEditing,
+  planId,
+  versionId,
+  createdAt,
+  lastUpdated,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState(null);
@@ -43,9 +51,6 @@ const TreatmentPlanSummary = ({
       patient_email: patient.email,
       patient_name: patient.name,
       goals,
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp(),
-      status: "active",
     };
 
     setIsSubmitting(true);
@@ -53,27 +58,33 @@ const TreatmentPlanSummary = ({
     setSubmissionSuccess(null);
 
     try {
+      await axios.post(`${API_BASE}/treatment/create/`, payload);
+      setSubmissionSuccess(
+        isEditing
+          ? "Treatment Plan Updated Successfully!"
+          : "Treatment Plan Created Successfully!"
+      );
+      clearForm();
+    } catch (apiError) {
+      console.error("API Error:", apiError);
       try {
-        await axios.post("/api/treatment/create/", payload);
-        setSubmissionSuccess("Treatment Plan Created Successfully!");
-        clearForm();
-        return;
-      } catch (apiError) {
-        console.error("API Error:", apiError);
-        throw new Error("API method failed, trying Firestore directly");
-      }
-    } catch (error) {
-      try {
-        const treatmentPlansRef = collection(db, "treatment_plans");
-        await addDoc(treatmentPlansRef, payload);
+        const ref = collection(db, "treatment_plans");
+        await addDoc(ref, {
+          ...payload,
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp(),
+          status: "active",
+        });
         setSubmissionSuccess(
-          "Treatment Plan Created Successfully using direct database write!"
+          isEditing
+            ? "Treatment Plan Updated (Firestore Fallback)!"
+            : "Treatment Plan Created (Firestore Fallback)!"
         );
         clearForm();
       } catch (firestoreError) {
         console.error("Firestore Error:", firestoreError);
         setSubmissionError(
-          "Failed to create treatment plan. Please check your connection and try again."
+          "Failed to submit treatment plan. Please check connection and try again."
         );
       }
     } finally {
@@ -95,11 +106,19 @@ const TreatmentPlanSummary = ({
 
   return (
     <div className="space-y-10">
-      {/* Summary Card */}
       <div className="max-w-6xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-md p-6">
         <h2 className="text-3xl font-semibold mb-6 text-gray-800">
-          Treatment Plan Summary
+          {isEditing ? "Edit Summary" : "Treatment Plan Summary"}
         </h2>
+
+        {isEditing && (
+          <div className="mb-4 text-sm text-gray-600">
+            <p>Plan ID: {planId}</p>
+            <p>Version ID: {versionId}</p>
+            <p>Created: {new Date(createdAt).toLocaleDateString()}</p>
+            <p>Last Updated: {new Date(lastUpdated).toLocaleDateString()}</p>
+          </div>
+        )}
 
         <AnimatePresence>
           {submissionSuccess && (
@@ -144,12 +163,11 @@ const TreatmentPlanSummary = ({
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           <div
             className="bg-orange-500 h-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
-          ></div>
+          />
         </div>
         <p className="text-xs text-gray-500 mt-1">
           {progressPercent}% actions completed
@@ -160,11 +178,16 @@ const TreatmentPlanSummary = ({
           disabled={isSubmitting}
           className="w-full sm:w-auto mt-6 bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
         >
-          {isSubmitting ? "Submitting..." : "Submit Treatment Plan"}
+          {isSubmitting
+            ? isEditing
+              ? "Updating..."
+              : "Submitting..."
+            : isEditing
+            ? "Update Treatment Plan"
+            : "Submit Treatment Plan"}
         </button>
       </div>
 
-      {/* Preview Section - IMPROVED STYLING */}
       <section className="max-w-6xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
           <h2 className="text-2xl font-semibold text-gray-800">

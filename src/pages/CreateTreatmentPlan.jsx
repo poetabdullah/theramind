@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
 import PatientSelector from "../components/PatientSelector";
 import GoalEditor from "../components/GoalEditor";
 import TreatmentPlanSummary from "../components/TreatmentPlanSummary";
+import { db } from "../firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+
+// Defining the API_BASE as a global variable
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 const CreateTreatmentPlan = () => {
   const [selectedPatient, setSelectedPatient] = useState("");
@@ -12,51 +18,174 @@ const CreateTreatmentPlan = () => {
   const [errors, setErrors] = useState({});
   const [patients, setPatients] = useState([]);
 
+  const [planId, setPlanId] = useState(null);
+  const [versionId, setVersionId] = useState(null);
+  const [createdAt, setCreatedAt] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
+
   const [user, setUser] = useState(null);
+  const [doctor, setDoctor] = useState({ email: "", name: "" });
   const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
 
+  // 1) Auth listener → set user and doctor
   useEffect(() => {
     const unsubscribe = getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
+        setDoctor({
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || "Doctor",
+        });
       } else {
         navigate("/login");
       }
       setAuthLoading(false);
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
-  const doctor = user
-    ? { email: user.email, name: user.displayName || "Doctor" }
-    : {};
+  // 2) Fetch patient list for selector
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "patients"));
+        // include each doc's id *and* all its fields (including email)
+        const list = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPatients(list);
+      } catch (err) {
+        console.error("Error loading patients:", err);
+      }
+    };
+    fetchPatients();
+  }, []);
+
+  // 3) Fetch existing active plan when a patient is selected and doctor ready
+  useEffect(() => {
+    // Clear on patient cleared
+    if (!selectedPatient) {
+      setPlanId(null);
+      setVersionId(null);
+      setGoals([]);
+      setCreatedAt(null);
+      setLastUpdated(null);
+      setIsEditing(false);
+      setFetchError(null);
+      return;
+    }
+    // Wait for doctor to be set
+    if (!doctor.email) {
+      return;
+    }
+
+    const fetchActivePlan = async () => {
+      setIsLoading(true);
+      setFetchError(null);
+      try {
+        const res = await axios.get(
+          `${API_BASE}/treatment/user/patient/${encodeURIComponent(
+            selectedPatient
+          )}/`
+        );
+
+        console.log("Received plans:", res.data);
+
+        const active = res.data.find((p) => p.is_terminated === false);
+
+        if (active) {
+          if (active.doctor_email !== doctor.email) {
+            console.warn("Doctor email mismatch, cannot edit");
+            setFetchError("You do not have permission to edit this plan.");
+            setIsEditing(false);
+            return;
+          }
+
+          setPlanId(active.plan_id);
+          setCreatedAt(active.created_at);
+
+          const vRes = await axios.get(
+            `${API_BASE}/treatment/${active.plan_id}/versions/`
+          );
+          console.log("Received versions:", vRes.data);
+
+          if (!vRes.data.length) {
+            console.warn("No versions found for plan", active.plan_id);
+            setGoals([]);
+            setIsEditing(false);
+            return;
+          }
+
+          // Use last version
+          const last = vRes.data[vRes.data.length - 1];
+          setVersionId(last.version_id);
+
+          const fetchedGoals = last.goals.map((goal) => ({
+            ...goal,
+            id: goal.id || uuidv4(),
+            actions: (goal.actions || []).map((action) => ({
+              ...action,
+              id: action.id || uuidv4(),
+              priority: action.priority || 1,
+              assigned_to: action.assigned_to || "patient",
+              is_completed: action.is_completed || false,
+            })),
+          }));
+
+          setGoals(fetchedGoals);
+          setLastUpdated(last.end_date);
+          setIsEditing(true);
+        } else {
+          console.log(
+            "Active plan not found or terminated, switching to create mode"
+          );
+          setPlanId(null);
+          setVersionId(null);
+          setGoals([]);
+          setCreatedAt(null);
+          setLastUpdated(null);
+          setIsEditing(false);
+        }
+      } catch (err) {
+        console.error("Error fetching plan:", err);
+        if (err.response?.status === 404) {
+          console.log("404 - no plans for patient");
+          setFetchError(null);
+          setIsEditing(false);
+          setGoals([]);
+          setPlanId(null);
+          setVersionId(null);
+        } else {
+          setFetchError(
+            "Unable to fetch treatment plan. Please try again later."
+          );
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActivePlan();
+  }, [selectedPatient, doctor.email]);
 
   if (authLoading) return null;
 
-  const addGoal = () => {
-    setGoals((prev) => [
-      ...prev,
-      {
-        id: uuidv4(),
-        title: "",
-        actions: [],
-      },
-    ]);
-  };
+  // Goal & Action handlers
+  const addGoal = () =>
+    setGoals((prev) => [...prev, { id: uuidv4(), title: "", actions: [] }]);
 
-  const deleteGoal = (goalId) => {
-    setGoals((prev) => prev.filter((g) => g.id !== goalId));
-  };
+  const deleteGoal = (id) =>
+    setGoals((prev) => prev.filter((g) => g.id !== id));
 
-  const updateGoalTitle = (goalId, newTitle) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, title: newTitle } : g))
-    );
-  };
+  const updateGoalTitle = (id, title) =>
+    setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, title } : g)));
 
-  const addAction = (goalId) => {
+  const addAction = (goalId) =>
     setGoals((prev) =>
       prev.map((g) =>
         g.id === goalId
@@ -76,9 +205,8 @@ const CreateTreatmentPlan = () => {
           : g
       )
     );
-  };
 
-  const updateAction = (goalId, actionId, field, value) => {
+  const updateAction = (goalId, actionId, field, value) =>
     setGoals((prev) =>
       prev.map((g) =>
         g.id === goalId
@@ -91,111 +219,155 @@ const CreateTreatmentPlan = () => {
           : g
       )
     );
-  };
 
-  const deleteAction = (goalId, actionId) => {
+  const deleteAction = (goalId, actionId) =>
     setGoals((prev) =>
       prev.map((g) =>
         g.id === goalId
-          ? {
-              ...g,
-              actions: g.actions.filter((a) => a.id !== actionId),
-            }
+          ? { ...g, actions: g.actions.filter((a) => a.id !== actionId) }
           : g
       )
     );
-  };
 
   const validateForm = () => {
-    let isValid = true;
-    const newErrors = {};
-
+    let valid = true;
+    const errs = {};
     if (!selectedPatient) {
-      newErrors.patient = "Patient must be selected.";
-      isValid = false;
+      errs.patient = "Patient must be selected.";
+      valid = false;
     }
 
-    goals.forEach((goal, goalIndex) => {
-      if (!goal.title || goal.title.trim().split(" ").length < 5) {
-        newErrors[`goal_${goalIndex}`] = "Goal must be at least 5 words.";
-        isValid = false;
-      }
+    if (goals.length === 0) {
+      errs.goals = "At least one goal is required.";
+      valid = false;
+    }
 
+    goals.forEach((goal, i) => {
+      if (goal.title.trim().split(" ").length < 5) {
+        errs[`goal_${i}`] = "Goal must be at least 5 words.";
+        valid = false;
+      }
       if (goal.actions.length < 1) {
-        newErrors[`goal_actions_min_${goalIndex}`] = "Add at least one action.";
-        isValid = false;
+        errs[`goal_actions_min_${i}`] = "Add at least one action.";
+        valid = false;
       } else if (goal.actions.length > 10) {
-        newErrors[`goal_actions_max_${goalIndex}`] =
-          "Maximum 10 actions allowed.";
-        isValid = false;
+        errs[`goal_actions_max_${i}`] = "Maximum 10 actions allowed.";
+        valid = false;
       }
-
-      goal.actions.forEach((action, actionIndex) => {
-        if (
-          !action.description ||
-          action.description.trim().split(" ").length < 5
-        ) {
-          newErrors[`action_${goalIndex}_${actionIndex}`] =
-            "Action must be at least 5 words.";
-          isValid = false;
+      goal.actions.forEach((action, j) => {
+        if (action.description.trim().split(" ").length < 5) {
+          errs[`action_${i}_${j}`] = "Action must be at least 5 words.";
+          valid = false;
         }
       });
     });
-
-    setErrors(newErrors);
-    return isValid;
+    setErrors(errs);
+    return valid;
   };
 
   const clearForm = () => {
-    setSelectedPatient("");
     setGoals([]);
     setErrors({});
+    setSelectedPatient("");
   };
 
   return (
     <div className="bg-white min-h-screen py-12 px-4 md:px-10 lg:px-20">
       <div className="max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-xl p-10">
-        <h1 className="text-4xl font-extrabold text-orange-600 mb-10 text-center">
-          Create a New Treatment Plan
+        <h1 className="text-4xl font-extrabold text-orange-600 mb-4 text-center">
+          {isEditing ? "Edit Treatment Plan" : "Create a New Treatment Plan"}
         </h1>
+
+        {isEditing && (
+          <div className="text-sm text-gray-600 text-center mb-6">
+            <p>Created: {new Date(createdAt).toLocaleDateString()}</p>
+            <p>Last Updated: {new Date(lastUpdated).toLocaleDateString()}</p>
+            <p className="mt-2 text-orange-600 font-medium">
+              You are editing an existing treatment plan. Any changes will
+              update this plan.
+            </p>
+          </div>
+        )}
 
         <PatientSelector
           selectedPatient={selectedPatient}
           setSelectedPatient={setSelectedPatient}
           error={errors.patient}
-        />
-
-        {goals.map((goal, index) => (
-          <GoalEditor
-            key={goal.id}
-            goal={goal}
-            goalIndex={index}
-            updateGoalTitle={updateGoalTitle}
-            deleteGoal={deleteGoal}
-            addAction={addAction}
-            updateAction={updateAction}
-            deleteAction={deleteAction}
-            errors={errors}
-          />
-        ))}
-
-        <div className="mb-10">
-          <button
-            onClick={addGoal}
-            className="w-full bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white px-6 py-3 rounded-xl shadow-md font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
-          >
-            ➕ Add New Goal
-          </button>
-        </div>
-
-        <TreatmentPlanSummary
-          selectedPatient={selectedPatient}
-          goals={goals}
           patients={patients}
-          doctor={doctor}
-          validateForm={validateForm}
-          clearForm={clearForm}
+          loading={patients.length === 0 || isLoading}
         />
+
+        {fetchError && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            {fetchError}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex justify-center items-center py-10">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
+            <p className="ml-3 text-gray-600">Loading treatment plan...</p>
+          </div>
+        ) : (
+          <>
+            {errors.goals && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                {errors.goals}
+              </div>
+            )}
+
+            {goals.length > 0 && (
+              <div className="mt-6 mb-4">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  {isEditing ? "Current Goals" : "Goals"}
+                </h2>
+                <p className="text-gray-600 mb-4">
+                  {isEditing
+                    ? "These are the current goals for this treatment plan. You can edit them or add new ones."
+                    : "Define meaningful goals for this treatment plan."}
+                </p>
+              </div>
+            )}
+
+            {goals.map((goal, idx) => (
+              <GoalEditor
+                key={goal.id}
+                goal={goal}
+                goalIndex={idx}
+                updateGoalTitle={updateGoalTitle}
+                deleteGoal={deleteGoal}
+                addAction={addAction}
+                updateAction={updateAction}
+                deleteAction={deleteAction}
+                errors={errors}
+                isEditing={isEditing}
+              />
+            ))}
+
+            <div className="mb-10 mt-6">
+              <button
+                onClick={addGoal}
+                className="w-full bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white px-6 py-3 rounded-xl shadow-md font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
+              >
+                ➕ Add New Goal
+              </button>
+            </div>
+
+            <TreatmentPlanSummary
+              selectedPatient={selectedPatient}
+              goals={goals}
+              patients={patients}
+              doctor={doctor}
+              validateForm={validateForm}
+              clearForm={clearForm}
+              isEditing={isEditing}
+              planId={planId}
+              versionId={versionId}
+              createdAt={createdAt}
+              lastUpdated={lastUpdated}
+            />
+          </>
+        )}
       </div>
     </div>
   );

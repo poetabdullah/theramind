@@ -1,28 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import React from "react";
 
-const PatientSelector = ({ selectedPatient, setSelectedPatient, error }) => {
-  const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        setLoading(true);
-        const patientsSnapshot = await getDocs(collection(db, "patients"));
-        const patientList = patientsSnapshot.docs.map((doc) => doc.data());
-        setPatients(patientList);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPatients();
-  }, []);
-
+const PatientSelector = ({
+  selectedPatient,
+  setSelectedPatient,
+  error,
+  patients = [],
+  loading = false,
+}) => {
   return (
     <div className="mb-8">
       <div className="relative">
