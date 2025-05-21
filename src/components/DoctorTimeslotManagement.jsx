@@ -142,7 +142,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	const groupedSlots = groupSlotsByDate(doctorData.timeslots);
 
 	return (
-		<motion.div className="max-w-4xl mx-auto px-4 py-8">
+		<motion.div className="mx-auto py-8">
 			{/* Form UI */}
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
@@ -150,7 +150,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 				transition={{ duration: 0.5 }}
 				className="bg-white rounded-2xl shadow-md p-6 mb-6"
 			>
-				<h2 className="text-3xl font-bold mb-6 text-center text-blue-700">
+				<h2 className="text-2xl font-bold mb-6 text-gray-700">
 					Timeslot Management
 				</h2>
 
@@ -207,9 +207,9 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 					}
 					className={`w-full mt-4 ${
 						!selectedDate || !selectedTime || repeatWeeks < 1 || !doctorData
-							? 'bg-gray-400 cursor-not-allowed'
-							: 'bg-blue-600 hover:bg-blue-700'
-					} text-white font-semibold py-2 px-4 rounded-lg transition duration-200`}
+							? 'bg-orange-400 cursor-not-allowed'
+							: 'bg-orange-600 hover:from-orange-500 to-orange-600'
+					} text-white font-semibold py-2 px-4 rounded-lg duration-200 bg-gradient-to-r from-orange-400 to-orange-500 transition-all`}
 				>
 					Add Timeslot
 				</motion.button>
@@ -222,7 +222,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 						<div key={date} className="border rounded-lg shadow">
 							<button
 								onClick={() => toggleDateSection(date)}
-								className="w-full text-left text-blue-700 font-semibold text-lg py-2 px-4 bg-blue-100 rounded-t-lg hover:bg-blue-200 transition"
+								className="w-full text-left text-gray-700 font-semibold text-lg py-2 px-4 rounded-t-lg bg-gradient-to-r from-orange-250 to-orange-350 hover:from-orange-300 hover:to-orange-400 transition-all"
 							>
 								{date} {openDates[date] ? '▲' : '▼'}
 							</button>
