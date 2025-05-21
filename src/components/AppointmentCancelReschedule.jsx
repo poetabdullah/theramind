@@ -11,12 +11,6 @@ import {
 	arrayUnion,
 	arrayRemove,
 } from 'firebase/firestore';
-
-import {
-	sendCancelEmail,
-	sendRescheduleEmail,
-} from './AppointmentConfirmationEmail.js';
-
 import { motion } from 'framer-motion';
 
 const AppointmentCancelReschedule = ({ userEmail }) => {
