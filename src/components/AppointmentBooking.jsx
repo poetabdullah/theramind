@@ -33,71 +33,51 @@ const AppointmentBooking = () => {
 			try {
 				await initGoogleClient();
 				const user = window.gapi.auth2.getAuthInstance().currentUser.get();
-
 				if (user && user.isSignedIn()) {
 					const profile = user.getBasicProfile();
 					const email = profile.getEmail();
-
-					// Query Firestore for the patient document using email
 					const q = query(collection(db, 'patients'), where('email', '==', email));
 					const snapshot = await getDocs(q);
-
 					if (!snapshot.empty) {
 						const patientDoc = snapshot.docs[0];
 						const patientData = patientDoc.data();
 						setPatientName(patientData.name);
 						setPatientEmail(patientData.email);
 					} else {
-						console.warn(
-							'Patient not found in Firestore, using Google profile data'
-						);
+						console.warn('Patient not found in Firestore, using Google profile data');
 						setPatientName(profile.getName());
 						setPatientEmail(email);
 					}
-
 					setIsSignedIn(true);
 				}
 			} catch (err) {
 				console.error('Error during Google sign-in or fetching patient info:', err);
 			}
 		};
-
 		fetchPatientInfo();
 	}, []);
 
-	// Fetch doctors
 	useEffect(() => {
 		const fetchDoctors = async () => {
 			try {
 				const snapshot = await getDocs(collection(db, 'doctors'));
-				const doctorList = snapshot.docs.map(doc => ({
-					id: doc.id,
-					...doc.data(),
-				}));
+				const doctorList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 				setDoctors(doctorList);
 			} catch (error) {
 				console.error('Error fetching doctors:', error);
 			}
 		};
-
 		fetchDoctors();
 	}, []);
 
-	// Fetch appointments for patient
 	useEffect(() => {
 		const fetchAppointments = async () => {
 			if (!patientEmail) return;
 			setLoadingAppointments(true);
 			try {
-				const q = query(
-					collection(db, 'appointments'),
-					where('patientEmail', '==', patientEmail)
-				);
+				const q = query(collection(db, 'appointments'), where('patientEmail', '==', patientEmail));
 				const snapshot = await getDocs(q);
-				const appts = snapshot.docs.map(doc => ({
-					id: doc.id,
-					...doc.data(),
-				}));
+				const appts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 				setAppointments(appts);
 			} catch (error) {
 				console.error('Error fetching appointments:', error);
@@ -112,48 +92,32 @@ const AppointmentBooking = () => {
 			setError('Please fill all fields before booking.');
 			return;
 		}
-
 		setError('');
-
 		try {
 			await initGoogleCalendarAuth();
-
 			const start = new Date(selectedTimeslot);
 			const end = new Date(start.getTime() + 30 * 60000);
-
 			const event = {
 				summary: `Appointment with ${selectedDoctor.fullName}`,
 				description: 'TheraMind Appointment',
-				start: {
-					dateTime: start.toISOString(),
-					timeZone: 'Asia/Karachi',
-				},
-				end: {
-					dateTime: end.toISOString(),
-					timeZone: 'Asia/Karachi',
-				},
+				start: { dateTime: start.toISOString(), timeZone: 'Asia/Karachi' },
+				end: { dateTime: end.toISOString(), timeZone: 'Asia/Karachi' },
 				conferenceData: {
 					createRequest: {
 						requestId: Math.random().toString(36).substring(7),
-						conferenceSolutionKey: {
-							type: 'hangoutsMeet',
-						},
+						conferenceSolutionKey: { type: 'hangoutsMeet' },
 					},
 				},
-				attendees: [{ email: patientEmail }, { email: selectedDoctor.email }],
+				attendees: [ { email: patientEmail }, { email: selectedDoctor.email } ],
 			};
-
 			const response = await window.gapi.client.calendar.events.insert({
 				calendarId: 'primary',
 				resource: event,
 				conferenceDataVersion: 1,
 				sendUpdates: 'all',
 			});
-
 			const meetLink = response.result.hangoutLink;
 			const calendarEventId = response.result.id;
-
-			// Save to Firestore
 			await addDoc(collection(db, 'appointments'), {
 				doctorEmail: selectedDoctor.email,
 				doctorName: selectedDoctor.fullName,
@@ -164,8 +128,15 @@ const AppointmentBooking = () => {
 				calendarEventId,
 			});
 
+			sendAppointmentConfirmationEmail({
+				patientName,
+				patientEmail,
+				doctorName: selectedDoctor.fullName,
+				timeslot: selectedTimeslot,
+				meetLink,
+			});
+
 			alert('Appointment Booked Successfully! Check your email & calendar.');
-			// Refresh appointments list
 			setSelectedDoctor(null);
 			setSelectedTimeslot('');
 			setAppointments(prev => [...prev, {
