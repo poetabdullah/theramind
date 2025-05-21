@@ -143,7 +143,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 
 	return (
 		<motion.div className="mx-auto py-8">
-			{/* Form UI */}
+			{/* Form Card */}
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -215,7 +215,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 				</motion.button>
 			</motion.div>
 
-			{/* Grouped slots with collapsible sections */}
+			{/* Collapsible Sections For Grouped Slots For A Particular Date */}
 			{Object.entries(groupedSlots).length > 0 ? (
 				<div className="space-y-4">
 					{Object.entries(groupedSlots).map(([date, slots]) => (
