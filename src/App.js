@@ -24,6 +24,7 @@ import DoctorSignUp from "./pages/DoctorSignUp";
 import SignUpLandingPage from "./pages/SignUpLandingPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
+import CreateTreatmentPlan from "./pages/CreateTreatmentPlan"
 const App = () => (
   <div>
     <Navbar />
@@ -52,6 +53,7 @@ const App = () => (
       <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
       <Route path="/appointment-booking" element={<AppointmentBooking />} />
       <Route path="/appointment-cancel-reschedule" element={<AppointmentCancelReschedule />} />
+      <Route path="/create-treatment" element={<CreateTreatmentPlan />} />
     </Routes>
   </div>
 );
