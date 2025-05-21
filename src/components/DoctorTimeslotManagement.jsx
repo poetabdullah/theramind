@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig.js';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactDatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -10,6 +10,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	const [selectedDate, setSelectedDate] = useState(null);
 	const [selectedTime, setSelectedTime] = useState(null);
 	const [repeatWeeks, setRepeatWeeks] = useState(1);
+	const [openDates, setOpenDates] = useState({});
 
 	const combineDateAndTime = (date, time) => {
 		if (!date || !time) return null;
@@ -19,19 +20,15 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 		return combined.toISOString();
 	};
 
-	const formatTimeslot = isoString => {
-		const date = new Date(isoString);
-		const options = {
+	const formatDate = dateStr =>
+		new Date(dateStr).toLocaleDateString(undefined, {
 			weekday: 'long',
 			year: 'numeric',
 			month: 'long',
 			day: 'numeric',
-			hour: 'numeric',
-			minute: 'numeric',
-			hour12: true,
-		};
-		return date.toLocaleString(undefined, options);
-	};
+		});
+
+	const todayKey = formatDate(new Date().toISOString());
 
 	useEffect(() => {
 		const fetchDoctorData = async () => {
@@ -47,7 +44,6 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 						...data,
 						timeslots: cleanTimeslots,
 					});
-					console.log('Fetched doctor data:', data);
 				} else {
 					const newDoctor = {
 						email: doctorEmail,
@@ -67,6 +63,27 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 		}
 	}, [doctorEmail]);
 
+	useEffect(() => {
+		if (!doctorData) return;
+		const todayKey = formatDate(new Date().toISOString());
+		const grouped = groupSlotsByDate(doctorData.timeslots || []);
+		if (grouped[todayKey]) {
+			setOpenDates(prev => ({ ...prev, [todayKey]: true }));
+		}
+	}, [doctorData]);
+
+	const groupSlotsByDate = slots => {
+		return [...(slots || [])]
+			.filter(Boolean)
+			.sort((a, b) => new Date(a) - new Date(b))
+			.reduce((groups, slot) => {
+				const dateKey = formatDate(slot);
+				if (!groups[dateKey]) groups[dateKey] = [];
+				groups[dateKey].push(slot);
+				return groups;
+			}, {});
+	};
+
 	const handleAddTimeslot = async () => {
 		const baseDate = combineDateAndTime(selectedDate, selectedTime);
 		if (!baseDate) return alert('Please select both date and time.');
@@ -77,21 +94,12 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 		for (let i = 0; i < repeatWeeks; i++) {
 			const newSlot = new Date(base);
 			newSlot.setDate(base.getDate() + i * 7);
-			const isoString = newSlot.toISOString();
-
-			if (!doctorData?.timeslots?.includes(isoString)) {
-				repeatedSlots.push(isoString);
-			}
-		}
-
-		if (repeatedSlots.length === 0) {
-			alert('All selected timeslots already exist.');
-			return;
+			repeatedSlots.push(newSlot.toISOString());
 		}
 
 		const updatedTimeslots = [
 			...(doctorData?.timeslots || []),
-			...repeatedSlots,
+			...repeatedSlots.filter(ts => !doctorData?.timeslots?.includes(ts)),
 		];
 
 		try {
@@ -121,14 +129,21 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 		}
 	};
 
+	const toggleDateSection = date => {
+		setOpenDates(prev => ({ ...prev, [date]: !prev[date] }));
+	};
+
 	if (!doctorData) {
 		return (
 			<p className="text-center text-gray-500 mt-3">Loading doctor data...</p>
 		);
 	}
 
+	const groupedSlots = groupSlotsByDate(doctorData.timeslots);
+
 	return (
-		<motion.div className="max-w-9xl mx-auto px-4 py-8">
+		<motion.div className="max-w-4xl mx-auto px-4 py-8">
+			{/* Form UI */}
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -139,14 +154,14 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 					Timeslot Management
 				</h2>
 
-				<div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
 					<div>
 						<label className="block font-medium mb-1 text-gray-700">
 							Select Date
 						</label>
 						<ReactDatePicker
 							selected={selectedDate}
-							onChange={date => setSelectedDate(date)}
+							onChange={setSelectedDate}
 							dateFormat="dd/MM/yyyy"
 							minDate={new Date()}
 							placeholderText="Choose a date"
@@ -159,7 +174,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 						</label>
 						<ReactDatePicker
 							selected={selectedTime}
-							onChange={time => setSelectedTime(time)}
+							onChange={setSelectedTime}
 							showTimeSelect
 							showTimeSelectOnly
 							timeIntervals={30}
@@ -200,30 +215,54 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 				</motion.button>
 			</motion.div>
 
-			{doctorData.timeslots?.length > 0 ? (
-				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ delay: 0.2 }}
-					className="grid gap-4"
-				>
-					{doctorData.timeslots.filter(Boolean).map((slot, index) => (
-						<div
-							key={index}
-							className="bg-white shadow-lg rounded-xl px-4 py-3 flex justify-between items-center"
-						>
-							<span className="text-gray-800 font-medium">
-								{formatTimeslot(slot)}
-							</span>
+			{/* Grouped slots with collapsible sections */}
+			{Object.entries(groupedSlots).length > 0 ? (
+				<div className="space-y-4">
+					{Object.entries(groupedSlots).map(([date, slots]) => (
+						<div key={date} className="border rounded-lg shadow">
 							<button
-								onClick={() => handleRemoveTimeslot(slot)}
-								className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
+								onClick={() => toggleDateSection(date)}
+								className="w-full text-left text-blue-700 font-semibold text-lg py-2 px-4 bg-blue-100 rounded-t-lg hover:bg-blue-200 transition"
 							>
-								Remove
+								{date} {openDates[date] ? '▲' : '▼'}
 							</button>
+							<AnimatePresence initial={false}>
+								{openDates[date] && (
+									<motion.div
+										initial={{ opacity: 0, height: 0 }}
+										animate={{ opacity: 1, height: 'auto' }}
+										exit={{ opacity: 0, height: 0 }}
+										transition={{ duration: 0.3 }}
+										className="overflow-hidden bg-white rounded-b-lg"
+									>
+										<div className="p-3 space-y-2">
+											{slots.map((slot, idx) => (
+												<div
+													key={idx}
+													className="bg-gray-100 px-4 py-2 rounded flex justify-between items-center"
+												>
+													<span className="text-gray-800">
+														{new Date(slot).toLocaleTimeString(undefined, {
+															hour: 'numeric',
+															minute: 'numeric',
+															hour12: true,
+														})}
+													</span>
+													<button
+														onClick={() => handleRemoveTimeslot(slot)}
+														className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+													>
+														Remove
+													</button>
+												</div>
+											))}
+										</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
 						</div>
 					))}
-				</motion.div>
+				</div>
 			) : (
 				<p className="text-gray-500 text-center">No timeslots available yet.</p>
 			)}
