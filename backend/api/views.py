@@ -344,7 +344,11 @@ def test_cors(request):
 @api_view(["POST"])
 def create_treatment_plan(request):
     """
-    Create a new treatment plan with initial version.
+    Create a new treatment plan with initial version, or edit existing active plan if exists.
+    Conditions:
+    - If an active treatment plan exists for the patient (is_terminated == False), do NOT create new.
+    - Instead, only allow editing if the doctor_email matches the creator.
+    - When editing, create a new version with updated goals, set end_date of previous version.
     """
     data = request.data
     try:
@@ -357,37 +361,109 @@ def create_treatment_plan(request):
         if not all([doctor_email, doctor_name, patient_email, patient_name, goals]):
             return Response({"error": "Missing required fields"}, status=400)
 
-        plan_ref = db.collection("treatment_plans").document()
-        version_ref = plan_ref.collection("versions").document()
-
-        now = datetime.utcnow()
-        plan_ref.set(
-            {
-                "doctor_email": doctor_email,
-                "doctor_name": doctor_name,
-                "patient_email": patient_email,
-                "patient_name": patient_name,
-                "is_terminated": False,
-                "created_at": now,
-            }
+        # Check if active plan exists for this patient
+        plans_query = (
+            db.collection("treatment_plans")
+            .where("patient_email", "==", patient_email)
+            .where("is_terminated", "==", False)
+            .limit(1)
+            .stream()
         )
+        active_plans = list(plans_query)
 
-        version_ref.set(
-            {
-                "start_date": now,
-                "end_date": now,
-                "weekly_score": 0,
-                "goals": goals,
-            }
-        )
+        if active_plans:
+            # Active plan exists
+            plan_doc = active_plans[0]
+            plan_id = plan_doc.id
+            plan_data = plan_doc.to_dict()
 
-        return Response(
-            {
-                "message": "Treatment plan created",
-                "plan_id": plan_ref.id,
-                "version_id": version_ref.id,
-            }
-        )
+            # Check if current doctor is the creator
+            if plan_data.get("doctor_email") != doctor_email:
+                return Response(
+                    {
+                        "error": "Only the doctor who created the active plan can edit it."
+                    },
+                    status=403,
+                )
+
+            # Fetch last version to close it (set end_date)
+            versions_ref = (
+                db.collection("treatment_plans")
+                .document(plan_id)
+                .collection("versions")
+            )
+            last_version_query = (
+                versions_ref.order_by(
+                    "start_date", direction=firestore.Query.DESCENDING
+                )
+                .limit(1)
+                .stream()
+            )
+            last_versions = list(last_version_query)
+            if not last_versions:
+                return Response(
+                    {"error": "No versions found for this plan"}, status=404
+                )
+            last_version = last_versions[0]
+            last_version_id = last_version.id
+            last_version_data = last_version.to_dict()
+
+            now = datetime.utcnow()
+            # Update end_date of last version to now, marking it as closed
+            versions_ref.document(last_version_id).update({"end_date": now})
+
+            # Create new version with updated goals and start_date = now
+            new_version_ref = versions_ref.document()
+            new_version_ref.set(
+                {
+                    "start_date": now,
+                    "end_date": now,  # will update on next edit or termination
+                    "weekly_score": 0,
+                    "goals": goals,
+                }
+            )
+
+            return Response(
+                {
+                    "message": "Existing active plan updated with new version",
+                    "plan_id": plan_id,
+                    "version_id": new_version_ref.id,
+                }
+            )
+
+        else:
+            # No active plan, create a new one
+            plan_ref = db.collection("treatment_plans").document()
+            version_ref = plan_ref.collection("versions").document()
+
+            now = datetime.utcnow()
+            plan_ref.set(
+                {
+                    "doctor_email": doctor_email,
+                    "doctor_name": doctor_name,
+                    "patient_email": patient_email,
+                    "patient_name": patient_name,
+                    "is_terminated": False,
+                    "created_at": now,
+                }
+            )
+
+            version_ref.set(
+                {
+                    "start_date": now,
+                    "end_date": now,
+                    "weekly_score": 0,
+                    "goals": goals,
+                }
+            )
+
+            return Response(
+                {
+                    "message": "Treatment plan created",
+                    "plan_id": plan_ref.id,
+                    "version_id": version_ref.id,
+                }
+            )
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
