@@ -13,6 +13,11 @@ import ListViewCard from "../components/ListViewCard";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import QuestionnaireResponses from "../components/QuestionnaireResponses";
+import TreatmentPlanView from "../components/TreatmentPlanView";
+import axios from "axios";
+
+// Global variable for easier access to the backend:
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 // Patient Dashboard is the area patient is directed to on login
 const PatientDashboard = () => {
@@ -23,6 +28,11 @@ const PatientDashboard = () => {
   const [isEditing, setIsEditing] = useState(false); // Checks if the user is editing the data
   const [patientData, setPatientData] = useState(null);
   const [currentStep, setCurrentStep] = useState(1); // Checks which area of the edit is the patient on based on the steps
+
+  // Treatment Plan states
+  const [planVersions, setPlanVersions] = useState([]);
+  const [planId, setPlanId] = useState(null);
+  const [activeVersionIndex, setActiveVersionIndex] = useState(0);
 
   // These forms have been defined as per the logic used in during the sign up process
   // Components not used due to the nature of the defined components and their logic
@@ -74,6 +84,90 @@ const PatientDashboard = () => {
       console.error("Error fetching patient data:", error);
     }
   }, []);  // Empty dependency array
+
+  // fetch active treatment plans for this patient
+  useEffect(() => {
+    if (!patientData?.email) return;
+
+    (async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE}/treatment/user/patient/${encodeURIComponent(
+            patientData.email
+          )}/`
+        );
+        const active = res.data.find((p) => p.is_terminated === false);
+        if (active) {
+          setPlanId(active.plan_id);
+          // now fetch its versions
+          const vRes = await axios.get(
+            `${API_BASE}/treatment/${active.plan_id}/versions/`
+          );
+          setPlanVersions(vRes.data);
+          // default to last version
+          setActiveVersionIndex(vRes.data.length - 1);
+        }
+      } catch (err) {
+        console.error("Error loading treatment plans:", err);
+      }
+    })();
+  }, [patientData]);
+
+  // helper to fetch a single version’s details
+  const fetchVersion = useCallback(
+    async (planId, versionId) => {
+      const resp = await axios.get(
+        `${API_BASE}/treatment/${planId}/version/${versionId}/`
+      );
+      return resp.data;
+    },
+    []
+  );
+
+  // handler to toggle an action complete/incomplete
+  const handleMarkComplete = useCallback(
+    async ({ goalId, actionId, newStatus }) => {
+      const versionId = planVersions[activeVersionIndex].version_id;
+      await axios.post(
+        `${API_BASE}/treatment/${planId}/version/${versionId}/complete/`,
+        {
+          goal_id: goalId,
+          action_id: actionId,
+          role: "patient",
+          is_completed: newStatus,  // use the newStatus passed from TreatmentPlanView
+        }
+      );
+      // force TreatmentPlanView to re-fetch by resetting the same index
+      setActiveVersionIndex((i) => i);
+    },
+    [planId, planVersions, activeVersionIndex]
+  );
+
+
+  // handler to terminate
+  const handleTerminate = useCallback(async () => {
+    await axios.post(`${API_BASE}/treatment/${planId}/terminate/`);
+    // mark locally as terminated to disable UI
+    setPlanVersions((vers) =>
+      vers.map((v) =>
+        v.version_id === planVersions[activeVersionIndex].version_id
+          ? { ...v, is_terminated: true }
+          : v
+      )
+    );
+  }, [planId, planVersions, activeVersionIndex]);
+
+
+  // helper to fetch the plan metadata (doctor_name, dates, etc.)
+  const fetchTreatmentPlan = useCallback(
+    async (planId) => {
+      const res = await axios.get(
+        `${API_BASE}/treatment/${encodeURIComponent(planId)}/`
+      );
+      return res.data;
+    },
+    []
+  );
 
 
   useEffect(() => {
@@ -547,6 +641,25 @@ const PatientDashboard = () => {
             {/* Pass the email from the user state */}
             {user && <QuestionnaireResponses patientEmail={user.email} />}
           </div>
+
+          {/* === Treatment Plan Section === */}
+          {planId ? (
+            <TreatmentPlanView
+              planId={planId}
+              versions={planVersions}
+              versionIndex={activeVersionIndex}
+              role="patient"
+              fetchVersion={fetchVersion}
+              fetchTreatmentPlan={fetchTreatmentPlan}           // newly defined
+              onToggleComplete={handleMarkComplete}              // renamed to match the prop
+              onTerminate={handleTerminate}
+            />
+          ) : (
+            <div className="my-8 p-6 bg-white rounded-2xl shadow border border-gray-200 text-center text-gray-600">
+              No active treatment plan. Please wait for your doctor to create one.
+            </div>
+          )}
+
 
           {/* Patient Stories Section */}
           <div className="mb-8">

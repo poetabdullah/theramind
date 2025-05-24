@@ -523,6 +523,27 @@ def get_treatment_plan_version(request, plan_id, version_id):
         return Response({"error": str(e)}, status=500)
 
 
+@api_view(["GET"])
+def get_treatment_plan(request, plan_id):
+    """
+    Return the top‐level treatment plan document,
+    including doctor_name, patient info, created_at, is_terminated, etc.
+    """
+    try:
+        plan_ref = db.collection("treatment_plans").document(plan_id)
+        plan_doc = plan_ref.get()
+        if not plan_doc.exists:
+            return Response({"error": "Plan not found"}, status=404)
+
+        plan_data = plan_doc.to_dict()
+        # Optionally add the plan_id back into the payload
+        plan_data["plan_id"] = plan_id
+
+        return Response(plan_data)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
 @api_view(["PUT"])
 def update_current_week_actions(request, plan_id, version_id):
     """
@@ -551,16 +572,19 @@ def update_current_week_actions(request, plan_id, version_id):
 @api_view(["POST"])
 def mark_action_complete(request, plan_id, version_id):
     """
-    Mark an action as completed by doctor or patient (based on role).
+    Mark an action as completed or uncompleted by doctor or patient (based on role).
     Request should include:
     - goal_id: str
     - action_id: str
     - role: "doctor" or "patient"
+    - is_completed: bool (optional, defaults to True)
     """
     try:
         goal_id = request.data.get("goal_id")
         action_id = request.data.get("action_id")
         role = request.data.get("role")  # Expected: "doctor" or "patient"
+        # honor the incoming flag if provided, otherwise default to True
+        status_flag = request.data.get("is_completed", True)
 
         if not all([goal_id, action_id, role]):
             return Response({"error": "Missing required fields"}, status=400)
@@ -595,7 +619,7 @@ def mark_action_complete(request, plan_id, version_id):
                                 },
                                 status=403,
                             )
-                        action["is_completed"] = True
+                        action["is_completed"] = bool(status_flag)
                         action_updated = True
 
         if not goal_found:
@@ -604,7 +628,11 @@ def mark_action_complete(request, plan_id, version_id):
             return Response({"error": "Action not found or not permitted"}, status=404)
 
         version_ref.update({"goals": goals})
-        return Response({"message": "Action marked as complete"})
+        return Response(
+            {
+                "message": f"Action marked as {'complete' if status_flag else 'incomplete'}"
+            }
+        )
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)

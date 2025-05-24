@@ -34,6 +34,7 @@ from .views import (
     get_treatment_plan_versions,
     get_treatment_plans_by_user,
     mark_action_complete,
+    get_treatment_plan,
 )
 
 urlpatterns = [
@@ -70,6 +71,11 @@ urlpatterns = [
         "treatment/user/<str:role>/<str:email>/",
         get_treatment_plans_by_user,
         name="get_treatment_plans_by_user",
+    ),
+    path(
+        "treatment/<str:plan_id>/",
+        get_treatment_plan,
+        name="get_treatment_plan",
     ),
     # Plan versioning
     path(
