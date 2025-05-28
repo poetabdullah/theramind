@@ -10,6 +10,7 @@ import DoctorBioCard from '../components/DoctorBioCard';
 import ListViewCard from '../components/ListViewCard';
 import DoctorTimeslotManagement from '../components/DoctorTimeslotManagement';
 import DoctorAppointment from '../components/DoctorAppointment';
+import ManagePatientsCard from '../components/ManagePatientsCard';
 
 // Main Dashboard Component
 const DoctorDashboard = () => {
@@ -231,6 +232,11 @@ const DoctorDashboard = () => {
                         {/* Doctor's Appointment Section */}
                         <div className="mt-10">
                             <DoctorAppointment doctorEmail={doctorData.email} />
+                        </div>
+
+                        {/* Manage Patients Section */}
+                        <div className="mt-12 mb-8">
+                            <ManagePatientsCard />
                         </div>
 
                         {/* Articles Section - Added mt-12 for more margin from previous card */}
