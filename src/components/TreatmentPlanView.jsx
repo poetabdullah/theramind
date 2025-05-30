@@ -361,6 +361,7 @@ export default function TreatmentPlanView({
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
+                Created By:{" "}
                 {treatmentPlan?.doctor_name || "Doctor name not available"}
               </h3>
               {treatmentPlan?.error && (
@@ -405,9 +406,9 @@ export default function TreatmentPlanView({
                 {goal.actions?.map((act) => {
                   const done = act.is_completed;
                   const showCheckbox =
-                    role === "patient" &&
-                    act.assigned_to === "patient" &&
-                    isCurrent;
+                    isCurrent &&
+                    ((role === "patient" && act.assigned_to === "patient") ||
+                      (role === "doctor" && act.assigned_to === "doctor"));
 
                   return (
                     <div
@@ -487,7 +488,7 @@ export default function TreatmentPlanView({
               <div className="border-t pt-6 border-gray-200">
                 <button
                   onClick={onTerminate}
-                  className="w-full bg-gradient-to-r from-red-500 to-red-600 py-3 text-white rounded-lg font-semibold shadow hover:shadow-lg transition"
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 py-3 text-white rounded-lg font-bold shadow hover:shadow-lg transition"
                 >
                   Terminate Plan
                 </button>
