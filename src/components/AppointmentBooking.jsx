@@ -11,8 +11,8 @@ import {
 	doc,
 	updateDoc,
 } from 'firebase/firestore';
-import { initGoogleClient } from '../utils/google_api';
 import { initGoogleCalendarAuth } from '../utils/googleCalendarAuth';
+import { initGoogleApi } from '../utils/google_api';
 import { sendAppointmentConfirmationEmail } from './AppointmentConfirmationEmail';
 
 const AppointmentBooking = () => {
@@ -31,12 +31,15 @@ const AppointmentBooking = () => {
 	useEffect(() => {
 		const fetchPatientInfo = async () => {
 			try {
-				await initGoogleClient();
+				await initGoogleApi();
 				const user = window.gapi.auth2.getAuthInstance().currentUser.get();
 				if (user && user.isSignedIn()) {
 					const profile = user.getBasicProfile();
 					const email = profile.getEmail();
-					const q = query(collection(db, 'patients'), where('email', '==', email));
+					const q = query(
+						collection(db, 'patients'),
+						where('email', '==', email)
+					);
 					const snapshot = await getDocs(q);
 					if (!snapshot.empty) {
 						const patientDoc = snapshot.docs[0];
@@ -44,14 +47,19 @@ const AppointmentBooking = () => {
 						setPatientName(patientData.name);
 						setPatientEmail(patientData.email);
 					} else {
-						console.warn('Patient not found in Firestore, using Google profile data');
+						console.warn(
+							'Patient not found in Firestore, using Google profile data'
+						);
 						setPatientName(profile.getName());
 						setPatientEmail(email);
 					}
 					setIsSignedIn(true);
 				}
 			} catch (err) {
-				console.error('Error during Google sign-in or fetching patient info:', err);
+				console.error(
+					'Error during Google sign-in or fetching patient info:',
+					err
+				);
 			}
 		};
 		fetchPatientInfo();
@@ -61,7 +69,10 @@ const AppointmentBooking = () => {
 		const fetchDoctors = async () => {
 			try {
 				const snapshot = await getDocs(collection(db, 'doctors'));
-				const doctorList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+				const doctorList = snapshot.docs.map(doc => ({
+					id: doc.id,
+					...doc.data(),
+				}));
 				setDoctors(doctorList);
 			} catch (error) {
 				console.error('Error fetching doctors:', error);
@@ -75,7 +86,10 @@ const AppointmentBooking = () => {
 			if (!patientEmail) return;
 			setLoadingAppointments(true);
 			try {
-				const q = query(collection(db, 'appointments'), where('patientEmail', '==', patientEmail));
+				const q = query(
+					collection(db, 'appointments'),
+					where('patientEmail', '==', patientEmail)
+				);
 				const snapshot = await getDocs(q);
 				const appts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 				setAppointments(appts);
@@ -97,27 +111,35 @@ const AppointmentBooking = () => {
 			await initGoogleCalendarAuth();
 			const start = new Date(selectedTimeslot);
 			const end = new Date(start.getTime() + 30 * 60000);
+
 			const event = {
 				summary: `Appointment with ${selectedDoctor.fullName}`,
 				description: 'TheraMind Appointment',
 				start: { dateTime: start.toISOString(), timeZone: 'Asia/Karachi' },
 				end: { dateTime: end.toISOString(), timeZone: 'Asia/Karachi' },
+				attendees: [{ email: patientEmail }, { email: selectedDoctor.email }],
 				conferenceData: {
 					createRequest: {
-						requestId: Math.random().toString(36).substring(7),
+						requestId: `${Date.now()}`, // MUST be unique
 						conferenceSolutionKey: { type: 'hangoutsMeet' },
 					},
 				},
-				attendees: [ { email: patientEmail }, { email: selectedDoctor.email } ],
 			};
+
 			const response = await window.gapi.client.calendar.events.insert({
 				calendarId: 'primary',
 				resource: event,
-				conferenceDataVersion: 1,
+				conferenceDataVersion: 1, // REQUIRED when using conferenceData
 				sendUpdates: 'all',
 			});
-			const meetLink = response.result.hangoutLink;
+
+			const meetLink =
+				response.result.hangoutLink ||
+				response.result.conferenceData?.entryPoints?.find(
+					p => p.entryPointType === 'video'
+				)?.uri;
 			const calendarEventId = response.result.id;
+
 			await addDoc(collection(db, 'appointments'), {
 				doctorEmail: selectedDoctor.email,
 				doctorName: selectedDoctor.fullName,
@@ -139,24 +161,32 @@ const AppointmentBooking = () => {
 			alert('Appointment Booked Successfully! Check your email & calendar.');
 			setSelectedDoctor(null);
 			setSelectedTimeslot('');
-			setAppointments(prev => [...prev, {
-				doctorEmail: selectedDoctor.email,
-				doctorName: selectedDoctor.fullName,
-				patientName,
-				patientEmail,
-				timeslot: selectedTimeslot,
-				meetLink,
-				calendarEventId,
-			}]);
+			setAppointments(prev => [
+				...prev,
+				{
+					doctorEmail: selectedDoctor.email,
+					doctorName: selectedDoctor.fullName,
+					patientName,
+					patientEmail,
+					timeslot: selectedTimeslot,
+					meetLink,
+					calendarEventId,
+				},
+			]);
 		} catch (error) {
 			console.error('Booking failed:', error);
-			alert('Something went wrong. Please try again.');
+			alert(
+				'Booking failed: ' +
+					(error?.result?.error?.message || 'Please try again.')
+			);
 		}
 	};
+	
 
 	// Cancel appointment handler
-	const handleCancel = async (appointment) => {
-		if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
+	const handleCancel = async appointment => {
+		if (!window.confirm('Are you sure you want to cancel this appointment?'))
+			return;
 
 		try {
 			await initGoogleCalendarAuth();
@@ -180,7 +210,7 @@ const AppointmentBooking = () => {
 	};
 
 	// Start rescheduling: load appointment details into booking form
-	const startReschedule = (appointment) => {
+	const startReschedule = appointment => {
 		setReschedulingAppointment(appointment);
 		// Set selected doctor & timeslot to current appointment values
 		const docObj = doctors.find(d => d.email === appointment.doctorEmail);
@@ -211,11 +241,11 @@ const AppointmentBooking = () => {
 				description: 'TheraMind Appointment (Rescheduled)',
 				start: {
 					dateTime: start.toISOString(),
-					timeZone: 'Asia/Pakistan',
+					timeZone: 'Asia/Karachi',
 				},
 				end: {
 					dateTime: end.toISOString(),
-					timeZone: 'Asia/Pakistan',
+					timeZone: 'Asia/Karachi',
 				},
 				attendees: [{ email: patientEmail }, { email: selectedDoctor.email }],
 			};
@@ -228,7 +258,11 @@ const AppointmentBooking = () => {
 			});
 
 			// Update Firestore
-			const appointmentRef = doc(db, 'appointments', reschedulingAppointment.id);
+			const appointmentRef = doc(
+				db,
+				'appointments',
+				reschedulingAppointment.id
+			);
 			await updateDoc(appointmentRef, {
 				doctorEmail: selectedDoctor.email,
 				doctorName: selectedDoctor.fullName,
@@ -239,7 +273,12 @@ const AppointmentBooking = () => {
 			setAppointments(appts =>
 				appts.map(a =>
 					a.id === reschedulingAppointment.id
-						? { ...a, doctorEmail: selectedDoctor.email, doctorName: selectedDoctor.fullName, timeslot: selectedTimeslot }
+						? {
+								...a,
+								doctorEmail: selectedDoctor.email,
+								doctorName: selectedDoctor.fullName,
+								timeslot: selectedTimeslot,
+						  }
 						: a
 				)
 			);
