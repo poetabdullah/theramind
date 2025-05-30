@@ -26,6 +26,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import CreateTreatmentPlan from "./pages/CreateTreatmentPlan"
 import ManagePatients from "./pages/ManagePatients";
+import TreatmentRecommendation from "./pages/TreatmentRecommendation";
+
 const App = () => (
   <div>
     <Navbar />
@@ -56,6 +58,7 @@ const App = () => (
       <Route path="/appointment-cancel-reschedule" element={<AppointmentCancelReschedule />} />
       <Route path="/create-treatment" element={<CreateTreatmentPlan />} />
       <Route path="/manage-patients" element={<ManagePatients />} />
+      <Route path="treatment-recommendation" element={<TreatmentRecommendation />} />
     </Routes>
   </div>
 );
