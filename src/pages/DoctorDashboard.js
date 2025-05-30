@@ -273,14 +273,15 @@ const DoctorDashboard = () => {
                                             content={article.content || "No content available"}
                                             author={article.author || doctorData.fullName}
                                             date={
-                                                article.createdAt && article.createdAt.seconds
-                                                    ? new Date(article.createdAt.seconds * 1000).toLocaleDateString()
+                                                article.date_time
+                                                    ? new Date(article.date_time.seconds * 1000).toLocaleDateString()
                                                     : "No date available"
                                             }
                                             tags={article.tags || []}
                                             link={`/articles/${article.id}`}
                                             type="article"
                                         />
+
                                     ))}
                                 </div>
                             )}
