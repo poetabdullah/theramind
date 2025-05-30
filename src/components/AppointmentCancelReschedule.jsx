@@ -57,14 +57,14 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
 
       alert("Appointment cancelled successfully.");
 
-      // ❌ COMMENTED OUT: sendCancelEmail not defined or causing errors
-      // sendCancelEmail({
-      //   patient_name: appData.patientName,
-      //   doctor_name: appData.doctorName,
-      //   doctor_email: appData.doctorEmail,
-      //   patient_email: appData.patientEmail,
-      //   time: timeslot,
-      // });
+     
+      sendCancelEmail({
+        patient_name: appData.patientName,
+        doctor_name: appData.doctorName,
+        doctor_email: appData.doctorEmail,
+        patient_email: appData.patientEmail,
+        time: timeslot,
+      });
     } catch (error) {
       console.error("Cancellation failed:", error);
       alert("Something went wrong while canceling. Please try again.");
@@ -96,15 +96,14 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
 
       alert("Appointment rescheduled successfully!");
 
-      // ❌ COMMENTED OUT: sendRescheduleEmail not defined or causing errors
-      // sendRescheduleEmail({
-      //   patient_name: appData.patientName,
-      //   doctor_name: appData.doctorName,
-      //   doctor_email: appData.doctorEmail,
-      //   patient_email: appData.patientEmail,
-      //   newTime: newTimeslot,
-      //   meet_link: appData.meetLink,
-      // });
+     sendRescheduleEmail({
+      patient_name: appData.patientName,
+      doctor_name: appData.doctorName,
+      doctor_email: appData.doctorEmail,
+      patient_email: appData.patientEmail,
+      newTime: newTimeslot,
+      meet_link: appData.meetLink,
+     });
     } catch (error) {
       console.error("Rescheduling failed:", error);
       alert("Something went wrong while rescheduling. Please try again.");
