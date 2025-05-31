@@ -492,8 +492,8 @@ body {
   }
 }
 .meditation-container {
-  /* background: linear-gradient(135deg, #a635d6, #ff7b00); */
-  min-height: 400vh;
+  background: linear-gradient(135deg, #a635d6, #ff7b00);
+  min-height: 100vh; /* Changed from 400vh */
 }
 
 /* Header */
@@ -501,7 +501,7 @@ body {
   background: linear-gradient(135deg, #a635d6, #ff7b00);
   text-align: center;
   color: white;
-  padding:70px 80px;
+  padding: 70px 80px;
   height: 50vh;
 }
 .meditation-header .title {
@@ -732,11 +732,12 @@ body {
   text-transform: uppercase;
 } */
 
-/* .timer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+/* .meditation-timer h2 {
+  font-size: 1.8rem;
+  color: #fff;
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .timer {
@@ -755,6 +756,7 @@ body {
   display: flex;
   gap: 10px;
 }
+
 
 .timer-buttons button {
   background: #ff758c;
@@ -796,6 +798,27 @@ body {
     transform: scale(1.05);
   }
 } */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
 .meditation-card,
 .benefit-card {
   padding: 15px;
@@ -840,15 +863,6 @@ body {
   border-radius: 10px;
   cursor: pointer;
   transition: 0.3s;
-}
-
-.breathing-circle {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  /* background: linear-gradient(to right, #ff9a9e, #fad0c4); */
-  background: linear-gradient(to right, #dd4600, #f1724f);
-  margin-left: 20px;
 }
 
 /* Meditation Types Section */
