@@ -85,6 +85,20 @@ const Footer = () => {
               >
                 Testimonial
               </Link>
+              <Link
+                to="https://www.freeprivacypolicy.com/live/52efac88-a01d-4417-adb1-247288a850b8"
+                className="block text-gray-300 hover:text-orange-400 no-underline"
+              >
+                Privacy Policy
+              </Link>
+
+              <Link
+                to="https://www.freeprivacypolicy.com/live/a756f6cb-68ce-4a60-ab21-d5936fdbf87c"
+                className="block text-gray-300 hover:text-orange-400 no-underline"
+              >
+                Terms of Service
+              </Link>
+
             </nav>
           </div>
 
@@ -92,14 +106,14 @@ const Footer = () => {
             <h3 className="text-xl font-semibold mb-6">Contact Us</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-gray-300">
-                <Mail className="w-5 h-5" /> contact@theramind.com
+                <Mail className="w-5 h-5" /> theramind2025@gmail.com
               </div>
               <div className="flex items-center gap-3 text-gray-300">
-                <Phone className="w-5 h-5" /> +1 (234) 567-890
+                <Phone className="w-5 h-5" /> +923164853878
               </div>
               <div className="flex items-center gap-3 text-gray-300">
                 <MapPin className="w-5 h-5" />{" "}
-                <span>123 Wellness Street, Mind City, MC 12345</span>
+                <span>Lahore, Punjab, Pakistan</span>
               </div>
             </div>
           </div>
@@ -129,7 +143,7 @@ const Footer = () => {
             </a>
             {/* Instagram Logo */}
             <a
-              href="http://instagram.com/poet.abdullah/"
+              href="https://www.instagram.com/theramind.web/"
               className="text-gray-300 hover:text-orange-400"
               aria-label="Instagram"
             >
