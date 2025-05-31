@@ -685,9 +685,9 @@ body {
 .exercise-card.active .steps li {
   color: white;
 }
-*/
-/*breathin */
-/* .breathing-title{
+
+/*breathing */
+.breathing-title {
   color: orange;
   margin-top: 30px;
   font-weight: bold;
@@ -796,10 +796,8 @@ body {
     transform: scale(1.05);
   }
 } */
- */
-
-
-.meditation-card, .benefit-card {
+.meditation-card,
+.benefit-card {
   padding: 15px;
   border-radius: 10px;
   text-align: center;
