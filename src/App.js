@@ -58,7 +58,7 @@ const App = () => (
       <Route path="/appointment-cancel-reschedule" element={<AppointmentCancelReschedule />} />
       <Route path="/create-treatment" element={<CreateTreatmentPlan />} />
       <Route path="/manage-patients" element={<ManagePatients />} />
-      <Route path="treatment-recommendation" element={<TreatmentRecommendation />} />
+      <Route path="/treatment-recommendation" element={<TreatmentRecommendation />} />
     </Routes>
   </div>
 );
