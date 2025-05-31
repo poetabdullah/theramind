@@ -113,7 +113,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3 text-gray-300">
                 <MapPin className="w-5 h-5" />{" "}
-                <span>Lahore, Punjab, Pakistans</span>
+                <span>Lahore, Punjab, Pakistan</span>
               </div>
             </div>
           </div>
@@ -143,7 +143,7 @@ const Footer = () => {
             </a>
             {/* Instagram Logo */}
             <a
-              href="http://instagram.com/poet.abdullah/"
+              href="https://www.instagram.com/theramind.web/"
               className="text-gray-300 hover:text-orange-400"
               aria-label="Instagram"
             >
