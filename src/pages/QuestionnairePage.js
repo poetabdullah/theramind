@@ -148,6 +148,18 @@ const Questionnaire = () => {
         }));
       }
 
+      //If Gender=Male, Skip PostPartum Depression Questions
+      if (detectedCondition === "Depression" && user?.gender?.toLowerCase() === "male" 
+      && currentQuestionIndex >= 36 && currentQuestionIndex <= 38) {
+        setCurrentQuestionIndex((prev) => {
+          if (prev === 38) {
+            return 39;
+          }
+          return prev + 1;
+        });
+        return;
+      }
+
       if (currentQuestionIndex === conditionRanges[detectedCondition].end) {
         setIsQuestionnaireComplete(true);
         return;
@@ -192,6 +204,12 @@ const Questionnaire = () => {
     setSuicidalThoughts(false);
 
     const detectedCondition = detectedConditions[0];
+
+    let prevIndex = currentQuestionIndex - 1;
+    //If Gender=Male, Skip PostPartum Depression Questions
+    if (detectedCondition === "Depression" && user?.gender?.toLowerCase() === "male" && prevIndex >= 36 && prevIndex <= 38) {
+      prevIndex = 35; 
+    }
 
     //If In The Middle Of A Detected Condition, Go Back To Normal Back Question Of Range
     if (detectedCondition && currentQuestionIndex > conditionRanges[detectedCondition].start) {
