@@ -23,7 +23,7 @@ export default function CreateTreatmentCTA() {
           </div>
         </div>
         <button
-          onClick={() => navigate("/create-treatment")}
+          onClick={() => navigate("/treatment-recommendation")}
           className="mt-6 sm:mt-0 bg-white text-indigo-600 font-semibold px-6 py-3 rounded-xl shadow-md hover:bg-gray-300 transition"
         >
           Create Now
