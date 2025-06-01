@@ -3,9 +3,10 @@ import "./questionnaire.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "../components/Footer.js";
 import { db } from "../firebaseConfig.js";
-import { collection, getDocs, query, orderBy, doc, setDoc } from "firebase/firestore";
+import { collection, getDocs, getDoc, query, orderBy, doc, setDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { set } from "date-fns";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -43,20 +44,39 @@ const Questionnaire = () => {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  // Check if user is authenticated and registered in "patients" collection
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        setIsLoading(false);
-      } else {
-        // Redirect to login if not authenticated
-        navigate("/login");
-      }
-    });
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    if (currentUser) {
+      try {
+        const patientRef = doc(db, "patients", currentUser.email);
+        const patientSnapshot = await getDoc(patientRef);
 
-    return () => unsubscribe();
-  }, [auth, navigate]);
+        if (patientSnapshot.exists()) {
+          const patientData = patientSnapshot.data();
+          setUser({
+            ...currentUser,
+            gender: patientData.gender || "not specified",
+          });
+          console.log("Fetched user gender:", patientData.gender);
+        } else {
+          setUser(currentUser);
+        }
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+        setUser(currentUser);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Redirect to login if not authenticated
+      navigate("/login");
+      setIsLoading(false); // Ensure loading state is reset on logout
+    }
+  });
+
+  return () => unsubscribe();
+}, [auth, navigate]);
+
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -119,77 +139,77 @@ const Questionnaire = () => {
     });
   };
 
-  const handleNext = async () => {
-    if (!detectedCondition && currentQuestionIndex === 6) {
-      const conditionCounts = { Stress: 0, Anxiety: 0, Depression: 0, Trauma: 0, OCD: 0 };
+ const handleNext = async () => {
+  if (!detectedCondition && currentQuestionIndex === 6) {
+    const conditionCounts = { Stress: 0, Anxiety: 0, Depression: 0, Trauma: 0, OCD: 0 };
 
-      for (let i = 3; i <= 6; i++) {
-        const selectedCondition = responses[`question_${questions[i]?.id}`];
-        if (selectedCondition) conditionCounts[selectedCondition]++;
-      }
-
-      const detected = Object.keys(conditionCounts).reduce((a, b) => conditionCounts[a] > conditionCounts[b] ? a : b);
-      setDetectedCondition(detected);
-      console.log(detected);
-      console.log(conditionCounts);
-      setCurrentQuestionIndex(conditionRanges[detected]?.start || 16);
-      return;
+    for (let i = 3; i <= 6; i++) {
+      const selectedCondition = responses[`question_${questions[i]?.id}`];
+      if (selectedCondition) conditionCounts[selectedCondition]++;
     }
 
-    if (detectedCondition) {
-      const currentQuestion = questions[currentQuestionIndex];
-      const selectedOption = responses[`question_${currentQuestion.id}`];
+    const detected = Object.keys(conditionCounts).reduce((a, b) => conditionCounts[a] > conditionCounts[b] ? a : b);
+    setDetectedCondition(detected);
+    console.log(detected);
+    console.log(conditionCounts);
+    setCurrentQuestionIndex(conditionRanges[detected]?.start || 16);
+    return;
+  }
 
-      if (selectedOption && currentQuestion.category) {
-        const score = currentQuestion.options.find(option => option.name === selectedOption)?.score || 0;
-        setSubtypeScores(prev => ({
-          ...prev,
-          [currentQuestion.category]: (prev[currentQuestion.category] || 0) + score
-        }));
-      }
+  let nextIndex = currentQuestionIndex + 1;
 
-      //If Gender=Male, Skip PostPartum Depression Questions
-      if (detectedCondition === "Depression" && user?.gender?.toLowerCase() === "male" 
-      && currentQuestionIndex >= 36 && currentQuestionIndex <= 38) {
-        setCurrentQuestionIndex((prev) => {
-          if (prev === 38) {
-            return 39;
-          }
-          return prev + 1;
-        });
-        return;
-      }
+  // If Depression + Male + skipping postpartum questions
+  if (
+    detectedCondition === "Depression" &&
+    user?.gender?.toLowerCase() === "male" &&
+    currentQuestionIndex === 34 // Question before postpartum
+  ) {
+    nextIndex = 38; // Jump past postpartum
+  }
 
-      if (currentQuestionIndex === conditionRanges[detectedCondition].end) {
-        setIsQuestionnaireComplete(true);
-        return;
+  const currentQuestion = questions[currentQuestionIndex];
+  const selectedOption = responses[`question_${currentQuestion?.id}`];
 
-      }
-    }
+  // Add subtype scoring
+  if (selectedOption && currentQuestion?.category) {
+    const score = currentQuestion.options.find(option => option.name === selectedOption)?.score || 0;
+    setSubtypeScores(prev => ({
+      ...prev,
+      [currentQuestion.category]: (prev[currentQuestion.category] || 0) + score
+    }));
+  }
 
-    setCurrentQuestionIndex((prev) => prev + 1);
-    // Determine max subtype
-    const maxSubtype = Object.keys(subtypeScores).reduce((a, b) => subtypeScores[a] > subtypeScores[b] ? a : b, "");
-    setDiagnosedSubtype(maxSubtype);
+  // Check if the current question is the last one in the detected condition range
+  if (currentQuestionIndex === conditionRanges[detectedCondition]?.end) {
+    setIsQuestionnaireComplete(true);
+    return;
+  }
 
-    if (user) {
-      const diagnosisResult = {
-        timestamp: new Date(),
-        noConditionDiagnosed: noConditionDiagnosed,
-        suicidalThoughts: suicidalThoughts,
-        detectedConditions: detectedConditions,
-        diagnosedSubtype: maxSubtype,
-        allResponses: responses,
-      };
+  setCurrentQuestionIndex(nextIndex);
 
-      const assessmentRef = doc(db, "patients", user.email, "assessments", new Date().toISOString());
-      await setDoc(assessmentRef, diagnosisResult)
-        .then(() => console.log("Assessment saved successfully"))
-        .catch(error => console.error("Error saving assessment result:", error));
+  // Update diagnosed subtype
+  const maxSubtype = Object.keys(subtypeScores).reduce(
+    (a, b) => subtypeScores[a] > subtypeScores[b] ? a : b,
+    ""
+  );
+  setDiagnosedSubtype(maxSubtype);
 
+  if (user) {
+    const diagnosisResult = {
+      timestamp: new Date(),
+      noConditionDiagnosed,
+      suicidalThoughts,
+      detectedConditions,
+      diagnosedSubtype: maxSubtype,
+      allResponses: responses,
+    };
 
-    }
-  };
+    const assessmentRef = doc(db, "patients", user.email, "assessments", new Date().toISOString());
+    await setDoc(assessmentRef, diagnosisResult)
+      .then(() => console.log("Assessment saved successfully"))
+      .catch(error => console.error("Error saving assessment result:", error));
+  }
+};
 
   useEffect(() => {
     if (isQuestionnaireComplete) {
@@ -198,36 +218,55 @@ const Questionnaire = () => {
     }
   }, [isQuestionnaireComplete, subtypeScores]);
 
-
   const handlePrevious = () => {
-    setNoConditionDiagnosed(false);
-    setSuicidalThoughts(false);
+  setNoConditionDiagnosed(false);
+  setSuicidalThoughts(false);
 
-    const detectedCondition = detectedConditions[0];
+  // Use detectedCondition state, not detectedConditions array
+  const condition = detectedCondition;
 
-    let prevIndex = currentQuestionIndex - 1;
-    //If Gender=Male, Skip PostPartum Depression Questions
-    if (detectedCondition === "Depression" && user?.gender?.toLowerCase() === "male" && prevIndex >= 36 && prevIndex <= 38) {
-      prevIndex = 35; 
-    }
+  let newIndex = currentQuestionIndex - 1;
 
-    //If In The Middle Of A Detected Condition, Go Back To Normal Back Question Of Range
-    if (detectedCondition && currentQuestionIndex > conditionRanges[detectedCondition].start) {
-      setCurrentQuestionIndex((prev) => prev - 1);
-    }
-    //If At The Beginning Of A Detected Condition, Go Back To Question 6
-    if (detectedCondition && currentQuestionIndex === conditionRanges[detectedCondition].start) {
-      setDetectedCondition(null);
-      setCurrentQuestionIndex(6);
-    }
-    //If At Question 6, Go Back To Question 3
-    if (!detectedCondition && currentQuestionIndex === 6) {
-      setCurrentQuestionIndex(3);
-      return;
-    }
-    //To Prevent Moving Back Below 0
-    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
-  };
+  // Skip postpartum questions backward if Depression & Gender = Male
+  if (
+    condition === "Depression" &&
+    user?.gender?.toLowerCase() === "male" &&
+    newIndex >= 35 && // postpartum questions start at 36 to 38 inclusive
+    newIndex <= 37
+  ) {
+    newIndex = 34; // jump to question before postpartum
+  }
+
+  //If In Current Detected Condition Range, Backtrack To Normal Back Question Of Range
+  if (condition && newIndex === conditionRanges[condition].start - 1) {
+    setDetectedCondition(null);
+    setCurrentQuestionIndex(6);
+    return;
+  }
+
+  // If currently inside detected condition range, just go one question back within range
+  if (condition && currentQuestionIndex > conditionRanges[condition].start) {
+    setCurrentQuestionIndex(newIndex);
+    return;
+  }
+
+  // If at the first question of detected condition, go back to question 6
+  if (condition && currentQuestionIndex === conditionRanges[condition].start) {
+    setDetectedCondition(null);
+    setCurrentQuestionIndex(6);
+    return;
+  }
+
+  // If no detected condition and currently at question 6, go back to question 3
+  if (!condition && currentQuestionIndex === 6) {
+    setCurrentQuestionIndex(3);
+    return;
+  }
+
+  // Prevent going below question 0
+  setCurrentQuestionIndex(Math.max(0, newIndex));
+};
+
 
   const getProgress = () => {
     if (noConditionDiagnosed || suicidalThoughts) return 100;
@@ -376,7 +415,7 @@ const Questionnaire = () => {
           </AnimatePresence>
 
           <AnimatePresence>
-            {!noConditionDiagnosed && !suicidalThoughts && questions.length > 0 && currentQuestionIndex < questions.length && (
+            {!noConditionDiagnosed && !suicidalThoughts && questions.length > 0 && currentQuestionIndex < questions.length && (!(detectedCondition === "Depression" && user?.gender?.toLowerCase() === "male" && currentQuestionIndex >= 35 && currentQuestionIndex <=37)) && (
               <motion.div {...fadeInUp}>
                 <h3 className="text-2xl font-bold text-orange-600 mb-3">{questions[currentQuestionIndex]?.text}</h3>
                 <div className="grid grid-cols-1 gap-2">

@@ -203,17 +203,17 @@ const AboutUs = () => {
             We’d love to connect with you! Follow us on social media for updates and mental health insights:
             <motion.ul className="list-disc pl-5 space-y-2">
               <motion.li>
-                <motion.a href="/instagram"
+                <motion.a href="https://www.instagram.com/theramind.web?igsh=Y3hucWx6Zzdrbzhh"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
                 hover:underline">Instagram
-                </motion.a><span> - theramind
+                </motion.a><span> - theramind.web
                 </span>
               </motion.li>
               <motion.li>
-                <motion.a href="/facebook"
+                <motion.a href="mailto:theramind.web@gmail.com"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
-                hover:underline">Facebook
-                </motion.a><span> - TheraMind
+                hover:underline">Gmail
+                </motion.a><span> - theramind.web@gmail.com
                 </span>
               </motion.li>
               <motion.li>
