@@ -110,7 +110,16 @@ const TreatmentRecommendation = () => {
 
             <div
               className="p-4 bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl shadow cursor-pointer hover:shadow-md transition"
-              onClick={() => navigate("/create-treatment")}
+              onClick={() => {
+                if (!selectedPatient) {
+                  alert("Please choose a patient first.");
+                  return;
+                }
+                // pass the currently selected patient’s email into location.state
+                navigate("/create-treatment", {
+                  state: { patientEmail: selectedPatient },
+                });
+              }}
             >
               <h3 className="text-lg font-semibold text-orange-700">
                 Blank Plan
