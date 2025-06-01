@@ -7,13 +7,21 @@ import TreatmentPlanSummary from "../components/TreatmentPlanSummary";
 import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Defining the API_BASE as a global variable
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 const CreateTreatmentPlan = () => {
-  const [selectedPatient, setSelectedPatient] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 1) Pull in patientEmail from location.state (if present)
+  const initialPatientEmail = location.state?.patientEmail || "";
+
+  // 2) selectedPatient is initialized from that state
+  const [selectedPatient, setSelectedPatient] = useState(initialPatientEmail);
+
   const [goals, setGoals] = useState([]);
   const [errors, setErrors] = useState({});
   const [patients, setPatients] = useState([]);
@@ -29,9 +37,8 @@ const CreateTreatmentPlan = () => {
   const [user, setUser] = useState(null);
   const [doctor, setDoctor] = useState({ email: "", name: "" });
   const [authLoading, setAuthLoading] = useState(true);
-  const navigate = useNavigate();
 
-  // 1) Auth listener → set user and doctor
+  // 3) Auth listener → set user and doctor
   useEffect(() => {
     const unsubscribe = getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
@@ -48,15 +55,14 @@ const CreateTreatmentPlan = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // 2) Fetch patient list for selector
+  // 4) Fetch patient list so we can look up name/email pairs
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         const snapshot = await getDocs(collection(db, "patients"));
-        // include each doc's id *and* all its fields (including email)
         const list = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data(), // e.g. { name, email, … }
         }));
         setPatients(list);
       } catch (err) {
@@ -66,10 +72,10 @@ const CreateTreatmentPlan = () => {
     fetchPatients();
   }, []);
 
-  // 3) Fetch existing active plan when a patient is selected and doctor ready
+  // 5) Fetch existing active plan whenever selectedPatient (or doctor.email) changes
   useEffect(() => {
-    // Clear on patient cleared
     if (!selectedPatient) {
+      // Clear form if no patient is set
       setPlanId(null);
       setVersionId(null);
       setGoals([]);
@@ -79,14 +85,15 @@ const CreateTreatmentPlan = () => {
       setFetchError(null);
       return;
     }
-    // Wait for doctor to be set
     if (!doctor.email) {
+      // Wait until doctor is known
       return;
     }
 
     const fetchActivePlan = async () => {
       setIsLoading(true);
       setFetchError(null);
+
       try {
         const res = await axios.get(
           `${API_BASE}/treatment/user/patient/${encodeURIComponent(
@@ -94,11 +101,11 @@ const CreateTreatmentPlan = () => {
           )}/`
         );
 
-        console.log("Received plans:", res.data);
-
+        // Find the non-terminated plan (if any)
         const active = res.data.find((p) => p.is_terminated === false);
 
         if (active) {
+          // Ensure same doctor
           if (active.doctor_email !== doctor.email) {
             console.warn("Doctor email mismatch, cannot edit");
             setFetchError("You do not have permission to edit this plan.");
@@ -109,10 +116,12 @@ const CreateTreatmentPlan = () => {
           setPlanId(active.plan_id);
           setCreatedAt(active.created_at);
 
+          // Load versions
           const vRes = await axios.get(
-            `${API_BASE}/treatment/${active.plan_id}/versions/`
+            `${API_BASE}/treatment/${encodeURIComponent(
+              active.plan_id
+            )}/versions/`
           );
-          console.log("Received versions:", vRes.data);
 
           if (!vRes.data.length) {
             console.warn("No versions found for plan", active.plan_id);
@@ -121,10 +130,11 @@ const CreateTreatmentPlan = () => {
             return;
           }
 
-          // Use last version
+          // Use last version in array
           const last = vRes.data[vRes.data.length - 1];
           setVersionId(last.version_id);
 
+          // Normalize goal/action objects by ensuring each has an id
           const fetchedGoals = last.goals.map((goal) => ({
             ...goal,
             id: goal.id || uuidv4(),
@@ -141,9 +151,7 @@ const CreateTreatmentPlan = () => {
           setLastUpdated(last.end_date);
           setIsEditing(true);
         } else {
-          console.log(
-            "Active plan not found or terminated, switching to create mode"
-          );
+          // No active plan → switch to “create mode”
           setPlanId(null);
           setVersionId(null);
           setGoals([]);
@@ -154,7 +162,7 @@ const CreateTreatmentPlan = () => {
       } catch (err) {
         console.error("Error fetching plan:", err);
         if (err.response?.status === 404) {
-          console.log("404 - no plans for patient");
+          // 404 simply means “no plans found”
           setFetchError(null);
           setIsEditing(false);
           setGoals([]);
@@ -173,9 +181,12 @@ const CreateTreatmentPlan = () => {
     fetchActivePlan();
   }, [selectedPatient, doctor.email]);
 
-  if (authLoading) return null;
+  if (authLoading) return null; // wait until auth check completes
 
-  // Goal & Action handlers
+  // 6) Derive full object for display-only PatientSelector
+  const selectedPatientData = patients.find((p) => p.email === selectedPatient);
+
+  // 7) Goal & Action handlers (unchanged)
   const addGoal = () =>
     setGoals((prev) => [...prev, { id: uuidv4(), title: "", actions: [] }]);
 
@@ -289,13 +300,17 @@ const CreateTreatmentPlan = () => {
           </div>
         )}
 
-        <PatientSelector
-          selectedPatient={selectedPatient}
-          setSelectedPatient={setSelectedPatient}
-          error={errors.patient}
-          patients={patients}
-          loading={patients.length === 0 || isLoading}
-        />
+        {/* 
+          8) Show display-only PatientSelector if we have selectedPatientData.
+          The component expects a prop named `selectedPatientData`. 
+        */}
+        {selectedPatientData ? (
+          <PatientSelector selectedPatientData={selectedPatientData} />
+        ) : (
+          <div className="mb-6 text-center text-red-500">
+            No patient selected. Please go back and choose a patient.
+          </div>
+        )}
 
         {fetchError && (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
