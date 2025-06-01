@@ -23,6 +23,8 @@ const loadGapiScript = () => {
 
 loadGapiScript(); // Load script before React app initializes
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

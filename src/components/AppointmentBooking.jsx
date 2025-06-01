@@ -5,6 +5,7 @@ import {
 	collection,
 	getDocs,
 	addDoc,
+	setDoc,
 	query,
 	where,
 	deleteDoc,
@@ -32,8 +33,9 @@ const AppointmentBooking = () => {
 		const fetchPatientInfo = async () => {
 			try {
 				await initGoogleApi();
-				const user = window.gapi.auth2.getAuthInstance().currentUser.get();
-				if (user && user.isSignedIn()) {
+				const authInstance = window.gapi.auth2.getAuthInstance();
+				if (authInstance && authInstance.isSignedIn.get()) {
+					const user = authInstance.currentUser.get();
 					const profile = user.getBasicProfile();
 					const email = profile.getEmail();
 					const q = query(
@@ -140,7 +142,13 @@ const AppointmentBooking = () => {
 				)?.uri;
 			const calendarEventId = response.result.id;
 
-			await addDoc(collection(db, 'appointments'), {
+			//Creating Appointment ID
+			const appointmentRef = doc(collection(db, 'appointments'));
+			const appointmentId = appointmentRef.id; 
+
+			const newAppointment = {
+				id: appointmentId,
+				appointmentId,
 				doctorEmail: selectedDoctor.email,
 				doctorName: selectedDoctor.fullName,
 				patientName,
@@ -148,7 +156,10 @@ const AppointmentBooking = () => {
 				timeslot: selectedTimeslot,
 				meetLink,
 				calendarEventId,
-			});
+			};
+			await setDoc(appointmentRef, newAppointment);
+
+			setAppointments(prev => [...prev, newAppointment]);
 
 			sendAppointmentConfirmationEmail({
 				patientName,
@@ -181,7 +192,6 @@ const AppointmentBooking = () => {
 			);
 		}
 	};
-	
 
 	// Cancel appointment handler
 	const handleCancel = async appointment => {
@@ -197,11 +207,18 @@ const AppointmentBooking = () => {
 				eventId: appointment.calendarEventId,
 			});
 
+			const docId = appointment.id || appointment.appointmentId;
+			if (!docId) {
+				alert("Appointment missing! Cannot cancel this appointment.");
+				return;
+			}
+
+			console.log(appointment.calendarEventId);
 			// Delete from Firestore
-			await deleteDoc(doc(db, 'appointments', appointment.id));
+			await deleteDoc(doc(db, 'appointments', docId));
 
 			// Update UI
-			setAppointments(appts => appts.filter(a => a.id !== appointment.id));
+			setAppointments(appts => appts.filter(a => a.id !== docId && a.appointmentId !== docId));
 			alert('Appointment canceled successfully.');
 		} catch (error) {
 			console.error('Failed to cancel appointment:', error);
@@ -331,19 +348,22 @@ const AppointmentBooking = () => {
 						onChange={e => setSelectedTimeslot(e.target.value)}
 					>
 						<option value="">Select a Timeslot</option>
-						{selectedDoctor.timeslots.map(slot => (
-							<option key={slot} value={slot}>
-								{new Date(slot).toLocaleString('en-US', {
-									weekday: 'long',
-									year: 'numeric',
-									month: 'long',
-									day: 'numeric',
-									hour: 'numeric',
-									minute: '2-digit',
-									hour12: true,
-								})}
-							</option>
-						))}
+						{selectedDoctor.timeslots
+							.filter(slot => new Date(slot) > new Date())
+							.sort((a, b) => new Date(a) - new Date(b))
+							.map(slot => (
+								<option key={slot} value={slot}>
+									{new Date(slot).toLocaleString('en-US', {
+										weekday: 'long',
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric',
+										hour: 'numeric',
+										minute: '2-digit',
+										hour12: true,
+									})}
+								</option>
+							))}
 					</select>
 				)}
 

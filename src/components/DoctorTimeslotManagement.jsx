@@ -73,10 +73,10 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	}, [doctorData]);
 
 	const groupSlotsByDate = slots => {
-		return [...(slots || [])]
-			.filter(Boolean)
-			.sort((a, b) => new Date(a) - new Date(b))
-			.reduce((groups, slot) => {
+		return slots.reduce((groups, slot) => {
+		const slotDate = new Date(slot);
+		const now = new Date();
+		if (slotDate <= now) return groups;
 				const dateKey = formatDate(slot);
 				if (!groups[dateKey]) groups[dateKey] = [];
 				groups[dateKey].push(slot);
@@ -87,6 +87,10 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	const handleAddTimeslot = async () => {
 		const baseDate = combineDateAndTime(selectedDate, selectedTime);
 		if (!baseDate) return alert('Please select both date and time.');
+
+		if (new Date(baseDate) <= new Date()){
+			return alert ('You cannot add a timeslot in the past!');
+		}
 
 		const repeatedSlots = [];
 		const base = new Date(baseDate);
