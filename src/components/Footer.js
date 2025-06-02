@@ -107,7 +107,7 @@ const Footer = () => {
             <h3 className="text-xl font-semibold mb-6">Contact Us</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-gray-300">
-                <Mail className="w-5 h-5" /> theramind.web@gmail.com
+                <Mail className="w-5 h-5" /> theramind2025@gmail.com
               </div>
               <div className="flex items-center gap-3 text-gray-300">
                 <Phone className="w-5 h-5" /> +923164853878
