@@ -41,6 +41,7 @@ const Questionnaire = () => {
   const [isQuestionnaireComplete, setIsQuestionnaireComplete] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [birthHistory, setBirthHistory] = useState(null);
   const navigate = useNavigate();
   const auth = getAuth();
 
@@ -57,6 +58,7 @@ const Questionnaire = () => {
             ...currentUser,
             gender: patientData.gender || "not specified",
           });
+          setBirthHistory(patientData.birthHistory || ""); 
           console.log("Fetched user gender:", patientData.gender);
         } else {
           setUser(currentUser);
@@ -158,14 +160,17 @@ const Questionnaire = () => {
 
   let nextIndex = currentQuestionIndex + 1;
 
-  // If Depression + Male + skipping postpartum questions
+  // If Condition = Depression & Male Or Female with no birth history, skipping postpartum questions
   if (
-    detectedCondition === "Depression" &&
-    user?.gender?.toLowerCase() === "male" &&
-    currentQuestionIndex === 34 // Question before postpartum
-  ) {
-    nextIndex = 38; // Jump past postpartum
-  }
+  detectedCondition === "Depression" &&
+  currentQuestionIndex === 34 &&
+  (
+    user?.gender?.toLowerCase() === "male" || 
+    (user?.gender?.toLowerCase() === "female" && birthHistory?.toLowerCase() === "no")
+  )
+) {
+  nextIndex = 38; // Skip postpartum questions
+}
 
   const currentQuestion = questions[currentQuestionIndex];
   const selectedOption = responses[`question_${currentQuestion?.id}`];
@@ -227,15 +232,17 @@ const Questionnaire = () => {
 
   let newIndex = currentQuestionIndex - 1;
 
-  // Skip postpartum questions backward if Depression & Gender = Male
+  // Skip postpartum questions backward if Depression & Gender = Male Or Female with no birth history
   if (
-    condition === "Depression" &&
-    user?.gender?.toLowerCase() === "male" &&
-    newIndex >= 35 && // postpartum questions start at 36 to 38 inclusive
-    newIndex <= 37
-  ) {
-    newIndex = 34; // jump to question before postpartum
-  }
+  condition === "Depression" &&
+  newIndex >= 35 && newIndex <= 37 &&
+  (
+    user?.gender?.toLowerCase() === "male" ||
+    (user?.gender?.toLowerCase() === "female" && birthHistory?.toLowerCase() === "no")
+  )
+) {
+  newIndex = 34;
+}
 
   //If In Current Detected Condition Range, Backtrack To Normal Back Question Of Range
   if (condition && newIndex === conditionRanges[condition].start - 1) {
