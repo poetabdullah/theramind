@@ -85,24 +85,19 @@ const Footer = () => {
               >
                 Testimonial
               </Link>
-              <a
-                href="https://www.freeprivacypolicy.com/live/52efac88-a01d-4417-adb1-247288a850b8"
+              <Link
+                to="/privacy-policy"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 Privacy Policy
-              </a>
-
-
-              <a
-                href="https://www.freeprivacypolicy.com/live/a756f6cb-68ce-4a60-ab21-d5936fdbf87c"
+              </Link>
+              <Link
+                to="/terms-of-service"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 Terms of Service
-              </a>
+              </Link>
+
 
 
             </nav>
