@@ -1,9 +1,3 @@
-// Load environment variables if in Node.js (not in browser)
-if (typeof window === "undefined") {
-  const dotenv = await import("dotenv");
-  dotenv.config();
-}
-
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth"; // Added GoogleAuthProvider

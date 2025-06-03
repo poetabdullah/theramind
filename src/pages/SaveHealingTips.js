@@ -1,7 +1,5 @@
 import { db } from "../firebaseConfig.js";
 import { doc, setDoc, collection } from "firebase/firestore";
-import dotenv from 'dotenv';
-dotenv.config();
 
 const healing_tips_meditations = {
     //Subtype # 1

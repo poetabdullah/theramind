@@ -7,6 +7,7 @@ import { collection, getDocs, getDoc, query, orderBy, doc, setDoc } from "fireba
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { set } from "date-fns";
+import RecommendationSection from "../components/RecommendationSection.jsx";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -316,7 +317,7 @@ const Questionnaire = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}>Diagnosis Result</motion.h2>
         </header>
-        <main className="flex-grow flex items-center justify-center mb-5">
+        <main className="flex-grow flex items-center justify-center mb-4">
           <motion.div className="bg-gradient-to-r from-purple-200 to-fuchsia-200 shadow-lg rounded-lg p-6 w-full max-w-xl text-center"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -340,6 +341,12 @@ const Questionnaire = () => {
               </motion.span></motion.p>
           </motion.div>
         </main>
+        {/* Recommendation Section */}
+        {diagnosedSubtype && (
+          <RecommendationSection
+            diagnosedSubtype={diagnosedSubtype}
+          />
+        )}
         <Footer />
       </motion.div>
     );
