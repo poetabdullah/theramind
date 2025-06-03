@@ -85,24 +85,19 @@ const Footer = () => {
               >
                 Testimonial
               </Link>
-              <a
-                href="https://www.freeprivacypolicy.com/live/52efac88-a01d-4417-adb1-247288a850b8"
+              <Link
+                to="/privacy-policy"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 Privacy Policy
-              </a>
-
-
-              <a
-                href="https://www.freeprivacypolicy.com/live/a756f6cb-68ce-4a60-ab21-d5936fdbf87c"
+              </Link>
+              <Link
+                to="/terms-of-service"
                 className="block text-gray-300 hover:text-orange-400 no-underline"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 Terms of Service
-              </a>
+              </Link>
+
 
 
             </nav>
@@ -112,7 +107,7 @@ const Footer = () => {
             <h3 className="text-xl font-semibold mb-6">Contact Us</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-gray-300">
-                <Mail className="w-5 h-5" /> theramind.web@gmail.com
+                <Mail className="w-5 h-5" /> theramind2025@gmail.com
               </div>
               <div className="flex items-center gap-3 text-gray-300">
                 <Phone className="w-5 h-5" /> +923164853878

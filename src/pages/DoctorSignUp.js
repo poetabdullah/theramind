@@ -1,7 +1,14 @@
+// DoctorSignUp.js (Updated to request full OAuth scopes for doctors)
+
 import React, { useState, useEffect } from "react";
 import { GoogleAuthProvider, signOut, signInWithPopup } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL, getStorage } from "firebase/storage";
+import {
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL,
+    getStorage,
+} from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebaseConfig";
 import StepProgress from "../components/StepProgress";
@@ -40,8 +47,19 @@ export default function DoctorSignUp() {
         location: "",
         contact: "",
         profilePic: null,
-        education: Array.from({ length: 2 }, () => ({ degree: "", institute: "", gradDate: "", proof: null })),
-        experiences: Array.from({ length: 2 }, () => ({ org: "", role: "", start: "", end: "", resume: null })),
+        education: Array.from({ length: 2 }, () => ({
+            degree: "",
+            institute: "",
+            gradDate: "",
+            proof: null,
+        })),
+        experiences: Array.from({ length: 2 }, () => ({
+            org: "",
+            role: "",
+            start: "",
+            end: "",
+            resume: null,
+        })),
         bio: "",
         verified: false,
         status: "pending",
@@ -52,18 +70,74 @@ export default function DoctorSignUp() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Always sign out before starting signup flow
         signOut(auth).catch(() => { });
     }, []);
 
+    // Step 1: Handle Google Sign-Up for doctors (request full calendar & Meet scopes)
     const handleGoogleSignUp = async () => {
         setError("");
         try {
-            await signOut(auth); // Ensure clean sign-in
+            // Guarantee a fresh account selection prompt
+            await signOut(auth);
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: "select_account" });
+
+            // 1) Basic profile scopes:
+            provider.addScope("https://www.googleapis.com/auth/userinfo.email");
+            provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
+
+            // 2) Non-sensitive Calendar scopes:
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
+            );
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.events.freebusy"
+            );
+            provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.events.public.readonly"
+            );
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.settings.readonly"
+            );
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.freebusy"
+            );
+
+            // 3) Sensitive Calendar scopes:
+            provider.addScope("https://www.googleapis.com/auth/calendar");
+            provider.addScope("https://www.googleapis.com/auth/calendar.events");
+            provider.addScope("https://www.googleapis.com/auth/calendar.acls");
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.acls.readonly"
+            );
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.calendars"
+            );
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.calendars.readonly"
+            );
+            provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.events.owned"
+            );
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.events.owned.readonly"
+            );
+            provider.addScope(
+                "https://www.googleapis.com/auth/calendar.events.readonly"
+            );
+
+            // 4) Meet scopes:
+            provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
+            provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
+            provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
+
             const { user } = await signInWithPopup(auth, provider);
             const email = user.email;
 
+            // If the user already exists as a doctor or patient, handle accordingly
             const doctorRef = doc(db, "doctors", email);
             const patientRef = doc(db, "patients", email);
 
@@ -77,8 +151,8 @@ export default function DoctorSignUp() {
                 const status = doctorData.status;
 
                 if (!status) {
-                    // Handle edge case: doctor doc exists, but status is missing
-                    setDoctor(d => ({
+                    // Edge case: doctor record exists but missing status
+                    setDoctor((d) => ({
                         ...d,
                         uid: user.uid,
                         email: user.email,
@@ -97,7 +171,9 @@ export default function DoctorSignUp() {
                         await signOut(auth);
                         return;
                     case "rejected":
-                        setError("Your application has been rejected. Contact TheraMind for more information.");
+                        setError(
+                            "Your application has been rejected. Contact TheraMind for more information."
+                        );
                         await signOut(auth);
                         navigate("/");
                         return;
@@ -107,11 +183,12 @@ export default function DoctorSignUp() {
                         return;
                 }
             } else if (patientSnap.exists()) {
+                // If the email is already a patient, redirect to patient dashboard
                 navigate("/patient-dashboard");
                 return;
             } else {
-                // New user: no doctor or patient entry yet
-                setDoctor(d => ({
+                // New user: initialize doctor object and move to step 2
+                setDoctor((d) => ({
                     ...d,
                     uid: user.uid,
                     email: user.email,
@@ -125,14 +202,13 @@ export default function DoctorSignUp() {
         }
     };
 
-
-
-    const updateField = (field, value) => setDoctor(d => ({ ...d, [field]: value }));
+    const updateField = (field, value) =>
+        setDoctor((d) => ({ ...d, [field]: value }));
 
     const updateArray = (arr, idx, key, value) => {
         const copy = [...doctor[arr]];
         copy[idx] = { ...copy[idx], [key]: value };
-        setDoctor(d => ({ ...d, [arr]: copy }));
+        setDoctor((d) => ({ ...d, [arr]: copy }));
     };
 
     const handleSubmit = async () => {
@@ -140,37 +216,48 @@ export default function DoctorSignUp() {
         try {
             if (!doctor.email) throw new Error("Missing user credentials.");
 
-            // Ensure the user is signed in before uploading the files
-            const user = auth.currentUser; // Ensure user is signed in
+            // Ensure the user is signed in before uploading files
+            const user = auth.currentUser;
+            if (!user)
+                throw new Error("User is not authenticated. Please sign in first.");
 
-            if (!user) throw new Error("User is not authenticated. Please sign in first.");
+            // Upload education proofs
+            const education = await Promise.all(
+                doctor.education.map(async (edu, i) => {
+                    let proofUrl = null;
+                    if (edu.proof)
+                        proofUrl = await uploadFile(
+                            `doctors/${doctor.email}/education${i}`,
+                            edu.proof
+                        );
+                    return { ...edu, proof: proofUrl };
+                })
+            );
 
-            // Upload education files
-            const education = await Promise.all(doctor.education.map(async (edu, i) => {
-                let proofUrl = null;
-                if (edu.proof) proofUrl = await uploadFile(`doctors/${doctor.email}/education${i}`, edu.proof);
-                return { ...edu, proof: proofUrl };
-            }));
+            // Upload experience resumes
+            const experiences = await Promise.all(
+                doctor.experiences.map(async (exp, i) => {
+                    let resumeUrl = null;
+                    if (exp.resume)
+                        resumeUrl = await uploadFile(
+                            `doctors/${doctor.email}/experience${i}`,
+                            exp.resume
+                        );
+                    return { ...exp, resume: resumeUrl };
+                })
+            );
 
-            // Upload experience files
-            const experiences = await Promise.all(doctor.experiences.map(async (exp, i) => {
-                let resumeUrl = null;
-                if (exp.resume) resumeUrl = await uploadFile(`doctors/${doctor.email}/experience${i}`, exp.resume);
-                return { ...exp, resume: resumeUrl };
-            }));
-
-            // Prepare the data for Firestore
+            // Prepare data for Firestore
             const dataToSave = {
                 ...doctor,
-                profilePic: doctor.profilePic || null,  // Comes from Google photoURL
+                profilePic: doctor.profilePic || null, // from Google photoURL if available
                 education,
                 experiences,
                 createdAt: new Date(),
             };
 
-            // Save data to Firestore
+            // Save doctor record to Firestore
             await setDoc(doc(db, "doctors", doctor.email), dataToSave);
-
             setSubmitted(true);
         } catch (err) {
             console.error("Submission Error:", err);
@@ -178,16 +265,19 @@ export default function DoctorSignUp() {
         }
     };
 
-
     if (submitted) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
                 <div className="bg-white p-8 rounded-lg shadow-lg text-center">
                     <h2 className="text-2xl font-bold mb-4">Application Submitted</h2>
                     <p className="text-gray-700">
-                        Your application has been submitted and is pending review. We will contact you via email once a decision is made.
+                        Your application has been submitted and is pending review. We will
+                        contact you via email once a decision is made.
                     </p>
-                    <button onClick={() => navigate("/")} className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    <button
+                        onClick={() => navigate("/")}
+                        className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                    >
                         Return to Home
                     </button>
                 </div>
@@ -205,8 +295,12 @@ export default function DoctorSignUp() {
                 </div>
                 <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-xl">
                     <div className="text-center mb-6">
-                        <h1 className="text-2xl font-bold text-orange-600">Create Your TheraMind Doctor Account</h1>
-                        <p className="text-gray-600 mt-2">Step {step} of {steps.length}</p>
+                        <h1 className="text-2xl font-bold text-orange-600">
+                            Create Your TheraMind Doctor Account
+                        </h1>
+                        <p className="text-gray-600 mt-2">
+                            Step {step} of {steps.length}
+                        </p>
                     </div>
                     {error && (
                         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
@@ -214,15 +308,52 @@ export default function DoctorSignUp() {
                         </div>
                     )}
                     <div className="transition-all duration-300">
-                        {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} buttonText="Sign up with Google" />}
-                        {step === 2 && <DoctorDetails data={doctor} onChange={updateField} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
-                        {step === 3 && <DoctorEducationDetails education={doctor.education} onChange={(i, k, v) => updateArray("education", i, k, v)} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
-                        {step === 4 && <DoctorExperience experiences={doctor.experiences} onChange={(i, k, v) => updateArray("experiences", i, k, v)} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
-                        {step === 5 && <DoctorBio bio={doctor.bio} verified={doctor.verified} onChange={updateField} onBack={() => setStep(4)} onSubmit={handleSubmit} />}
+                        {step === 1 && (
+                            <OAuthSignUp
+                                onSuccess={handleGoogleSignUp}
+                                buttonText="Sign up with Google"
+                            />
+                        )}
+                        {step === 2 && (
+                            <DoctorDetails
+                                data={doctor}
+                                onChange={updateField}
+                                onNext={() => setStep(3)}
+                                onBack={() => setStep(1)}
+                            />
+                        )}
+                        {step === 3 && (
+                            <DoctorEducationDetails
+                                education={doctor.education}
+                                onChange={(i, k, v) => updateArray("education", i, k, v)}
+                                onNext={() => setStep(4)}
+                                onBack={() => setStep(2)}
+                            />
+                        )}
+                        {step === 4 && (
+                            <DoctorExperience
+                                experiences={doctor.experiences}
+                                onChange={(i, k, v) => updateArray("experiences", i, k, v)}
+                                onNext={() => setStep(5)}
+                                onBack={() => setStep(3)}
+                            />
+                        )}
+                        {step === 5 && (
+                            <DoctorBio
+                                bio={doctor.bio}
+                                verified={doctor.verified}
+                                onChange={updateField}
+                                onBack={() => setStep(4)}
+                                onSubmit={handleSubmit}
+                            />
+                        )}
                     </div>
                 </div>
                 <div className="mt-6 text-center text-sm text-white">
-                    Already have an account? <a href="/login" className="underline font-medium hover:text-gray-200">Log in</a>
+                    Already have an account?{" "}
+                    <a href="/login" className="underline font-medium hover:text-gray-200">
+                        Log in
+                    </a>
                 </div>
             </div>
             <Footer />

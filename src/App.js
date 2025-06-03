@@ -27,6 +27,8 @@ import DoctorDashboard from "./pages/DoctorDashboard";
 import CreateTreatmentPlan from "./pages/CreateTreatmentPlan"
 import ManagePatients from "./pages/ManagePatients";
 import TreatmentRecommendation from "./pages/TreatmentRecommendation";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 const App = () => (
   <div>
@@ -59,6 +61,8 @@ const App = () => (
       <Route path="/create-treatment" element={<CreateTreatmentPlan />} />
       <Route path="/manage-patients" element={<ManagePatients />} />
       <Route path="/treatment-recommendation" element={<TreatmentRecommendation />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
     </Routes>
   </div>
 );

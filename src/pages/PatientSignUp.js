@@ -1,7 +1,11 @@
-// PatientSignUp.js (Updated for 2FA and CAPTCHA)
+// PatientSignUp.js (Updated to request OAuth scopes for patients)
 
 import React, { useState, useEffect } from "react";
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut
+} from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
@@ -14,11 +18,11 @@ import EnterTwoFactorForm from "../components/EnterTwoFactorForm";
 import Footer from "../components/Footer";
 
 const steps = [
-  "Sign Up",  // 1
-  "Enter 2FA",            // 2
-  "Enter CAPTCHA",        // 3
-  "Enter Details",        // 4
-  "Health History",       // 5
+  "Sign Up",      // 1
+  "Enter 2FA",    // 2
+  "Enter CAPTCHA",// 3
+  "Enter Details",// 4
+  "Health History"// 5
 ];
 
 const PatientSignUp = () => {
@@ -31,14 +35,14 @@ const PatientSignUp = () => {
     mentalHealthConditions: [],
     familyHistory: "",
     significantTrauma: "",
-    childhoodChallenges: [],
+    childhoodChallenges: []
   });
   const [captchaCode, setCaptchaCode] = useState("");
   const [userInput, setUserInput] = useState("");
   const [error, setError] = useState({});
   const navigate = useNavigate();
 
-  // Ensures that even if a user is cached from a previous session, a new Google sign-in popup is always triggered, preventing silent sign-ins or stale sessions.
+  // Ensure any existing Firebase auth session is signed out before starting signup
   useEffect(() => {
     const cleanupAuth = async () => {
       try {
@@ -50,7 +54,7 @@ const PatientSignUp = () => {
     cleanupAuth();
   }, []);
 
-  // Generate new CAPTCHA whenever step 3 is reached
+  // Generate a new CAPTCHA when we arrive at step 3
   useEffect(() => {
     if (step === 3) {
       generateCaptcha();
@@ -58,37 +62,71 @@ const PatientSignUp = () => {
   }, [step]);
 
   const generateCaptcha = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // CAPTCHA avoids ambiguous characters like "O", "0", "I", "1" for usability purposes
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let captcha = "";
     for (let i = 0; i < 6; i++) {
       captcha += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setCaptchaCode(captcha);
-    setUserInput(""); // Clear any previous user input when generating new captcha
+    setUserInput(""); // clear previous input
   };
 
-  // Step 1: Handle Google Sign-Up
-  // Checks if user is already in Firestore
-  // If yes → navigate to patient dashboard
-  // If not → move to 2FA step (step 2) and prefill name/email in userData
+  // Step 1: Handle Google Sign-Up (patient only needs email + profile)
   const handleGoogleSignUp = async () => {
     setError({});
     try {
+      // Always sign out any cached user so "select_account" prompt appears
       await signOut(auth);
+
       const provider = new GoogleAuthProvider();
+
+      // Force account selector & consent every time
       provider.setCustomParameters({ prompt: "select_account" });
+
+      // 1) Ensure the consent prompt always appears when we sign in:
+      provider.setCustomParameters({ prompt: "consent" });
+
+      // 2) Add all non-sensitive scopes:
+      provider.addScope("https://www.googleapis.com/auth/userinfo.email");
+      provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
+      provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.public.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.settings.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.freebusy");
+      provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
+      provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
+
+      // 3) Add all sensitive scopes:
+      provider.addScope("https://www.googleapis.com/auth/calendar");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events");
+      provider.addScope("https://www.googleapis.com/auth/calendar.acls");
+      provider.addScope("https://www.googleapis.com/auth/calendar.acls.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.calendars");
+      provider.addScope("https://www.googleapis.com/auth/calendar.calendars.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.readonly");
+      provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
+      provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
+
+
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if patient already exists in Firestore
+      // Check if this email already exists under "patients" in Firestore
       const userDoc = await getDoc(doc(db, "patients", user.email));
 
       if (userDoc.exists()) {
-        // If user exists, navigate directly to dashboard
+        // If patient already exists, send them straight to dashboard
         navigate("/patient-dashboard");
       } else {
-        // If new user, proceed with signup steps - move to 2FA (step 2)
-        setUserData({ name: user.displayName || "", email: user.email || "" });
+        // New patient → advance to 2FA (step 2), preserving name & email
+        setUserData({
+          name: user.displayName || "",
+          email: user.email || ""
+        });
         setStep(2);
       }
     } catch (authErr) {
@@ -97,17 +135,15 @@ const PatientSignUp = () => {
     }
   };
 
-  // Step 2: 2FA Verification
-  // This is handled by the EnterTwoFactorForm component which calls onSuccess to proceed to step 3 (CAPTCHA)
-
+  // Step 2: 2FA Verification is handled by EnterTwoFactorForm
   // Step 3: CAPTCHA Verification
   const handleVerifyCaptcha = () => {
     if (userInput.trim().toUpperCase() === captchaCode.toUpperCase()) {
-      setStep(4); // Move to Enter Details step (step 4)
+      setStep(4);
       setError({});
     } else {
       setError({ general: "Invalid CAPTCHA. Please try again." });
-      generateCaptcha(); // Generate a new CAPTCHA if verification fails
+      generateCaptcha();
     }
   };
 
@@ -115,24 +151,23 @@ const PatientSignUp = () => {
   const handlePatientDetailsSubmit = (data) => {
     if (data.dob && data.location) {
       setUserData({ ...userData, ...data });
-      setStep(5); // Move to Health History step (step 5)
+      setStep(5);
       setError({});
     } else {
       setError({ general: "Please fill in all required fields." });
     }
   };
 
-  // Step 5: Health History Form + Save to Firestore
+  // Step 5: Health History Form → save to Firestore
   const handleHealthHistorySubmit = async (historyData) => {
     try {
       const finalData = {
         ...userData,
         ...historyData,
         createdAt: new Date(),
-        userId: auth.currentUser ? auth.currentUser.uid : Date.now().toString(),
+        userId: auth.currentUser ? auth.currentUser.uid : Date.now().toString()
       };
 
-      // Save the complete patient record to Firestore
       await setDoc(doc(db, "patients", finalData.email), finalData);
       navigate("/patient-dashboard");
     } catch (err) {
@@ -179,7 +214,9 @@ const PatientSignUp = () => {
           )}
 
           <div className="transition-all duration-300">
-            {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
+            {step === 1 && (
+              <OAuthSignUp onSuccess={handleGoogleSignUp} />
+            )}
 
             {step === 2 && (
               <EnterTwoFactorForm
