@@ -1,7 +1,6 @@
 {
   "name": "theramind",
   "version": "0.1.0",
-  "type": "module",
   "private": true,
   "proxy": "http://localhost:8000",
   "dependencies": {
@@ -23,7 +22,6 @@
     "css-select": "^5.1.0",
     "date-fns": "^4.1.0",
     "dompurify": "^3.2.5",
-    "dotenv": "^16.5.0",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.7.1",
     "framer-motion": "^12.15.0",
@@ -75,6 +73,9 @@
     ]
   },
   "devDependencies": {
-    "http-proxy-middleware": "^3.0.5"
+    "crypto-browserify": "^3.12.1",
+    "http-proxy-middleware": "^3.0.5",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1"
   }
 }
