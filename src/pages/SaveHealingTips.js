@@ -1,8 +1,9 @@
 import { db } from "../firebaseConfig.js";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection } from "firebase/firestore";
+import dotenv from 'dotenv';
+dotenv.config();
 
-const saveQuestionsToFirestore = async () => {
-  const healing_tips_meditations = {
+const healing_tips_meditations = {
     //Subtype # 1
     "Checking OCD": {
       meditation: [
@@ -274,20 +275,26 @@ const saveQuestionsToFirestore = async () => {
       ]
     },
   }
-}
 
-async function populateHealingTips() {
+const saveHealingTipsToFirestore = async () => {
   try {
-    for (const [diagnosedSubtype, data] of Object.entries(healingTipsData)) {
-      const docRef = db.collection("healing_tips_meditations").doc(diagnosedSubtype);
-      await docRef.set(data);
-      console.log(`Inserted tips for subtype: ${diagnosedSubtype}`);
-    }
-    console.log("All healing tips populated successfully.");
-  } catch (error) {
-    console.error("Error populating healing tips:", error);
-  }
-}
+    const collectionRef = collection(db, "healingTips");
 
-populateHealingTips();
+    for (const subtype in healing_tips_meditations) {
+      const data = healing_tips_meditations[subtype];
+      const docRef = doc(collectionRef, subtype); // Use subtype as document ID
+      await setDoc(docRef, {
+        subtype,
+        ...data
+      });
+      console.log(`✔️ Added healing tips for subtype: ${subtype}`);
+    }
+
+    console.log("✅ All healing tips populated successfully!");
+  } catch (error) {
+    console.error("❌ Error saving healing tips:", error);
+  }
+};
+
+saveHealingTipsToFirestore();
    
