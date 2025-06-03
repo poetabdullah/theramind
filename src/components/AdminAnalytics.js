@@ -3,9 +3,6 @@ import { db } from '../firebaseConfig';
 import { 
   collection, 
   onSnapshot, 
-  query, 
-  where, 
-  orderBy, 
   getDocs
 } from 'firebase/firestore';
 import { 
