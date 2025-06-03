@@ -1,8 +1,7 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-//Questionnaire CSS
 .heading {
   font-family: Helvetica, Arial, sans-serif;
   font-size: 60px;
