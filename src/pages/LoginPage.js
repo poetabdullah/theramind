@@ -17,20 +17,15 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  // Optional: if you want to auto-redirect already-logged-in users
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Don't auto-redirect here, let handleRouting take care of it
-        // This prevents navigation while error messages might need to be shown
-      }
+      // we don’t auto-redirect here because handleRouting takes care of it
     });
     return unsubscribe;
   }, [auth]);
 
   const handleRouting = async (email) => {
     try {
-      // fetch all three docs in parallel
       const [patSnap, docSnap, adminSnap] = await Promise.all([
         getDoc(doc(db, "patients", email)),
         getDoc(doc(db, "doctors", email)),
@@ -41,15 +36,12 @@ const LoginPage = () => {
       const isDoctor = docSnap.exists();
       const isAdmin = adminSnap.exists();
 
-      // 1️⃣ Not in any → signup-landing
       if (!isPatient && !isDoctor && !isAdmin) {
         navigate("/signup-landing");
         return;
       }
 
-      // 2️⃣ Patient (even if also doctor/admin) → patient-dashboard
       if (isPatient) {
-        // update lastLogin
         await setDoc(
           doc(db, "patients", email),
           { lastLogin: new Date() },
@@ -59,15 +51,13 @@ const LoginPage = () => {
         return;
       }
 
-      // 3️⃣ Admin only → admin-dashboard
       if (isAdmin) {
         navigate("/admin-dashboard");
         return;
       }
 
-      // 4️⃣ Doctor-only routing based on status
       if (isDoctor) {
-        const { status } = docSnap.data(); // expecting "approved"|"pending"|"rejected"
+        const { status } = docSnap.data();
 
         if (status === "approved") {
           await setDoc(
@@ -79,22 +69,20 @@ const LoginPage = () => {
           return;
         }
 
-        // pending → display error & sign out
         if (status === "pending") {
           setError("Your doctor account is still pending approval. Please wait.");
           await signOut(auth);
           return;
         }
 
-        // rejected → display error & sign out
         if (status === "rejected") {
           setError("Your doctor application was rejected. Please contact support.");
           await signOut(auth);
           return;
         }
       }
-    } catch (error) {
-      console.error("Error in routing:", error);
+    } catch (err) {
+      console.error("Error in routing:", err);
       setError("An error occurred during login. Please try again.");
       await signOut(auth);
     }
@@ -102,24 +90,50 @@ const LoginPage = () => {
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
+
+    // 1) Ensure the consent prompt always appears when we sign in:
+    provider.setCustomParameters({ prompt: "consent" });
+
+    // 2) Add all non-sensitive scopes:
+    provider.addScope("https://www.googleapis.com/auth/userinfo.email");
+    provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
+    provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
+    provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
+    provider.addScope("https://www.googleapis.com/auth/calendar.events.public.readonly");
+    provider.addScope("https://www.googleapis.com/auth/calendar.settings.readonly");
+    provider.addScope("https://www.googleapis.com/auth/calendar.freebusy");
+    provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
+    provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
+
+    // 3) Add all sensitive scopes:
+    provider.addScope("https://www.googleapis.com/auth/calendar");
+    provider.addScope("https://www.googleapis.com/auth/calendar.events");
+    provider.addScope("https://www.googleapis.com/auth/calendar.acls");
+    provider.addScope("https://www.googleapis.com/auth/calendar.acls.readonly");
+    provider.addScope("https://www.googleapis.com/auth/calendar.calendars");
+    provider.addScope("https://www.googleapis.com/auth/calendar.calendars.readonly");
+    provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
+    provider.addScope("https://www.googleapis.com/auth/calendar.events.owned");
+    provider.addScope("https://www.googleapis.com/auth/calendar.events.owned.readonly");
+    provider.addScope("https://www.googleapis.com/auth/calendar.events.readonly");
+    provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
+    provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
+
     setLoading(true);
-    setError(null); // Clear any previous errors
+    setError(null);
 
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
-      // run our routing logic
       await handleRouting(user.email);
-    } catch (error) {
-      console.error("Google login error:", error);
+    } catch (err) {
+      console.error("Google login error:", err);
       setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to dismiss error
   const dismissError = () => {
     setError(null);
   };
@@ -136,7 +150,10 @@ const LoginPage = () => {
           </div>
 
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+            <div
+              className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative"
+              role="alert"
+            >
               <div className="flex items-start">
                 <div className="flex-grow">
                   <p className="font-medium">Error</p>
@@ -147,7 +164,12 @@ const LoginPage = () => {
                   className="text-red-500 hover:text-red-700 ml-2"
                   aria-label="Dismiss"
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -208,7 +230,6 @@ const LoginPage = () => {
                     fill="#34A853"
                   />
                 </svg>
-
                 <span>Login with Google</span>
               </div>
             )}
