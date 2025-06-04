@@ -97,7 +97,7 @@ const symptomMap = {
   },
 };
 
-const DiagnosisTree = ({ patientEmail }) => {
+const DiagnosisTree = ({ patientEmail, onDiagnosisSelect }) => {
   const [diagnosis, setDiagnosis] = useState(null);
   const [mentalHistory, setMentalHistory] = useState({
     mentalHealthConditions: [],
@@ -111,9 +111,9 @@ const DiagnosisTree = ({ patientEmail }) => {
 
     const fetchLatestData = async () => {
       try {
+        // 1) Fetch patient’s mental history fields
         const patientRef = doc(db, "patients", patientEmail);
         const patientSnap = await getDoc(patientRef);
-
         if (patientSnap.exists()) {
           const data = patientSnap.data();
           setMentalHistory({
@@ -123,6 +123,7 @@ const DiagnosisTree = ({ patientEmail }) => {
           });
         }
 
+        // 2) Fetch the latest assessment sub-collection
         const assessmentsRef = collection(
           db,
           "patients",
@@ -134,27 +135,34 @@ const DiagnosisTree = ({ patientEmail }) => {
 
         if (snapshot.empty) {
           setDiagnosis(null);
+          onDiagnosisSelect && onDiagnosisSelect(null);
         } else {
           const latest = snapshot.docs[0].data();
+          // If suicidalThoughts = true or “No condition at all,” no diagnosis
           if (
             latest.suicidalThoughts ||
             latest.diagnosedSubtype === "No condition at all"
           ) {
             setDiagnosis(null);
+            onDiagnosisSelect && onDiagnosisSelect(null);
           } else {
-            setDiagnosis(latest.diagnosedSubtype?.toLowerCase());
+            // Lowercase to match our keys
+            const diagKey = latest.diagnosedSubtype?.toLowerCase();
+            setDiagnosis(diagKey);
+            onDiagnosisSelect && onDiagnosisSelect(diagKey);
           }
         }
       } catch (err) {
         console.error("Error fetching data:", err);
         setDiagnosis(null);
+        onDiagnosisSelect && onDiagnosisSelect(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchLatestData();
-  }, [patientEmail]);
+  }, [patientEmail, onDiagnosisSelect]);
 
   if (loading || !diagnosis) return null;
 

@@ -8,6 +8,7 @@ import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useNavigate, useLocation } from "react-router-dom";
+import TreatmentTemplates from "../components/TreatmentTemplates";
 
 // Defining the API_BASE as a global variable
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -16,8 +17,10 @@ const CreateTreatmentPlan = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 1) Pull in patientEmail from location.state (if present)
+  // 1) Pull in patientEmail and planKey from location.state (if present)
   const initialPatientEmail = location.state?.patientEmail || "";
+  const planKey = location.state?.planKey ?? null;
+  // planKey is a string like "contamination ocd" or null if "Blank Plan."
 
   // 2) selectedPatient is initialized from that state
   const [selectedPatient, setSelectedPatient] = useState(initialPatientEmail);
@@ -101,7 +104,7 @@ const CreateTreatmentPlan = () => {
           )}/`
         );
 
-        // Find the non-terminated plan (if any)
+        // Find the non‐terminated plan (if any)
         const active = res.data.find((p) => p.is_terminated === false);
 
         if (active) {
@@ -181,12 +184,64 @@ const CreateTreatmentPlan = () => {
     fetchActivePlan();
   }, [selectedPatient, doctor.email]);
 
+  // 6) If no existing plan (isEditing === false) AND planKey exists → prefill from TreatmentTemplates
+  useEffect(() => {
+    // Only run if:
+    //  - we have a selectedPatient
+    //  - we know doctor.email (auth done)
+    //  - there's a planKey and no existing plan being edited (isEditing === false)
+    //  - we haven't already prefills (we can check `goals` array length = 0 to avoid re‐prefilling multiple times)
+    if (
+      !authLoading &&
+      doctor.email &&
+      selectedPatient &&
+      planKey &&
+      !isEditing &&
+      goals.length === 0
+    ) {
+      const template = TreatmentTemplates[planKey];
+      if (!template) {
+        // if no template matches, do nothing
+        return;
+      }
+
+      // Build a new array of goals, each with unique id and nested actions
+      const prefilledGoals = template.goals.map((goalTemplate) => ({
+        id: uuidv4(),
+        title: goalTemplate.title,
+        actions: goalTemplate.actions.map((act) => ({
+          id: uuidv4(),
+          description: act.description,
+          priority: act.priority,
+          assigned_to: act.assigned_to,
+          is_completed: false,
+        })),
+      }));
+
+      setGoals(prefilledGoals);
+      const now = new Date().toISOString();
+      setCreatedAt(now);
+      setLastUpdated(now);
+      setPlanId(null);
+      setVersionId(null);
+      setIsEditing(false);
+    }
+    // Depend on: authLoading, doctor.email, selectedPatient, planKey, isEditing, goals.length
+  }, [
+    authLoading,
+    doctor.email,
+    selectedPatient,
+    planKey,
+    isEditing,
+    goals.length,
+  ]);
+
   if (authLoading) return null; // wait until auth check completes
 
-  // 6) Derive full object for display-only PatientSelector
+  // 7) Derive full object for display-only PatientSelector
   const selectedPatientData = patients.find((p) => p.email === selectedPatient);
 
-  // 7) Goal & Action handlers (unchanged)
+  // 8) Goal & Action handlers
   const addGoal = () =>
     setGoals((prev) => [...prev, { id: uuidv4(), title: "", actions: [] }]);
 
@@ -300,10 +355,7 @@ const CreateTreatmentPlan = () => {
           </div>
         )}
 
-        {/* 
-          8) Show display-only PatientSelector if we have selectedPatientData.
-          The component expects a prop named `selectedPatientData`. 
-        */}
+        {/* 8) Show display-only PatientSelector if we have selectedPatientData. */}
         {selectedPatientData ? (
           <PatientSelector selectedPatientData={selectedPatientData} />
         ) : (
@@ -368,6 +420,7 @@ const CreateTreatmentPlan = () => {
               </button>
             </div>
 
+            {/* ← Use the correct component name here: */}
             <TreatmentPlanSummary
               selectedPatient={selectedPatient}
               goals={goals}
