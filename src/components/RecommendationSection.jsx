@@ -8,8 +8,26 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [meditations, setMeditations] = useState([]);
   const [doctorProfile, setDoctorProfile] = useState([]);
-  const [doctorRelatedArticles, setDoctorRelatedArticles] = useState([]);
+  const [subtypeRelatedArticles, setSubtypeRelatedArticles] = useState([]);
   const [patientStories, setPatientStories] = useState([]);
+
+  const conditionMapping = {
+    "Acute Stress": "Stress",
+    "Chronic Stress": "Stress",
+    "Episodic Acute Stress": "Stress",
+    "Separation Anxiety Disorder": "Anxiety",
+    "Generalized Anxiety Disorder": "Anxiety",
+    "Panic Disorder": "Anxiety",
+    "Postpartum Depression": "Depression",
+    "Major Depressive Disorder": "Depression",
+    "Atypical Depression": "Depression",
+    "Single Event Trauma": "Trauma",
+    "Complex Trauma": "Trauma",
+    "Developmental Trauma": "Trauma",
+    "Symmetry OCD": "OCD",
+    "Contamination OCD": "OCD",
+    "Checking OCD": "OCD",
+  }
 
   //Fetch Healing Tips & Meditational Links From Firestore
   const fetchHealingData = async () => {
@@ -49,49 +67,63 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
 
     };
 
+    //Fetching Articles Matching The Subtype
   const fetchArticlesBySubtype = async (diagnosedSubtype) => {
+  const normalizedSubtype = diagnosedSubtype?.trim().toLowerCase();
+const conditionMappingLower = Object.fromEntries(
+  Object.entries(conditionMapping).map(([k, v]) => [k.toLowerCase(), v])
+);
+const parentCondition = conditionMappingLower[normalizedSubtype];
+console.log("Diagnosed subtype:", diagnosedSubtype);
+console.log("Mapped parent condition:", parentCondition);
+
+  if (!parentCondition) {
+    console.warn("No parent condition found for:", diagnosedSubtype);
+    return;
+  }
+
   try {
     const q = query(
       collection(db, "articles"),
-      where("selectedTags", "array-contains", diagnosedSubtype)
+      where("selectedTags", "array-contains", parentCondition)
     );
-
     const querySnapshot = await getDocs(q);
 
-    const articles = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const filteredArticles = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setSubtypeRelatedArticles(filteredArticles);
 
-    setDoctorRelatedArticles(articles);
-  } 
-     catch (error) {
-      console.error("Error fetching articles by specialties:", error);
-      setDoctorRelatedArticles([]);
-    }
-  };
+  console.log("Articles found:", querySnapshot.size);
+  querySnapshot.forEach(doc => console.log("Article:", doc.id, doc.data()));
 
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+    setSubtypeRelatedArticles([]);
+  }
+};
+
+  //Fetching Patient Stories Matching The Subtype
   const fetchPatientStoriesBySubtype = async (diagnosedSubtype) => {
+  const parentCondition = conditionMapping[diagnosedSubtype];
+  if (!parentCondition) {
+    console.warn("No parent condition found for:", diagnosedSubtype);
+    return;
+  }
+
   try {
     const q = query(
       collection(db, "patient_stories"),
-      where("selectedTags", "array-contains", diagnosedSubtype)
+      where("selectedTags", "array-contains", parentCondition)
     );
-
     const querySnapshot = await getDocs(q);
 
-    const patient_stories = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    setPatientStories(patient_stories);
-  } 
-     catch (error) {
-      console.error("Error fetching articles by specialties:", error);
-      setPatientStories([]);
-    }
-  };
+    const filteredStories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setPatientStories(filteredStories);
+    console.log("Fetching patient stories:", filteredStories);
+  } catch (error) {
+    console.error("Error fetching patient stories:", error);
+    setPatientStories([]);
+  }
+};
 
   useEffect(() => {
     if (diagnosedSubtype) {
@@ -260,8 +292,9 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
             ))}
           </motion.div>
 
-          {/* Doctor Related Articles */}
-          {doctorRelatedArticles.length > 0 && (
+          {/* Subtype Related Articles */}
+          {subtypeRelatedArticles.length === 0 && <p className="text-bold text-2xl pt-4 text-center text-red-500">No articles found</p>}
+          {subtypeRelatedArticles.length > 0 && (
             <>
               <motion.h3
                 className="text-3xl font-bold text-purple-800 mt-10 mb-6 text-center"
@@ -278,17 +311,15 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
               >
-                {doctorRelatedArticles.map((article) => (
+                {subtypeRelatedArticles.map((articles) => (
                   <ListViewCard
-                    key={article.id}
-                    id={article.id}
-                    title={article.title}
-                    author={article.author || "Unknown"}
-                    date={article.date}
-                    tags={article.selectedTags}
-                    content={article.content}
-                    link={article.link}
-                    type="article"
+                    key={articles.user_id}
+                    title={articles.title}
+                    author={articles.author_name || "Unknown"}
+                    tags={articles.selectedTags}
+                    content={articles.content}
+                    link={articles.link}
+                    type="articles"
                   />
                 ))}
               </motion.div>
@@ -296,6 +327,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
           )}
 
           {/* Subtype Related Patient Stories */}
+          {patientStories.length === 0 && <p className="text-bold text-2xl pt-3 text-center text-red-500">No patient stories found</p>}
           {patientStories.length > 0 && (
             <>
               <motion.h3
@@ -315,11 +347,9 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
               >
                 {patientStories.map((patient_stories) => (
                   <ListViewCard
-                    key={patient_stories.id}
-                    id={patient_stories.id}
+                    key={patient_stories.user_id}
                     title={patient_stories.title}
-                    author={patient_stories.author || "Unknown"}
-                    date={patient_stories.date}
+                    author={patient_stories.author_name || "Unknown"}
                     tags={patient_stories.selectedTags}
                     content={patient_stories.content}
                     link={patient_stories.link}
