@@ -91,7 +91,7 @@ const TreatmentRecommendation = () => {
               Treatment Recommendations
             </h1>
             <p className="text-orange-100 text-lg font-medium">
-              AI-powered treatment planning for optimal patient care
+              Clinically-powered treatment planning for optimal patient care
             </p>
           </div>
         </div>
