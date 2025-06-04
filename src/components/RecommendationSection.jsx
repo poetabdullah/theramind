@@ -69,14 +69,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
 
     //Fetching Articles Matching The Subtype
   const fetchArticlesBySubtype = async (diagnosedSubtype) => {
-  const normalizedSubtype = diagnosedSubtype?.trim().toLowerCase();
-const conditionMappingLower = Object.fromEntries(
-  Object.entries(conditionMapping).map(([k, v]) => [k.toLowerCase(), v])
-);
-const parentCondition = conditionMappingLower[normalizedSubtype];
-console.log("Diagnosed subtype:", diagnosedSubtype);
-console.log("Mapped parent condition:", parentCondition);
-
+  const parentCondition = conditionMapping[diagnosedSubtype];
   if (!parentCondition) {
     console.warn("No parent condition found for:", diagnosedSubtype);
     return;
@@ -91,10 +84,7 @@ console.log("Mapped parent condition:", parentCondition);
 
     const filteredArticles = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setSubtypeRelatedArticles(filteredArticles);
-
-  console.log("Articles found:", querySnapshot.size);
-  querySnapshot.forEach(doc => console.log("Article:", doc.id, doc.data()));
-
+    console.log("Fetching articles:", filteredArticles);
   } catch (error) {
     console.error("Error fetching articles:", error);
     setSubtypeRelatedArticles([]);
