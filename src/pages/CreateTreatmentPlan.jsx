@@ -9,6 +9,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useNavigate, useLocation } from "react-router-dom";
 import TreatmentTemplates from "../components/TreatmentTemplates";
+import emailjs from "emailjs-com";
 
 // Defining the API_BASE as a global variable
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";

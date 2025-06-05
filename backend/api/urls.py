@@ -64,7 +64,7 @@ urlpatterns = [
     path(
         "treatment/<str:plan_id>/terminate/",
         terminate_treatment_plan,
-        name="terminate_treatment_plan",
+        name="terminate-treatment",
     ),
     # Retrieve plans by user (doctor/patient)
     path(

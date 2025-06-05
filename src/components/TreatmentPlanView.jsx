@@ -1,5 +1,9 @@
+// src/components/TreatmentPlanView.js
+
 import React, { useState, useEffect, useMemo } from "react";
 import { CheckSquare, Square } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import emailjs from "emailjs-com";
 
 export default function TreatmentPlanView({
   planId,
@@ -9,114 +13,92 @@ export default function TreatmentPlanView({
   fetchVersion,
   fetchTreatmentPlan,
   onToggleComplete,
-  onTerminate,
+  onTerminate, // parent-supplied callback to mark status in DB
+  patient, // { name, email }
+  doctor, // { name, email }
 }) {
+  const navigate = useNavigate();
+
   const [currentIdx, setCurrentIdx] = useState(versionIndex);
   const [data, setData] = useState(null);
   const [treatmentPlan, setTreatmentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allVersionsData, setAllVersionsData] = useState({});
   const [errors, setErrors] = useState({});
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  // Validate required props and log detailed information
+  // ─────────────────────────────────────────────────────────────────
+  // 1) Validate required props
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     const newErrors = {};
-
-    console.log("TreatmentPlanView Props Validation:");
-    console.log(
-      "- fetchTreatmentPlan:",
-      typeof fetchTreatmentPlan,
-      fetchTreatmentPlan
-    );
-    console.log(
-      "- onToggleComplete:",
-      typeof onToggleComplete,
-      onToggleComplete
-    );
-    console.log("- fetchVersion:", typeof fetchVersion, fetchVersion);
-    console.log("- planId:", planId);
-
     if (!fetchTreatmentPlan || typeof fetchTreatmentPlan !== "function") {
       newErrors.fetchTreatmentPlan = "fetchTreatmentPlan must be a function";
-      console.error("fetchTreatmentPlan is missing or not a function");
     }
     if (!onToggleComplete || typeof onToggleComplete !== "function") {
       newErrors.onToggleComplete = "onToggleComplete must be a function";
-      console.error("onToggleComplete is missing or not a function");
     }
     if (!fetchVersion || typeof fetchVersion !== "function") {
       newErrors.fetchVersion = "fetchVersion must be a function";
-      console.error("fetchVersion is missing or not a function");
     }
-
+    if (!onTerminate || typeof onTerminate !== "function") {
+      newErrors.onTerminate = "onTerminate must be a function";
+    }
+    if (!patient || !patient.name || !patient.email) {
+      newErrors.patient = "patient prop must have { name, email }";
+    }
+    if (!doctor || !doctor.name || !doctor.email) {
+      newErrors.doctor = "doctor prop must have { name, email }";
+    }
     setErrors(newErrors);
-  }, [fetchTreatmentPlan, onToggleComplete, fetchVersion, planId]);
+  }, [
+    fetchTreatmentPlan,
+    onToggleComplete,
+    fetchVersion,
+    onTerminate,
+    patient,
+    doctor,
+    planId,
+  ]);
 
-  // Load treatment plan details (including doctor_name)
+  // ─────────────────────────────────────────────────────────────────
+  // 2) Load plan metadata (doctor_name, etc.)
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
-    async function loadTreatmentPlan() {
-      if (!planId) {
-        console.warn("No planId provided");
-        return;
-      }
-
+    async function loadPlan() {
+      if (!planId || !fetchTreatmentPlan) return;
       try {
-        if (!fetchTreatmentPlan || typeof fetchTreatmentPlan !== "function") {
-          console.error(
-            "Cannot load treatment plan: fetchTreatmentPlan is not a function"
-          );
-          setTreatmentPlan({
-            doctor_name: "Error: Missing function",
-            error: "fetchTreatmentPlan not provided",
-          });
-          return;
-        }
-
-        console.log("Loading treatment plan for planId:", planId);
+        console.log("Loading plan metadata for:", planId);
         const planData = await fetchTreatmentPlan(planId);
-        console.log("Treatment plan loaded:", planData);
+        console.log("Got plan data:", planData);
         setTreatmentPlan(planData);
       } catch (e) {
         console.error("Error fetching treatment plan:", e);
-        setTreatmentPlan({
-          doctor_name: "Error loading doctor",
-          error: e.message,
-        });
+        setTreatmentPlan({ doctor_name: "Error", error: e.message });
       }
     }
-
-    loadTreatmentPlan();
+    loadPlan();
   }, [planId, fetchTreatmentPlan]);
 
-  // Load current version data
+  // ─────────────────────────────────────────────────────────────────
+  // 3) Load current version
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
-    async function load() {
+    async function loadVersion() {
       setLoading(true);
       const vid = versions[currentIdx]?.version_id;
-
       if (!vid) {
-        console.log("No version ID found for index:", currentIdx);
         setData(null);
         setLoading(false);
         return;
       }
-
       try {
-        if (!fetchVersion || typeof fetchVersion !== "function") {
-          throw new Error("fetchVersion is not a function");
-        }
-
-        console.log(
-          "Loading version data for planId:",
-          planId,
-          "versionId:",
-          vid
-        );
+        console.log("Loading version", vid, "for plan", planId);
+        if (!fetchVersion) throw new Error("fetchVersion is not a function");
         const resp = await fetchVersion(planId, vid);
+        console.log("Got version data:", resp);
         const versionData = { ...resp, version_id: vid };
         setData(versionData);
-
-        // Store this version's data for overall progress calculation
         setAllVersionsData((prev) => ({
           ...prev,
           [vid]: versionData,
@@ -128,30 +110,20 @@ export default function TreatmentPlanView({
         setLoading(false);
       }
     }
-
-    load();
+    loadVersion();
   }, [currentIdx, versions, planId, fetchVersion]);
 
-  // Load all versions data for overall progress calculation
+  // ─────────────────────────────────────────────────────────────────
+  // 4) Load all versions for overall progress
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
-    async function loadAllVersions() {
-      if (!fetchVersion || typeof fetchVersion !== "function") {
-        console.error(
-          "Cannot load all versions: fetchVersion is not a function"
-        );
-        return;
-      }
-
-      if (versions.length === 0) {
-        console.log("No versions to load");
-        return;
-      }
-
-      console.log("Loading all versions data for", versions.length, "versions");
+    async function loadAll() {
+      if (!fetchVersion) return;
+      if (!versions.length) return;
       const allData = {};
-
       for (const version of versions) {
         try {
+          console.log("Loading (all) version", version.version_id);
           const resp = await fetchVersion(planId, version.version_id);
           allData[version.version_id] = {
             ...resp,
@@ -161,30 +133,25 @@ export default function TreatmentPlanView({
           console.error(`Error loading version ${version.version_id}:`, e);
         }
       }
-
       setAllVersionsData(allData);
     }
-
-    loadAllVersions();
+    loadAll();
   }, [versions, planId, fetchVersion]);
 
   const prev = () => setCurrentIdx((i) => Math.max(0, i - 1));
   const next = () => setCurrentIdx((i) => Math.min(versions.length - 1, i + 1));
 
+  // ─────────────────────────────────────────────────────────────────
+  // 5) Toggle “complete” on individual actions
+  // ─────────────────────────────────────────────────────────────────
   const handleToggle = async ({ goalId, actionId, newStatus }) => {
     try {
-      if (!onToggleComplete || typeof onToggleComplete !== "function") {
-        console.error("Cannot toggle: onToggleComplete is not a function");
-        alert("Error: Toggle function not available");
-        return;
-      }
-
-      console.log("Toggling action:", { goalId, actionId, newStatus });
+      console.log("handleToggle:", { goalId, actionId, newStatus });
+      if (!onToggleComplete) return;
       await onToggleComplete({ goalId, actionId, newStatus });
-
       setData((prev) => {
         if (!prev) return prev;
-        const updatedData = {
+        const updated = {
           ...prev,
           goals: prev.goals.map((g) => ({
             ...g,
@@ -193,14 +160,11 @@ export default function TreatmentPlanView({
             ),
           })),
         };
-
-        // Update the stored version data for overall progress calculation
-        setAllVersionsData((prevAll) => ({
-          ...prevAll,
-          [prev.version_id]: updatedData,
+        setAllVersionsData((all) => ({
+          ...all,
+          [prev.version_id]: updated,
         }));
-
-        return updatedData;
+        return updated;
       });
     } catch (e) {
       console.error("Error toggling completion:", e);
@@ -208,13 +172,11 @@ export default function TreatmentPlanView({
     }
   };
 
-  // Calculate progress for a specific version (weighted by priority)
   const calculateVersionProgress = (versionData) => {
     if (!versionData?.goals) return 0;
     const weightMap = { low: 1, medium: 2, high: 3 };
     let totalWeight = 0;
     let completedWeight = 0;
-
     versionData.goals.forEach((g) =>
       g.actions?.forEach((a) => {
         const raw = a.priority;
@@ -224,58 +186,132 @@ export default function TreatmentPlanView({
         if (a.is_completed) completedWeight += w;
       })
     );
-
     return totalWeight > 0
       ? parseFloat(((completedWeight / totalWeight) * 100).toFixed(2))
       : 0;
   };
 
-  // Calculate current version progress
-  const versionProgress = useMemo(() => {
-    return calculateVersionProgress(data);
-  }, [data]);
+  const versionProgress = useMemo(() => calculateVersionProgress(data), [data]);
 
-  // Calculate overall progress: average of all version progresses
   const overallProgress = useMemo(() => {
-    if (!versions.length || Object.keys(allVersionsData).length === 0) return 0;
-
-    const progresses = versions
-      .map((version) => {
-        const versionData = allVersionsData[version.version_id];
-        return calculateVersionProgress(versionData);
+    if (!versions.length || !Object.keys(allVersionsData).length) return 0;
+    const arr = versions
+      .map((v) => {
+        const vd = allVersionsData[v.version_id];
+        return calculateVersionProgress(vd);
       })
-      .filter((progress) => !isNaN(progress));
-
-    if (progresses.length === 0) return 0;
-
-    const sum = progresses.reduce((a, b) => a + b, 0);
-    return parseFloat((sum / progresses.length).toFixed(2));
+      .filter((p) => !isNaN(p));
+    if (!arr.length) return 0;
+    const sum = arr.reduce((a, b) => a + b, 0);
+    return parseFloat((sum / arr.length).toFixed(2));
   }, [versions, allVersionsData]);
 
-  // Show errors if critical functions are missing
-  if (Object.keys(errors).length > 0) {
+  // ─────────────────────────────────────────────────────────────────
+  // 6) Confirmation “Yes → terminate” handler
+  // ─────────────────────────────────────────────────────────────────
+  const handleConfirmTerminate = async () => {
+    // ❹ Log the EmailJS vars so you can confirm they’re not undefined
+    console.log(
+      "EmailJS ServiceID:",
+      process.env.REACT_APP_EMAILJS_SERVICEID,
+      "TemplateID:",
+      process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED
+    );
+
+    try {
+      console.log("handleConfirmTerminate: calling onTerminate(", planId, ")");
+      await onTerminate(planId);
+      console.log("✅ onTerminate succeeded — will now send emails");
+
+      const commonParams = {
+        plan_name: treatmentPlan?.plan_name || "Your Treatment Plan",
+        doctor_name: doctor.name,
+        termination_date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        plan_link: `${window.location.origin}/treatment-history/${patient.email}`,
+      };
+
+      console.log("Sending EmailJS to patient:", {
+        ...commonParams,
+        patient_name: patient.name,
+        to_email: patient.email,
+      });
+      await emailjs.send(
+        process.env.REACT_APP_EMAILJS_SERVICEID, // e.g. "service_b70nrww"
+        process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED, // e.g. "template_92h9fdb"
+        {
+          plan_name: treatmentPlan?.plan_name,
+          doctor_name: doctor.name,
+          termination_date: new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          plan_link: `${window.location.origin}/treatment-history/${patient.email}`,
+
+          // ← This must match exactly the “To” variable you set in the EmailJS template:
+          patient_name: patient.name,
+          patient_email: patient.email, // ← EmailJS will substitute this into {{patient_email}}
+        }
+      );
+
+      console.log("✅ Email to patient sent");
+
+      console.log("Sending EmailJS to doctor:", {
+        ...commonParams,
+        patient_name: doctor.name, // name insertion
+        doctor_email: doctor.email, // MUST match {{doctor_email}} in the template’s “To”
+      });
+
+      await emailjs.send(
+        process.env.REACT_APP_EMAILJS_SERVICEID,
+        process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED,
+        {
+          ...commonParams,
+          patient_name: doctor.name, // or “doctor_name” – whatever variable your HTML uses
+          doctor_email: doctor.email, // ← this lines up with {{doctor_email}} in the template’s To
+        }
+      );
+      console.log("✅ Email to doctor sent");
+
+      alert("Treatment plan is terminated");
+      navigate("/doctor-dashboard");
+    } catch (err) {
+      console.error("Error terminating plan or sending emails:", err);
+      alert("Could not terminate plan. Please try again.");
+      setShowConfirm(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────
+  // 7) If critical props are missing, show an error block
+  // ─────────────────────────────────────────────────────────────────
+  if (Object.keys(errors).length) {
     return (
       <div className="my-8 p-6 bg-red-50 rounded-2xl shadow border border-red-200">
         <h3 className="text-red-800 font-semibold mb-2">Configuration Error</h3>
         <p className="text-red-700 mb-3">
-          The TreatmentPlanView component is missing required function props:
+          This component is missing required props (or patient/doctor):
         </p>
         <ul className="text-red-600 text-sm space-y-1 mb-4">
-          {Object.values(errors).map((error, idx) => (
-            <li key={idx}>• {error}</li>
+          {Object.values(errors).map((errMsg, idx) => (
+            <li key={idx}>• {errMsg}</li>
           ))}
         </ul>
         <div className="bg-red-100 p-3 rounded text-sm text-red-800">
-          <strong>Solution:</strong> Make sure the parent component passes valid
-          functions for:
-          <br />• fetchTreatmentPlan
-          <br />• onToggleComplete
-          <br />• fetchVersion
+          <strong>Solution:</strong> Pass valid functions and patient/doctor
+          objects.
         </div>
       </div>
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // 8) Show loading state
+  // ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="my-8 p-6 bg-white rounded-2xl shadow border border-purple-100 text-center text-purple-600">
@@ -284,6 +320,9 @@ export default function TreatmentPlanView({
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // 9) If no data or error
+  // ─────────────────────────────────────────────────────────────────
   if (!data || data.error) {
     return (
       <div className="my-8 p-6 bg-yellow-50 rounded-2xl shadow border border-yellow-200 text-center">
@@ -302,8 +341,33 @@ export default function TreatmentPlanView({
   const isCurrent = currentIdx === versions.length - 1;
 
   return (
-    <div className="mb-8">
-      {/* Header */}
+    <div className="mb-8 relative">
+      {/* 10) Confirmation Overlay */}
+      {showConfirm && (
+        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Are you sure you want to terminate this plan?
+            </h3>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition"
+              >
+                No
+              </button>
+              <button
+                onClick={handleConfirmTerminate}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
+              >
+                Yes, Terminate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 11) Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
           Treatment Plan
@@ -355,7 +419,7 @@ export default function TreatmentPlanView({
         </div>
       </div>
 
-      {/* Main Card */}
+      {/* 12) Main Card */}
       <div className="bg-white shadow-lg rounded-2xl border border-purple-100 overflow-hidden">
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 border-b border-purple-100">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
@@ -463,7 +527,7 @@ export default function TreatmentPlanView({
             </div>
           ))}
 
-          {/* Overall Progress */}
+          {/* 13) Overall Progress */}
           <div className="border-t pt-6 space-y-4 border-gray-200">
             <div className="flex justify-between mb-2">
               <span className="text-lg font-semibold text-gray-800">
@@ -481,19 +545,17 @@ export default function TreatmentPlanView({
             </div>
           </div>
 
-          {role === "doctor" &&
-            isCurrent &&
-            !data.is_terminated &&
-            onTerminate && (
-              <div className="border-t pt-6 border-gray-200">
-                <button
-                  onClick={onTerminate}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 py-3 text-white rounded-lg font-bold shadow hover:shadow-lg transition"
-                >
-                  Terminate Plan
-                </button>
-              </div>
-            )}
+          {/* 14) Terminate button (doctor only) */}
+          {role === "doctor" && isCurrent && !data.is_terminated && (
+            <div className="border-t pt-6 border-gray-200">
+              <button
+                onClick={() => setShowConfirm(true)}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 py-3 text-white rounded-lg font-bold shadow hover:shadow-lg transition"
+              >
+                Terminate Plan
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
