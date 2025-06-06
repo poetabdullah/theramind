@@ -1,4 +1,5 @@
-// LoginPage.jsx
+// src/pages/LoginPage.jsx
+
 import React, { useState, useEffect } from "react";
 import {
   getAuth,
@@ -7,14 +8,10 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
-import { signInWithGoogle } from "../utils/google_api";
-import { requestGoogleAccessToken } from "../utils/google_api";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebaseConfig";
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import Footer from "../components/Footer";
-
-import { initGoogleCalendarAuth } from "../utils/googleCalendarAuth";
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
@@ -22,17 +19,13 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const auth = getAuth();
 
-  // Whenever Firebase Auth state changes, this runs.
-  // If there is a user, we immediately attempt routing to the correct dashboard.
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // We don’t auto-redirect here because handleRouting takes care of it
+      // We don’t auto-redirect here because handleRouting() takes care of it
     });
     return unsubscribe;
   }, [auth]);
 
-  // Exactly as before: look up “patients”, “doctors”, “admin” collections
-  // and navigate accordingly. If not found, send to signup, or show errors.
   const handleRouting = async (email) => {
     try {
       const [patSnap, docSnap, adminSnap] = await Promise.all([
@@ -97,54 +90,64 @@ const LoginPage = () => {
     }
   };
 
-  // Now, handleGoogleLogin only does the Firebase signIn – it no longer waits for Calendar auth.
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-
-    // Ensure the consent prompt always appears when we sign in:
-    provider.setCustomParameters({ prompt: "consent" });
-
-    // Add all non-sensitive scopes:
-    provider.addScope("https://www.googleapis.com/auth/userinfo.email");
-    provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
-    provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.public.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.settings.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.freebusy");
-    provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
-    provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
-
-    // Add all sensitive scopes:
-    provider.addScope("https://www.googleapis.com/auth/calendar");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events");
-    provider.addScope("https://www.googleapis.com/auth/calendar.acls");
-    provider.addScope("https://www.googleapis.com/auth/calendar.acls.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.calendars");
-    provider.addScope("https://www.googleapis.com/auth/calendar.calendars.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.owned");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.owned.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.readonly");
-    provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
-    provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
-
     setLoading(true);
     setError(null);
 
     try {
-      // 1. Sign in with Firebase
+      // 1) Create GoogleAuthProvider and request ALL required scopes (including Calendar & Meet)
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "consent" });
+
+      // Non-sensitive scopes
+      provider.addScope("https://www.googleapis.com/auth/userinfo.email");
+      provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
+      provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
+      provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.public.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.settings.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.freebusy");
+      provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
+
+      // Sensitive scopes
+      provider.addScope("https://www.googleapis.com/auth/calendar");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events");
+      provider.addScope("https://www.googleapis.com/auth/calendar.acls");
+      provider.addScope("https://www.googleapis.com/auth/calendar.acls.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.calendars");
+      provider.addScope("https://www.googleapis.com/auth/calendar.calendars.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned.readonly");
+      provider.addScope("https://www.googleapis.com/auth/calendar.events.readonly");
+      provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
+      provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
+
+      // 2) Sign in with Popup (Firebase will orchestrate a single consent screen
+      //    that includes ALL of the above scopes, if the user hasn’t granted them before)
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // 2. Now request Google OAuth access token for calendar access
-      await requestGoogleAccessToken();
+      // 3) Extract the Google OAuth access token from the credential:
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential && credential.accessToken) {
+        const calendarAccessToken = credential.accessToken;
+        console.log("✅ Google OAuth Access Token:", calendarAccessToken);
 
-      // 3. Then handle your app routing
+        // 4) Store the token for later use by gapi.client.calendar.* calls.
+        //    Here we use localStorage as an example; you can also write it into Firestore if you prefer.
+        localStorage.setItem("google_calendar_access_token", calendarAccessToken);
+      } else {
+        console.warn("⚠️ No Google access token returned. Calendar calls may fail.");
+      }
+
+      // 5) Finally, navigate immediately—preserving your original routing logic:
       await handleRouting(user.email);
     } catch (err) {
-      console.error('Google login error:', err);
-      setError('Login failed. Please try again.');
+      console.error("Google login error:", err);
+      setError("Login failed. Please try again.");
+      await signOut(auth);
     } finally {
       setLoading(false);
     }
@@ -261,15 +264,14 @@ const LoginPage = () => {
               Don't have an account?{" "}
               <a
                 href="/signup-landing"
-                className="text-purple-600 hover:text-purple-700 font-semibold"
+                className="text-purple-600 font-medium hover:text-purple-800"
               >
-                Sign up
+                Start here
               </a>
             </p>
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
