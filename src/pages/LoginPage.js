@@ -1,3 +1,5 @@
+// src/pages/LoginPage.js
+
 import React, { useState, useEffect } from "react";
 import {
   getAuth,
@@ -11,19 +13,41 @@ import { db } from "../firebaseConfig";
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import Footer from "../components/Footer";
 
+import { initGoogleCalendarAuth } from "../utils/googleCalendarAuth";
+
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const auth = getAuth();
 
+  // Whenever Firebase Auth state changes, this runs.
+  // If there is a user, we immediately attempt routing to the correct dashboard.
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // we don’t auto-redirect here because handleRouting takes care of it
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Fire off Calendar OAuth in the background. We do NOT await it here.
+          // Any Calendar errors get caught internally so we don't block navigation.
+          initGoogleCalendarAuth().catch((calErr) => {
+            console.error("Calendar auth (background) error:", calErr);
+          });
+
+          // Now route based on Firestore documents
+          await handleRouting(user.email);
+        } catch (routingErr) {
+          console.error("Routing after auth failed:", routingErr);
+          setError("Unable to navigate after login. Please try again.");
+          // If routing fails (e.g. non‐existent Firestore doc), sign out
+          await signOut(auth);
+        }
+      }
     });
     return unsubscribe;
   }, [auth]);
 
+  // Exactly as before: look up “patients”, “doctors”, “admin” collections
+  // and navigate accordingly. If not found, send to signup, or show errors.
   const handleRouting = async (email) => {
     try {
       const [patSnap, docSnap, adminSnap] = await Promise.all([
@@ -88,47 +112,30 @@ const LoginPage = () => {
     }
   };
 
+  // Now, handleGoogleLogin only does the Firebase signIn – it no longer waits for Calendar auth.
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-
-    // 1) Ensure the consent prompt always appears when we sign in:
-    provider.setCustomParameters({ prompt: "consent" });
-
-    // 2) Add all non-sensitive scopes:
-    provider.addScope("https://www.googleapis.com/auth/userinfo.email");
-    provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
-    provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.public.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.settings.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.freebusy");
-    provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
-    provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
-
-    // 3) Add all sensitive scopes:
-    provider.addScope("https://www.googleapis.com/auth/calendar");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events");
-    provider.addScope("https://www.googleapis.com/auth/calendar.acls");
-    provider.addScope("https://www.googleapis.com/auth/calendar.acls.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.calendars");
-    provider.addScope("https://www.googleapis.com/auth/calendar.calendars.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.owned");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.owned.readonly");
-    provider.addScope("https://www.googleapis.com/auth/calendar.events.readonly");
-    provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
-    provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
-
     setLoading(true);
     setError(null);
 
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      await handleRouting(user.email);
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "consent" });
+
+      // (These “userinfo” scopes aren’t strictly necessary if you only
+      // want to route, but keeping them is fine.)
+      provider.addScope("https://www.googleapis.com/auth/userinfo.email");
+      provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
+
+      // 1) Sign in to Firebase. As soon as this succeeds, onAuthStateChanged fires,
+      //    and handleRouting() runs in that listener.
+      await signInWithPopup(auth, provider);
+
+      // We do NOT await initGoogleCalendarAuth() here. That’s handled in onAuthStateChanged.
+      // This ensures the login screen un-blocks immediately.
     } catch (err) {
-      console.error("Google login error:", err);
+      console.error("Google login failed:", err);
       setError("Login failed. Please try again.");
+      await signOut(auth);
     } finally {
       setLoading(false);
     }
@@ -170,7 +177,12 @@ const LoginPage = () => {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>

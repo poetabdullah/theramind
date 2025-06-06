@@ -11,7 +11,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import TreatmentTemplates from "../components/TreatmentTemplates";
 import emailjs from "emailjs-com";
 
-// Defining the API_BASE as a global variable
+// Base URL for your API
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 const CreateTreatmentPlan = () => {
@@ -21,7 +21,7 @@ const CreateTreatmentPlan = () => {
   // 1) Pull in patientEmail and planKey from location.state (if present)
   const initialPatientEmail = location.state?.patientEmail || "";
   const planKey = location.state?.planKey ?? null;
-  // planKey is a string like "contamination ocd" or null if "Blank Plan."
+  // planKey is a string like "contamination ocd" (or null if "Blank Plan").
 
   // 2) selectedPatient is initialized from that state
   const [selectedPatient, setSelectedPatient] = useState(initialPatientEmail);
@@ -42,14 +42,20 @@ const CreateTreatmentPlan = () => {
   const [doctor, setDoctor] = useState({ email: "", name: "" });
   const [authLoading, setAuthLoading] = useState(true);
 
+  useEffect(() => {
+    emailjs.init("UPRSrucfSWrdfXl6E");
+  }, []);
+
+  // ─────────────────────────────────────────────────────────────────
   // 3) Auth listener → set user and doctor
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
         setDoctor({
           email: firebaseUser.email,
-          name: firebaseUser.displayName || "Doctor",
+          name: firebaseUser.displayName || "Dr. Unknown",
         });
       } else {
         navigate("/login");
@@ -59,14 +65,16 @@ const CreateTreatmentPlan = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  // ─────────────────────────────────────────────────────────────────
   // 4) Fetch patient list so we can look up name/email pairs
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         const snapshot = await getDocs(collection(db, "patients"));
         const list = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data(), // e.g. { name, email, … }
+          ...doc.data(), // { name, email, … }
         }));
         setPatients(list);
       } catch (err) {
@@ -76,7 +84,9 @@ const CreateTreatmentPlan = () => {
     fetchPatients();
   }, []);
 
+  // ─────────────────────────────────────────────────────────────────
   // 5) Fetch existing active plan whenever selectedPatient (or doctor.email) changes
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedPatient) {
       // Clear form if no patient is set
@@ -99,13 +109,14 @@ const CreateTreatmentPlan = () => {
       setFetchError(null);
 
       try {
+        // This endpoint returns an array of all plans for that patient
         const res = await axios.get(
           `${API_BASE}/treatment/user/patient/${encodeURIComponent(
             selectedPatient
           )}/`
         );
 
-        // Find the non‐terminated plan (if any)
+        // Find the non-terminated plan (if any)
         const active = res.data.find((p) => p.is_terminated === false);
 
         if (active) {
@@ -134,11 +145,11 @@ const CreateTreatmentPlan = () => {
             return;
           }
 
-          // Use last version in array
+          // Use last version
           const last = vRes.data[vRes.data.length - 1];
           setVersionId(last.version_id);
 
-          // Normalize goal/action objects by ensuring each has an id
+          // Normalize goal/action objects: ensure each has an id
           const fetchedGoals = last.goals.map((goal) => ({
             ...goal,
             id: goal.id || uuidv4(),
@@ -185,13 +196,10 @@ const CreateTreatmentPlan = () => {
     fetchActivePlan();
   }, [selectedPatient, doctor.email]);
 
+  // ─────────────────────────────────────────────────────────────────
   // 6) If no existing plan (isEditing === false) AND planKey exists → prefill from TreatmentTemplates
+  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
-    // Only run if:
-    //  - we have a selectedPatient
-    //  - we know doctor.email (auth done)
-    //  - there's a planKey and no existing plan being edited (isEditing === false)
-    //  - we haven't already prefills (we can check `goals` array length = 0 to avoid re‐prefilling multiple times)
     if (
       !authLoading &&
       doctor.email &&
@@ -201,12 +209,9 @@ const CreateTreatmentPlan = () => {
       goals.length === 0
     ) {
       const template = TreatmentTemplates[planKey];
-      if (!template) {
-        // if no template matches, do nothing
-        return;
-      }
+      if (!template) return;
 
-      // Build a new array of goals, each with unique id and nested actions
+      // Prefill goals from template
       const prefilledGoals = template.goals.map((goalTemplate) => ({
         id: uuidv4(),
         title: goalTemplate.title,
@@ -227,7 +232,6 @@ const CreateTreatmentPlan = () => {
       setVersionId(null);
       setIsEditing(false);
     }
-    // Depend on: authLoading, doctor.email, selectedPatient, planKey, isEditing, goals.length
   }, [
     authLoading,
     doctor.email,
@@ -239,19 +243,20 @@ const CreateTreatmentPlan = () => {
 
   if (authLoading) return null; // wait until auth check completes
 
+  // ─────────────────────────────────────────────────────────────────
   // 7) Derive full object for display-only PatientSelector
+  // ─────────────────────────────────────────────────────────────────
   const selectedPatientData = patients.find((p) => p.email === selectedPatient);
 
-  // 8) Goal & Action handlers
+  // ─────────────────────────────────────────────────────────────────
+  // 8) Goal & Action handlers (unchanged)
+  // ─────────────────────────────────────────────────────────────────
   const addGoal = () =>
     setGoals((prev) => [...prev, { id: uuidv4(), title: "", actions: [] }]);
-
   const deleteGoal = (id) =>
     setGoals((prev) => prev.filter((g) => g.id !== id));
-
   const updateGoalTitle = (id, title) =>
     setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, title } : g)));
-
   const addAction = (goalId) =>
     setGoals((prev) =>
       prev.map((g) =>
@@ -272,7 +277,6 @@ const CreateTreatmentPlan = () => {
           : g
       )
     );
-
   const updateAction = (goalId, actionId, field, value) =>
     setGoals((prev) =>
       prev.map((g) =>
@@ -286,7 +290,6 @@ const CreateTreatmentPlan = () => {
           : g
       )
     );
-
   const deleteAction = (goalId, actionId) =>
     setGoals((prev) =>
       prev.map((g) =>
@@ -303,12 +306,10 @@ const CreateTreatmentPlan = () => {
       errs.patient = "Patient must be selected.";
       valid = false;
     }
-
     if (goals.length === 0) {
       errs.goals = "At least one goal is required.";
       valid = false;
     }
-
     goals.forEach((goal, i) => {
       if (goal.title.trim().split(" ").length < 5) {
         errs[`goal_${i}`] = "Goal must be at least 5 words.";
@@ -338,6 +339,137 @@ const CreateTreatmentPlan = () => {
     setSelectedPatient("");
   };
 
+  // ─────────────────────────────────────────────────────────────────
+  // 9) NEW: handleSavePlan() → create vs. update logic + EmailJS calls
+  // ─────────────────────────────────────────────────────────────────
+  const handleSavePlan = async () => {
+    // ➀ Validate first
+    if (!validateForm()) {
+      return;
+    }
+
+    // ➁ Build a minimal payload to send to your back-end:
+    //    (Adjust these field names to match what your Django view expects.)
+    const payload = {
+      doctor_email: doctor.email,
+      doctor_name: doctor.name,
+      patient_email: selectedPatient,
+      patient_name: selectedPatientData?.name || "",
+      goals: goals.map((g) => ({
+        title: g.title.trim(),
+        actions: g.actions.map((a) => ({
+          description: a.description.trim(),
+          priority: a.priority,
+          assigned_to: a.assigned_to,
+        })),
+      })),
+    };
+
+    setIsLoading(true);
+    try {
+      if (isEditing && planId && versionId) {
+        // ───────────────────────────────────────────
+        //  UPDATE EXISTING PLAN (just inform the patient)
+        // ───────────────────────────────────────────
+        const updateRes = await axios.post(
+          `${API_BASE}/treatment/${encodeURIComponent(
+            planId
+          )}/version/${encodeURIComponent(versionId)}/update/`,
+          payload
+        );
+
+        // only inform patient (use your “updation” template)
+        const updateDate = new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+        // send to patient
+        await emailjs.send(
+          process.env.REACT_APP_EMAILJS2_SERVICEID,
+          process.env.REACT_APP_EMAILJS_TEMPLATE_UPDATE,
+          {
+            patient_name: selectedPatientData?.name,
+            patient_email: selectedPatient,
+            doctor_name: doctor.name,
+            plan_name: updateRes.data.plan_name, // assume backend returns plan_name
+            update_date: updateDate,
+            plan_link: `${window.location.origin}/treatment-plan/${planId}`,
+          }
+        );
+
+        alert("Plan updated and patient has been notified.");
+      } else {
+        // ───────────────────────────────────────────
+        //  CREATE A BRAND-NEW PLAN (inform both patient & doctor)
+        // ───────────────────────────────────────────
+        const createRes = await axios.post(
+          `${API_BASE}/treatment/create/`,
+          payload
+        );
+        // assume createRes.data returns { plan_id, version_id, plan_name }
+        const newPlanId = createRes.data.plan_id;
+        const newVersionId = createRes.data.version_id;
+        const planName = createRes.data.plan_name || "My Treatment Plan";
+
+        setPlanId(newPlanId);
+        setVersionId(newVersionId);
+        setIsEditing(true);
+        setCreatedAt(createRes.data.created_at);
+        setLastUpdated(createRes.data.last_updated);
+
+        // Inform patient & doctor with “creation” template
+        const creationDate = new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+        //  ➔ Send to PATIENT
+        await emailjs.send(
+          process.env.REACT_APP_EMAILJS2_SERVICEID,
+          process.env.REACT_APP_EMAILJS_TEMPLATE_CREATE,
+          {
+            patient_name: selectedPatientData?.name,
+            patient_email: selectedPatient,
+            doctor_name: doctor.name,
+            doctor_email: doctor.email,
+            plan_name: planName,
+            creation_date: creationDate,
+            plan_link: `${window.location.origin}/treatment-plan/${newPlanId}`,
+          }
+        );
+
+        //  ➔ Send to DOCTOR
+        await emailjs.send(
+          process.env.REACT_APP_EMAILJS2_SERVICEID,
+          process.env.REACT_APP_EMAILJS_TEMPLATE_CREATE,
+          {
+            patient_name: selectedPatientData?.name,
+            patient_email: selectedPatient,
+            doctor_name: doctor.name,
+            doctor_email: doctor.email,
+            plan_name: planName,
+            creation_date: creationDate,
+            plan_link: `${window.location.origin}/treatment-plan/${newPlanId}`,
+          }
+        );
+
+        alert("New plan created. Patient and doctor have both been notified.");
+      }
+
+      // Optionally, clear errors or navigate away:
+      clearForm();
+      navigate("/doctor-dashboard");
+    } catch (err) {
+      console.error("Error saving plan or sending emails:", err);
+      alert("There was an error saving the plan. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen py-12 px-4 md:px-10 lg:px-20">
       <div className="max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-xl p-10">
@@ -345,7 +477,7 @@ const CreateTreatmentPlan = () => {
           {isEditing ? "Edit Treatment Plan" : "Create a New Treatment Plan"}
         </h1>
 
-        {isEditing && (
+        {isEditing && createdAt && lastUpdated && (
           <div className="text-sm text-gray-600 text-center mb-6">
             <p>Created: {new Date(createdAt).toLocaleDateString()}</p>
             <p>Last Updated: {new Date(lastUpdated).toLocaleDateString()}</p>
@@ -356,7 +488,7 @@ const CreateTreatmentPlan = () => {
           </div>
         )}
 
-        {/* 8) Show display-only PatientSelector if we have selectedPatientData. */}
+        {/*  Display-only PatientSelector */}
         {selectedPatientData ? (
           <PatientSelector selectedPatientData={selectedPatientData} />
         ) : (
@@ -374,7 +506,7 @@ const CreateTreatmentPlan = () => {
         {isLoading ? (
           <div className="flex justify-center items-center py-10">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
-            <p className="ml-3 text-gray-600">Loading treatment plan...</p>
+            <p className="ml-3 text-gray-600">Processing...</p>
           </div>
         ) : (
           <>
@@ -421,7 +553,6 @@ const CreateTreatmentPlan = () => {
               </button>
             </div>
 
-            {/* ← Use the correct component name here: */}
             <TreatmentPlanSummary
               selectedPatient={selectedPatient}
               goals={goals}
@@ -434,6 +565,8 @@ const CreateTreatmentPlan = () => {
               versionId={versionId}
               createdAt={createdAt}
               lastUpdated={lastUpdated}
+              // ─── We pass down our new save handler:
+              onSavePlan={handleSavePlan}
             />
           </>
         )}
