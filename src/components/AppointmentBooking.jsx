@@ -2,479 +2,384 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { db } from '../firebaseConfig.js';
 import {
-	collection,
-	getDocs,
-	addDoc,
-	setDoc,
-	query,
-	where,
-	deleteDoc,
-	doc,
-	updateDoc,
+  collection,
+  getDocs,
+  setDoc,
+  getDoc,
+  query,
+  where,
+  doc,
+  updateDoc,
+  deleteDoc,
 } from 'firebase/firestore';
-import { initGoogleCalendarAuth } from '../utils/googleCalendarAuth';
-import { initGoogleApi } from '../utils/google_api';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { createGoogleMeetEvent, initGoogleApi } from '../utils/google_api';
 import { sendAppointmentConfirmationEmail } from './AppointmentConfirmationEmail';
+import { deleteGoogleCalendarEvent } from '../utils/google_api';
 
 const AppointmentBooking = () => {
-	const [doctors, setDoctors] = useState([]);
-	const [selectedDoctor, setSelectedDoctor] = useState(null);
-	const [selectedTimeslot, setSelectedTimeslot] = useState('');
-	const [patientName, setPatientName] = useState('');
-	const [patientEmail, setPatientEmail] = useState('');
-	const [isSignedIn, setIsSignedIn] = useState(false);
-	const [error, setError] = useState('');
-	const [appointments, setAppointments] = useState([]);
-	const [loadingAppointments, setLoadingAppointments] = useState(false);
-	const [reschedulingAppointment, setReschedulingAppointment] = useState(null);
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedTimeslot, setSelectedTimeslot] = useState('');
+  const [patientName, setPatientName] = useState('');
+  const [patientEmail, setPatientEmail] = useState('');
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [error, setError] = useState('');
+  const [appointments, setAppointments] = useState([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-	// Initialize Google API and fetch patient info
-	useEffect(() => {
-		const fetchPatientInfo = async () => {
-			try {
-				await initGoogleApi();
-				const authInstance = window.gapi.auth2.getAuthInstance();
-				if (authInstance && authInstance.isSignedIn.get()) {
-					const user = authInstance.currentUser.get();
-					const profile = user.getBasicProfile();
-					const email = profile.getEmail();
-					const q = query(
-						collection(db, 'patients'),
-						where('email', '==', email)
-					);
-					const snapshot = await getDocs(q);
-					if (!snapshot.empty) {
-						const patientDoc = snapshot.docs[0];
-						const patientData = patientDoc.data();
-						setPatientName(patientData.name);
-						setPatientEmail(patientData.email);
-					} else {
-						console.warn(
-							'Patient not found in Firestore, using Google profile data'
-						);
-						setPatientName(profile.getName());
-						setPatientEmail(email);
-					}
-					setIsSignedIn(true);
-				}
-			} catch (err) {
-				console.error(
-					'Error during Google sign-in or fetching patient info:',
-					err
-				);
-			}
-		};
-		fetchPatientInfo();
-	}, []);
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        setIsSignedIn(true);
+        setPatientEmail(user.email);
 
-	useEffect(() => {
-		const fetchDoctors = async () => {
-			try {
-				const snapshot = await getDocs(collection(db, 'doctors'));
-				const doctorList = snapshot.docs.map(doc => ({
-					id: doc.id,
-					...doc.data(),
-				}));
-				setDoctors(doctorList);
-			} catch (error) {
-				console.error('Error fetching doctors:', error);
-			}
-		};
-		fetchDoctors();
-	}, []);
+        // Fetch patient name from Firestore
+        const q = query(collection(db, 'patients'), where('email', '==', user.email));
+        const snapshot = await getDocs(q);
 
-	useEffect(() => {
-		const fetchAppointments = async () => {
-			if (!patientEmail) return;
-			setLoadingAppointments(true);
-			try {
-				const q = query(
-					collection(db, 'appointments'),
-					where('patientEmail', '==', patientEmail)
-				);
-				const snapshot = await getDocs(q);
-				const appts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-				setAppointments(appts);
-			} catch (error) {
-				console.error('Error fetching appointments:', error);
-			}
-			setLoadingAppointments(false);
-		};
-		fetchAppointments();
-	}, [patientEmail]);
+        if (!snapshot.empty) {
+          setPatientName(snapshot.docs[0].data().name);
+        } else {
+          setPatientName(user.displayName || '');
+        }
+      } else {
+        setIsSignedIn(false);
+        setPatientName('');
+        setPatientEmail('');
+        setCurrentUser(null);
+      }
+    });
 
-	const handleBooking = async () => {
-		if (!selectedDoctor || !selectedTimeslot || !patientName) {
-			setError('Please fill all fields before booking.');
-			return;
-		}
-		setError('');
-		try {
-			await initGoogleCalendarAuth();
-			const start = new Date(selectedTimeslot);
-			const end = new Date(start.getTime() + 30 * 60000);
+    initGoogleApi().catch(console.error);
 
-			const event = {
-				summary: `Appointment with ${selectedDoctor.fullName}`,
-				description: 'TheraMind Appointment',
-				start: { dateTime: start.toISOString(), timeZone: 'Asia/Karachi' },
-				end: { dateTime: end.toISOString(), timeZone: 'Asia/Karachi' },
-				attendees: [{ email: patientEmail }, { email: selectedDoctor.email }],
-				conferenceData: {
-					createRequest: {
-						requestId: `${Date.now()}`, // MUST be unique
-						conferenceSolutionKey: { type: 'hangoutsMeet' },
-					},
-				},
-			};
+    return () => unsubscribe();
+  }, []);
 
-			const response = await window.gapi.client.calendar.events.insert({
-				calendarId: 'primary',
-				resource: event,
-				conferenceDataVersion: 1, // REQUIRED when using conferenceData
-				sendUpdates: 'all',
-			});
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'doctors'));
+        const doctorList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setDoctors(doctorList);
+      } catch (err) {
+        console.error('Error fetching doctors:', err);
+      }
+    };
+    fetchDoctors();
+  }, []);
 
-			const meetLink =
-				response.result.hangoutLink ||
-				response.result.conferenceData?.entryPoints?.find(
-					p => p.entryPointType === 'video'
-				)?.uri;
-			const calendarEventId = response.result.id;
+  useEffect(() => {
+    if (!patientEmail) return;
+    const fetchAppointments = async () => {
+      setLoadingAppointments(true);
+      try {
+        const q = query(
+          collection(db, 'appointments'),
+          where('patientEmail', '==', patientEmail)
+        );
+        const snapshot = await getDocs(q);
+        const appts = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setAppointments(appts);
+      } catch (err) {
+        console.error('Error fetching appointments:', err);
+      }
+      setLoadingAppointments(false);
+    };
+    fetchAppointments();
+  }, [patientEmail]);
 
-			//Creating Appointment ID
-			const appointmentRef = doc(collection(db, 'appointments'));
-			const appointmentId = appointmentRef.id; 
+  const handleBooking = async () => {
+    setError('');
+    if (!selectedDoctor || !selectedTimeslot || !patientName || !patientEmail) {
+      setError('Please fill all fields before booking.');
+      return;
+    }
+    if (!isSignedIn || !currentUser) {
+      setError('Please sign in first.');
+      return;
+    }
 
-			const newAppointment = {
-				id: appointmentId,
-				appointmentId,
-				doctorEmail: selectedDoctor.email,
-				doctorName: selectedDoctor.fullName,
-				patientName,
-				patientEmail,
-				timeslot: selectedTimeslot,
-				meetLink,
-				calendarEventId,
-			};
-			await setDoc(appointmentRef, newAppointment);
+    try {
+      const doctorRef = doc(db, 'doctors', selectedDoctor.id);
+      const updatedDoctorSnap = await getDoc(doctorRef);
+      const updatedDoctor = updatedDoctorSnap.data();
 
-			setAppointments(prev => [...prev, newAppointment]);
+      if (!updatedDoctor?.timeslots?.includes(selectedTimeslot)) {
+        alert('This timeslot is no longer available.');
+        return;
+      }
 
-			sendAppointmentConfirmationEmail({
-				patientName,
-				patientEmail,
-				doctorName: selectedDoctor.fullName,
-				timeslot: selectedTimeslot,
-				meetLink,
-			});
+      // Check for duplicate appointment at this timeslot for this patient
+      const q = query(
+        collection(db, 'appointments'),
+        where('patientEmail', '==', patientEmail),
+        where('timeslot', '==', selectedTimeslot)
+      );
+      const existingSnapshot = await getDocs(q);
+      if (!existingSnapshot.empty) {
+        alert('You already have an appointment at this time.');
+        return;
+      }
 
-			alert('Appointment Booked Successfully! Check your email & calendar.');
-			setSelectedDoctor(null);
-			setSelectedTimeslot('');
-			setAppointments(prev => [
-				...prev,
-				{
-					doctorEmail: selectedDoctor.email,
-					doctorName: selectedDoctor.fullName,
-					patientName,
-					patientEmail,
-					timeslot: selectedTimeslot,
-					meetLink,
-					calendarEventId,
-				},
-			]);
-		} catch (error) {
-			console.error('Booking failed:', error);
-			alert(
-				'Booking failed: ' +
-					(error?.result?.error?.message || 'Please try again.')
-			);
-		}
-	};
+      const start = new Date(selectedTimeslot);
+      const end = new Date(start.getTime() + 30 * 60000);
 
-	// Cancel appointment handler
-	const handleCancel = async appointment => {
-		if (!window.confirm('Are you sure you want to cancel this appointment?'))
-			return;
+      if (!window.gapi.client.getToken()) {
+        await initGoogleApi();
+      }
 
-		try {
-			await initGoogleCalendarAuth();
+      const calendarEvent = await createGoogleMeetEvent(
+        `Appointment with ${selectedDoctor.fullName}`,
+        'TheraMind Appointment',
+        start.toISOString(),
+        end.toISOString(),
+        patientEmail,
+        currentUser
+      );
 
-			// Delete from Google Calendar
-			await window.gapi.client.calendar.events.delete({
-				calendarId: 'primary',
-				eventId: appointment.calendarEventId,
-			});
+      const meetLink =
+        calendarEvent.hangoutLink ||
+        calendarEvent.conferenceData?.entryPoints?.find((p) => p.entryPointType === 'video')
+          ?.uri;
 
-			const docId = appointment.id || appointment.appointmentId;
-			if (!docId) {
-				alert("Appointment missing! Cannot cancel this appointment.");
-				return;
-			}
+      const appointmentId = crypto.randomUUID();
+      const appointmentRef = doc(collection(db, 'appointments'), appointmentId);
 
-			console.log(appointment.calendarEventId);
-			// Delete from Firestore
-			await deleteDoc(doc(db, 'appointments', docId));
+      const newAppointment = {
+        appointmentId,
+        doctorEmail: selectedDoctor.email,
+        doctorName: selectedDoctor.fullName,
+        patientName,
+        patientEmail,
+        timeslot: selectedTimeslot,
+        meetLink,
+        calendarEventId: calendarEvent.id,
+        createdAt: new Date().toISOString(),
+      };
 
-			// Update UI
-			setAppointments(appts => appts.filter(a => a.id !== docId && a.appointmentId !== docId));
-			alert('Appointment canceled successfully.');
-		} catch (error) {
-			console.error('Failed to cancel appointment:', error);
-			alert('Failed to cancel appointment. Please try again.');
-		}
-	};
+      await setDoc(appointmentRef, newAppointment);
 
-	// Start rescheduling: load appointment details into booking form
-	const startReschedule = appointment => {
-		setReschedulingAppointment(appointment);
-		// Set selected doctor & timeslot to current appointment values
-		const docObj = doctors.find(d => d.email === appointment.doctorEmail);
-		setSelectedDoctor(docObj || null);
-		setSelectedTimeslot(appointment.timeslot);
-	};
+      // Remove booked timeslot from doctor
+      const updatedTimeslots = updatedDoctor.timeslots.filter((t) => t !== selectedTimeslot);
+      await updateDoc(doctorRef, { timeslots: updatedTimeslots });
 
-	// Confirm rescheduling handler
-	const confirmReschedule = async () => {
-		if (!reschedulingAppointment) return;
+      sendAppointmentConfirmationEmail({
+        patientName,
+        patientEmail,
+        doctorName: selectedDoctor.fullName,
+        timeslot: selectedTimeslot,
+        meetLink,
+      });
 
-		if (!selectedDoctor || !selectedTimeslot) {
-			setError('Please select doctor and timeslot.');
-			return;
-		}
+      setAppointments((prev) => [...prev, { id: appointmentId, ...newAppointment }]);
 
-		setError('');
+      alert('Appointment Booked Successfully!');
+      setSelectedDoctor(null);
+      setSelectedTimeslot('');
+    } catch (err) {
+      console.error('Booking failed:', err);
+      alert('Booking failed: ' + (err?.message || JSON.stringify(err)));
+    }
+  };
 
-		try {
-			await initGoogleCalendarAuth();
+  const handleCancelAppointment = async (appointment) => {
+    const confirmCancel = window.confirm('Are you sure you want to cancel this appointment?');
+    if (!confirmCancel) return;
 
-			const start = new Date(selectedTimeslot);
-			const end = new Date(start.getTime() + 30 * 60000);
+    try {
+      // Delete Google Calendar event
+      await deleteGoogleCalendarEvent(appointment.calendarEventId);
 
-			// Update event on Google Calendar
-			const event = {
-				summary: `Appointment with ${selectedDoctor.fullName}`,
-				description: 'TheraMind Appointment (Rescheduled)',
-				start: {
-					dateTime: start.toISOString(),
-					timeZone: 'Asia/Karachi',
-				},
-				end: {
-					dateTime: end.toISOString(),
-					timeZone: 'Asia/Karachi',
-				},
-				attendees: [{ email: patientEmail }, { email: selectedDoctor.email }],
-			};
+      // Delete Firestore appointment doc
+      await deleteDoc(doc(db, 'appointments', appointment.id));
 
-			await window.gapi.client.calendar.events.update({
-				calendarId: 'primary',
-				eventId: reschedulingAppointment.calendarEventId,
-				resource: event,
-				sendUpdates: 'all',
-			});
+      // Fetch the doctor using doctorEmail from the appointment
+      const doctorQuery = query(collection(db, 'doctors'), where('email', '==', appointment.doctorEmail));
+      const doctorSnapshot = await getDocs(doctorQuery);
 
-			// Update Firestore
-			const appointmentRef = doc(
-				db,
-				'appointments',
-				reschedulingAppointment.id
-			);
-			await updateDoc(appointmentRef, {
-				doctorEmail: selectedDoctor.email,
-				doctorName: selectedDoctor.fullName,
-				timeslot: selectedTimeslot,
-			});
+      if (!doctorSnapshot.empty) {
+        const doctorDoc = doctorSnapshot.docs[0];
+        const doctorRef = doc(db, 'doctors', doctorDoc.id);
+        const doctorData = doctorDoc.data();
+        const updatedTimeslots = [...(doctorData.timeslots || []), appointment.timeslot];
 
-			// Update local state
-			setAppointments(appts =>
-				appts.map(a =>
-					a.id === reschedulingAppointment.id
-						? {
-								...a,
-								doctorEmail: selectedDoctor.email,
-								doctorName: selectedDoctor.fullName,
-								timeslot: selectedTimeslot,
-						  }
-						: a
-				)
-			);
+        // Remove duplicates & sort timeslots chronologically
+        const uniqueSortedTimeslots = Array.from(new Set(updatedTimeslots)).sort(
+          (a, b) => new Date(a) - new Date(b)
+        );
 
-			alert('Appointment rescheduled successfully!');
-			setReschedulingAppointment(null);
-			setSelectedDoctor(null);
-			setSelectedTimeslot('');
-		} catch (error) {
-			console.error('Failed to reschedule appointment:', error);
-			alert('Failed to reschedule appointment. Please try again.');
-		}
-	};
+        await updateDoc(doctorRef, { timeslots: uniqueSortedTimeslots });
+      }
 
-	return (
-		<motion.div
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			exit={{ opacity: 0 }}
-			transition={{ duration: 0.5 }}
-		>
-			<div className="container mx-auto p-4">
-				<h1 className="text-2xl font-bold mb-4">Book an Appointment</h1>
+      // Update UI
+      setAppointments((prev) => prev.filter((appt) => appt.id !== appointment.id));
 
-				{error && <p className="text-red-500 mb-2">{error}</p>}
+      alert('Appointment cancelled successfully.');
+    } catch (err) {
+      console.error('Error cancelling appointment:', err);
+      alert('Failed to cancel appointment.');
+    }
+  };
 
-				{/* Doctor Selection */}
-				<select
-					className="border p-2 w-full mb-2"
-					value={selectedDoctor?.email || ''}
-					onChange={e => {
-						const selected = doctors.find(d => d.email === e.target.value);
-						setSelectedDoctor(selected || null);
-					}}
-					disabled={!!reschedulingAppointment}
-				>
-					<option value="">Select a Doctor</option>
-					{doctors.map(doc => (
-						<option key={doc.id} value={doc.email}>
-							{doc.fullName}
-						</option>
-					))}
-				</select>
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div className="container mx-auto p-4">
+        <motion.h1 className="text-2xl font-bold mb-4">Book an Appointment</motion.h1>
 
-				{/* Timeslot Selection */}
-				{selectedDoctor && selectedDoctor.timeslots?.length > 0 && (
-					<select
-						className="border p-2 w-full mb-2"
-						value={selectedTimeslot}
-						onChange={e => setSelectedTimeslot(e.target.value)}
-					>
-						<option value="">Select a Timeslot</option>
-						{selectedDoctor.timeslots
-							.filter(slot => new Date(slot) > new Date())
-							.sort((a, b) => new Date(a) - new Date(b))
-							.map(slot => (
-								<option key={slot} value={slot}>
-									{new Date(slot).toLocaleString('en-US', {
-										weekday: 'long',
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric',
-										hour: 'numeric',
-										minute: '2-digit',
-										hour12: true,
-									})}
-								</option>
-							))}
-					</select>
-				)}
+        {error && <p className="text-red-500 mb-2">{error}</p>}
 
-				{/* Patient Info */}
-				<input
-					type="text"
-					className="border p-2 w-full mb-2"
-					placeholder="Enter your name"
-					value={patientName}
-					onChange={e => setPatientName(e.target.value)}
-					disabled={!!reschedulingAppointment}
-				/>
+        <motion.select
+          className="border p-2 w-full mb-2"
+          value={selectedDoctor?.email || ''}
+          onChange={(e) => {
+            const selected = doctors.find((d) => d.email === e.target.value);
+            setSelectedDoctor(selected || null);
+            setSelectedTimeslot('');
+          }}
+        >
+          <motion.option value="">Select a Doctor</motion.option>
+          {doctors.map((doc) => (
+            <motion.option key={doc.id} value={doc.email}>
+              {doc.fullName}
+            </motion.option>
+          ))}
+        </motion.select>
 
-				{/* Book or Reschedule Button */}
-				{reschedulingAppointment ? (
-					<div className="flex space-x-2">
-						<button
-							className="p-2 rounded bg-yellow-500 text-white w-full"
-							onClick={confirmReschedule}
-							disabled={!selectedDoctor || !selectedTimeslot}
-						>
-							Confirm Reschedule
-						</button>
-						<button
-							className="p-2 rounded bg-gray-400 text-white w-full"
-							onClick={() => {
-								setReschedulingAppointment(null);
-								setSelectedDoctor(null);
-								setSelectedTimeslot('');
-							}}
-						>
-							Cancel
-						</button>
-					</div>
-				) : (
-					<button
-						type="submit"
-						className={`p-2 rounded w-full text-white ${
-							selectedDoctor && selectedTimeslot && patientName
-								? 'bg-purple-500 hover:bg-purple-600'
-								: 'bg-gray-400 cursor-not-allowed'
-						}`}
-						onClick={handleBooking}
-						disabled={!selectedDoctor || !selectedTimeslot || !patientName}
-					>
-						Book Appointment
-					</button>
-				)}
+        {selectedDoctor && selectedDoctor.timeslots?.length > 0 && (
+          <motion.select
+            className="border p-2 w-full mb-2"
+            value={selectedTimeslot}
+            title="Select a Timeslot"
+            onChange={(e) => setSelectedTimeslot(e.target.value)}
+          >
+            <motion.ption value="">Select a Timeslot</motion.ption>
+            {selectedDoctor.timeslots
+              .filter((slot) => new Date(slot) > new Date())
+              .sort((a, b) => new Date(a) - new Date(b))
+              .map((slot) => (
+                <motion.option key={slot} value={slot}>
+                  {new Date(slot).toLocaleString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}
+                </motion.option>
+              ))}
+          </motion.select>
+        )}
 
-				{/* Existing Appointments */}
-				<h2 className="text-xl font-semibold mt-8 mb-4">Your Appointments</h2>
-				{loadingAppointments ? (
-					<p>Loading appointments...</p>
-				) : appointments.length === 0 ? (
-					<p>No appointments found.</p>
-				) : (
-					<ul>
-						{appointments.map(appointment => (
-							<li
-								key={appointment.id}
-								className="border p-4 mb-2 rounded flex flex-col md:flex-row md:justify-between md:items-center"
-							>
-								<div>
-									<p>
-										<strong>Doctor:</strong> {appointment.doctorName}
-									</p>
-									<p>
-										<strong>Time:</strong>{' '}
-										{new Date(appointment.timeslot).toLocaleString('en-US', {
-											weekday: 'long',
-											year: 'numeric',
-											month: 'long',
-											day: 'numeric',
-											hour: 'numeric',
-											minute: '2-digit',
-											hour12: true,
-										})}
-									</p>
-									<p>
-										<strong>Meet Link:</strong>{' '}
-										<a
-											href={appointment.meetLink}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-blue-600 underline"
-										>
-											Join Meeting
-										</a>
-									</p>
-								</div>
-								<div className="mt-2 md:mt-0 flex space-x-2">
-									<button
-										className="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded"
-										onClick={() => startReschedule(appointment)}
-									>
-										Reschedule
-									</button>
-									<button
-										className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
-										onClick={() => handleCancel(appointment)}
-									>
-										Cancel
-									</button>
-								</div>
-							</li>
-						))}
-					</ul>
-				)}
-			</div>
-		</motion.div>
-	);
+        <motion.input
+          type="text"
+          className="border p-2 w-full mb-2"
+          placeholder="Enter your name"
+          value={patientName}
+          onChange={(e) => setPatientName(e.target.value)}
+        />
+
+        <motion.button
+          onClick={handleBooking}
+          className={`p-2 rounded w-full text-white ${
+            selectedDoctor && selectedTimeslot && patientName && patientEmail && isSignedIn
+              ? 'bg-purple-500 hover:bg-purple-600'
+              : 'bg-gray-400 cursor-not-allowed'
+          }`}
+          disabled={
+            !selectedDoctor || !selectedTimeslot || !patientName || !patientEmail || !isSignedIn
+          }
+        >
+          Book Appointment
+        </motion.button>
+
+        {loadingAppointments && <motion.p>Loading your appointments...</motion.p>}
+
+        {appointments.length > 0 && (
+  <motion.div 
+    className="mt-6"
+    initial="hidden"
+    animate="visible"
+    variants={{
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.15 } },
+    }}
+  >
+    <motion.h2
+      className="text-2xl font-semibold mb-4 border-b pb-2"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0, transition: { delay: 0.1 } }}
+    >
+      Your Appointments
+    </motion.h2>
+
+    <motion.ul className="space-y-4">
+      {appointments.map((appt) => (
+        <motion.li
+          key={appt.id}
+          className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg hover:bg-purple-50 transition-shadow duration-300"
+          layout
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          onClick={() => window.open(appt.meetLink, '_blank')}
+          title="Click to join meeting"
+        >
+          <motion.div className="flex justify-between items-center mb-2">
+            <motion.p className="font-semibold text-lg text-purple-700">{appt.doctorName}</motion.p>
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCancelAppointment(appt);
+              }}
+              className="text-left rounded-lg text-orange-800 font-semibold text-lg py-2 px-4 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
+			  whileHover={{ scale: 1.05 }}
+            >
+              Cancel
+            </motion.button>
+          </motion.div>
+
+          <motion.p className="text-gray-700">
+            <motion.strong>Time: </motion.strong>
+            {new Date(appt.timeslot).toLocaleString('en-US', {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            })}
+          </motion.p>
+
+          <motion.p className="mt-1 text-purple-600 underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+            <motion.a href={appt.meetLink} target="_blank" rel="noopener noreferrer">
+              Join Meeting
+            </motion.a>
+          </motion.p>
+        </motion.li>
+      ))}
+    </motion.ul>
+  </motion.div>
+)}
+      </motion.div>
+    </motion.div>
+  );
 };
 
 export default AppointmentBooking;

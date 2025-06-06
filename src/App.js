@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import HomePage from "./pages/HomePage";
 import Meditation from "./pages/Meditation";
 import Navbar from "./components/Navbar";
