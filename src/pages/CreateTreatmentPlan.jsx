@@ -11,21 +11,29 @@ import { useNavigate, useLocation } from "react-router-dom";
 import TreatmentTemplates from "../components/TreatmentTemplates";
 import emailjs from "emailjs-com";
 
-// Base URL for your API
+// Base URL for your API (adjust if needed)
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+
+// EmailJS hard-coded configuration
+const EMAILJS_USER_ID = "UPRSrucfSWrdfXl6E";
+const EMAILJS_SERVICE_ID = "service_wj928rn";
+const EMAILJS_TEMPLATE_CREATE = "template_qe6yy7a";
+const EMAILJS_TEMPLATE_UPDATE = "template_sgkpbvk";
 
 const CreateTreatmentPlan = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 1) Pull in patientEmail and planKey from location.state (if present)
+  // ———————————————————————————
+  // 1) Grab initial patient email + planKey from location.state
+  // ———————————————————————————
   const initialPatientEmail = location.state?.patientEmail || "";
   const planKey = location.state?.planKey ?? null;
-  // planKey is a string like "contamination ocd" (or null if "Blank Plan").
 
-  // 2) selectedPatient is initialized from that state
+  // ———————————————————————————
+  // 2) Component state
+  // ———————————————————————————
   const [selectedPatient, setSelectedPatient] = useState(initialPatientEmail);
-
   const [goals, setGoals] = useState([]);
   const [errors, setErrors] = useState({});
   const [patients, setPatients] = useState([]);
@@ -42,13 +50,14 @@ const CreateTreatmentPlan = () => {
   const [doctor, setDoctor] = useState({ email: "", name: "" });
   const [authLoading, setAuthLoading] = useState(true);
 
+  // Initialize EmailJS with hard-coded User ID
   useEffect(() => {
-    emailjs.init("UPRSrucfSWrdfXl6E");
+    emailjs.init(EMAILJS_USER_ID);
   }, []);
 
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
   // 3) Auth listener → set user and doctor
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
   useEffect(() => {
     const unsubscribe = getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
@@ -65,16 +74,16 @@ const CreateTreatmentPlan = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // ─────────────────────────────────────────────────────────────────
-  // 4) Fetch patient list so we can look up name/email pairs
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
+  // 4) Fetch patient list from Firestore
+  // ———————————————————————————
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         const snapshot = await getDocs(collection(db, "patients"));
         const list = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data(), // { name, email, … }
+          ...doc.data(),
         }));
         setPatients(list);
       } catch (err) {
@@ -84,12 +93,11 @@ const CreateTreatmentPlan = () => {
     fetchPatients();
   }, []);
 
-  // ─────────────────────────────────────────────────────────────────
-  // 5) Fetch existing active plan whenever selectedPatient (or doctor.email) changes
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
+  // 5) Fetch existing active plan whenever selectedPatient or doctor.email changes
+  // ———————————————————————————
   useEffect(() => {
     if (!selectedPatient) {
-      // Clear form if no patient is set
       setPlanId(null);
       setVersionId(null);
       setGoals([]);
@@ -100,7 +108,6 @@ const CreateTreatmentPlan = () => {
       return;
     }
     if (!doctor.email) {
-      // Wait until doctor is known
       return;
     }
 
@@ -109,18 +116,16 @@ const CreateTreatmentPlan = () => {
       setFetchError(null);
 
       try {
-        // This endpoint returns an array of all plans for that patient
         const res = await axios.get(
           `${API_BASE}/treatment/user/patient/${encodeURIComponent(
             selectedPatient
           )}/`
         );
-
-        // Find the non-terminated plan (if any)
-        const active = res.data.find((p) => p.is_terminated === false);
+        const active = Array.isArray(res.data)
+          ? res.data.find((p) => p.is_terminated === false)
+          : null;
 
         if (active) {
-          // Ensure same doctor
           if (active.doctor_email !== doctor.email) {
             console.warn("Doctor email mismatch, cannot edit");
             setFetchError("You do not have permission to edit this plan.");
@@ -137,8 +142,7 @@ const CreateTreatmentPlan = () => {
               active.plan_id
             )}/versions/`
           );
-
-          if (!vRes.data.length) {
+          if (!Array.isArray(vRes.data) || vRes.data.length === 0) {
             console.warn("No versions found for plan", active.plan_id);
             setGoals([]);
             setIsEditing(false);
@@ -149,7 +153,7 @@ const CreateTreatmentPlan = () => {
           const last = vRes.data[vRes.data.length - 1];
           setVersionId(last.version_id);
 
-          // Normalize goal/action objects: ensure each has an id
+          // Normalize goal/action objects
           const fetchedGoals = last.goals.map((goal) => ({
             ...goal,
             id: goal.id || uuidv4(),
@@ -166,7 +170,7 @@ const CreateTreatmentPlan = () => {
           setLastUpdated(last.end_date);
           setIsEditing(true);
         } else {
-          // No active plan → switch to “create mode”
+          // No active plan → “create” mode
           setPlanId(null);
           setVersionId(null);
           setGoals([]);
@@ -177,7 +181,6 @@ const CreateTreatmentPlan = () => {
       } catch (err) {
         console.error("Error fetching plan:", err);
         if (err.response?.status === 404) {
-          // 404 simply means “no plans found”
           setFetchError(null);
           setIsEditing(false);
           setGoals([]);
@@ -196,9 +199,9 @@ const CreateTreatmentPlan = () => {
     fetchActivePlan();
   }, [selectedPatient, doctor.email]);
 
-  // ─────────────────────────────────────────────────────────────────
-  // 6) If no existing plan (isEditing === false) AND planKey exists → prefill from TreatmentTemplates
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
+  // 6) If no existing plan AND planKey exists → prefill from a template
+  // ———————————————————————————
   useEffect(() => {
     if (
       !authLoading &&
@@ -211,7 +214,6 @@ const CreateTreatmentPlan = () => {
       const template = TreatmentTemplates[planKey];
       if (!template) return;
 
-      // Prefill goals from template
       const prefilledGoals = template.goals.map((goalTemplate) => ({
         id: uuidv4(),
         title: goalTemplate.title,
@@ -243,14 +245,14 @@ const CreateTreatmentPlan = () => {
 
   if (authLoading) return null; // wait until auth check completes
 
-  // ─────────────────────────────────────────────────────────────────
-  // 7) Derive full object for display-only PatientSelector
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
+  // 7) Find the “selectedPatientData” so we know their name and email
+  // ———————————————————————————
   const selectedPatientData = patients.find((p) => p.email === selectedPatient);
 
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
   // 8) Goal & Action handlers (unchanged)
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
   const addGoal = () =>
     setGoals((prev) => [...prev, { id: uuidv4(), title: "", actions: [] }]);
   const deleteGoal = (id) =>
@@ -299,6 +301,9 @@ const CreateTreatmentPlan = () => {
       )
     );
 
+  // ———————————————————————————
+  // validateForm() (unchanged)
+  // ———————————————————————————
   const validateForm = () => {
     let valid = true;
     const errs = {};
@@ -339,137 +344,176 @@ const CreateTreatmentPlan = () => {
     setSelectedPatient("");
   };
 
-  // ─────────────────────────────────────────────────────────────────
-  // 9) NEW: handleSavePlan() → create vs. update logic + EmailJS calls
-  // ─────────────────────────────────────────────────────────────────
+  // ———————————————————————————
+  // 9) handleSavePlan() → create vs update logic + EmailJS calls
+  // ———————————————————————————
+  // Fixed handleSavePlan function with proper EmailJS integration
   const handleSavePlan = async () => {
-    // ➀ Validate first
+    console.log(">>> handleSavePlan() called");
     if (!validateForm()) {
+      console.warn(">>> Validation failed, errors:", errors);
       return;
     }
 
-    // ➁ Build a minimal payload to send to your back-end:
-    //    (Adjust these field names to match what your Django view expects.)
-    const payload = {
+    const now = new Date().toISOString();
+    const formattedDate = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const goalsPayload = goals.map((goal) => ({
+      title: goal.title,
+      actions: goal.actions.map((a) => ({
+        description: a.description,
+        priority: a.priority,
+        assigned_to: a.assigned_to,
+      })),
+    }));
+
+    const baseData = {
       doctor_email: doctor.email,
       doctor_name: doctor.name,
       patient_email: selectedPatient,
-      patient_name: selectedPatientData?.name || "",
-      goals: goals.map((g) => ({
-        title: g.title.trim(),
-        actions: g.actions.map((a) => ({
-          description: a.description.trim(),
-          priority: a.priority,
-          assigned_to: a.assigned_to,
-        })),
-      })),
+      goals: goalsPayload,
+      created_at: createdAt || now,
+      end_date: now,
     };
 
-    setIsLoading(true);
     try {
+      let response;
+      let emailSuccess = false;
+
       if (isEditing && planId && versionId) {
-        // ───────────────────────────────────────────
-        //  UPDATE EXISTING PLAN (just inform the patient)
-        // ───────────────────────────────────────────
-        const updateRes = await axios.post(
+        // ----------------------------
+        // UPDATE existing plan
+        // ----------------------------
+        response = await axios.put(
           `${API_BASE}/treatment/${encodeURIComponent(
             planId
-          )}/version/${encodeURIComponent(versionId)}/update/`,
-          payload
+          )}/versions/${encodeURIComponent(versionId)}/`,
+          baseData
         );
+        console.log("Plan updated:", response.data);
 
-        // only inform patient (use your “updation” template)
-        const updateDate = new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        // Send UPDATE email to patient
+        const updateTemplateParams = {
+          to_email: selectedPatient,
+          patient_name:
+            selectedPatientData?.name ||
+            selectedPatientData?.full_name ||
+            "Patient",
+          plan_name: `Treatment Plan #${planId}`,
+          doctor_name: doctor.name,
+          update_date: formattedDate,
+          plan_link: `${window.location.origin}/patient-dashboard`, // Adjust this URL as needed
+        };
 
-        // send to patient
-        await emailjs.send(
-          process.env.REACT_APP_EMAILJS2_SERVICEID,
-          process.env.REACT_APP_EMAILJS_TEMPLATE_UPDATE,
-          {
-            patient_name: selectedPatientData?.name,
-            patient_email: selectedPatient,
-            doctor_name: doctor.name,
-            plan_name: updateRes.data.plan_name, // assume backend returns plan_name
-            update_date: updateDate,
-            plan_link: `${window.location.origin}/treatment-plan/${planId}`,
-          }
-        );
+        console.log("Sending UPDATE email with params:", updateTemplateParams);
 
-        alert("Plan updated and patient has been notified.");
+        try {
+          await emailjs.send(
+            EMAILJS_SERVICE_ID,
+            EMAILJS_TEMPLATE_UPDATE,
+            updateTemplateParams
+          );
+          console.log("✅ Update email sent successfully");
+          emailSuccess = true;
+        } catch (emailError) {
+          console.error("❌ Failed to send update email:", emailError);
+        }
       } else {
-        // ───────────────────────────────────────────
-        //  CREATE A BRAND-NEW PLAN (inform both patient & doctor)
-        // ───────────────────────────────────────────
-        const createRes = await axios.post(
-          `${API_BASE}/treatment/create/`,
-          payload
-        );
-        // assume createRes.data returns { plan_id, version_id, plan_name }
-        const newPlanId = createRes.data.plan_id;
-        const newVersionId = createRes.data.version_id;
-        const planName = createRes.data.plan_name || "My Treatment Plan";
+        // ----------------------------
+        // CREATE new plan
+        // ----------------------------
+        response = await axios.post(`${API_BASE}/treatment/create/`, baseData);
+        const { plan_id, version_id } = response.data;
 
-        setPlanId(newPlanId);
-        setVersionId(newVersionId);
+        setPlanId(plan_id);
+        setVersionId(version_id);
+        setCreatedAt(baseData.created_at);
+        setLastUpdated(baseData.end_date);
         setIsEditing(true);
-        setCreatedAt(createRes.data.created_at);
-        setLastUpdated(createRes.data.last_updated);
 
-        // Inform patient & doctor with “creation” template
-        const creationDate = new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        console.log("New plan created:", response.data);
 
-        //  ➔ Send to PATIENT
-        await emailjs.send(
-          process.env.REACT_APP_EMAILJS2_SERVICEID,
-          process.env.REACT_APP_EMAILJS_TEMPLATE_CREATE,
-          {
-            patient_name: selectedPatientData?.name,
-            patient_email: selectedPatient,
-            doctor_name: doctor.name,
-            doctor_email: doctor.email,
-            plan_name: planName,
-            creation_date: creationDate,
-            plan_link: `${window.location.origin}/treatment-plan/${newPlanId}`,
-          }
-        );
+        // Send CREATE email to patient
+        const createTemplateParams = {
+          to_email: selectedPatient,
+          patient_name:
+            selectedPatientData?.name ||
+            selectedPatientData?.full_name ||
+            "Patient",
+          doctor_name: doctor.name,
+          creation_date: formattedDate,
+          plan_link: `${window.location.origin}/patient-dashboard`, // Adjust this URL as needed
+        };
 
-        //  ➔ Send to DOCTOR
-        await emailjs.send(
-          process.env.REACT_APP_EMAILJS2_SERVICEID,
-          process.env.REACT_APP_EMAILJS_TEMPLATE_CREATE,
-          {
-            patient_name: selectedPatientData?.name,
-            patient_email: selectedPatient,
-            doctor_name: doctor.name,
-            doctor_email: doctor.email,
-            plan_name: planName,
-            creation_date: creationDate,
-            plan_link: `${window.location.origin}/treatment-plan/${newPlanId}`,
-          }
-        );
+        console.log("Sending CREATE email with params:", createTemplateParams);
 
-        alert("New plan created. Patient and doctor have both been notified.");
+        try {
+          await emailjs.send(
+            EMAILJS_SERVICE_ID,
+            EMAILJS_TEMPLATE_CREATE,
+            createTemplateParams
+          );
+          console.log("✅ Create email sent successfully");
+          emailSuccess = true;
+        } catch (emailError) {
+          console.error("❌ Failed to send create email:", emailError);
+        }
       }
 
-      // Optionally, clear errors or navigate away:
-      clearForm();
-      navigate("/doctor-dashboard");
-    } catch (err) {
-      console.error("Error saving plan or sending emails:", err);
-      alert("There was an error saving the plan. Please try again.");
-    } finally {
-      setIsLoading(false);
+      // Show appropriate success/error message
+      if (emailSuccess) {
+        alert("Treatment plan saved and email sent successfully!");
+      } else {
+        alert(
+          "Treatment plan saved, but email failed to send. Please check your EmailJS configuration."
+        );
+      }
+    } catch (error) {
+      console.error("Error saving treatment plan:", error);
+      alert(
+        "Failed to save treatment plan: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
+  const sendEmail = async (serviceId, templateId, templateParams) => {
+    if (!serviceId || !templateId) {
+      console.error("EmailJS configuration missing!");
+      return;
+    }
+
+    console.log("Sending email with params:", {
+      serviceId,
+      templateId,
+      templateParams,
+    });
+
+    try {
+      const response = await emailjs.send(
+        serviceId,
+        templateId,
+        templateParams
+      );
+      console.log("Email sent successfully:", response);
+      return response;
+    } catch (error) {
+      console.error("Email failed to send:", {
+        status: error.status,
+        text: error.text,
+        details: error,
+      });
+      throw error;
+    }
+  };
+
+  // ———————————————————————————
+  // RENDER
+  // ———————————————————————————
   return (
     <div className="bg-white min-h-screen py-12 px-4 md:px-10 lg:px-20">
       <div className="max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-xl p-10">
@@ -488,7 +532,7 @@ const CreateTreatmentPlan = () => {
           </div>
         )}
 
-        {/*  Display-only PatientSelector */}
+        {/* Display-only PatientSelector */}
         {selectedPatientData ? (
           <PatientSelector selectedPatientData={selectedPatientData} />
         ) : (
@@ -565,7 +609,6 @@ const CreateTreatmentPlan = () => {
               versionId={versionId}
               createdAt={createdAt}
               lastUpdated={lastUpdated}
-              // ─── We pass down our new save handler:
               onSavePlan={handleSavePlan}
             />
           </>
