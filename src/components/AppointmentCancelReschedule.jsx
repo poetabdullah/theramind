@@ -12,8 +12,9 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { motion } from "framer-motion";
+import { sendCancelEmail, sendRescheduleEmail } from "../utils/sendEmail.js";
 
-const AppointmentCancelReschedule = ({ userEmail }) => {
+const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
   const [appointments, setAppointments] = useState([]);
   const [newTimes, setNewTimes] = useState({});
 
@@ -23,70 +24,54 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
         const appointmentsRef = collection(db, "appointments");
         const q = query(
           appointmentsRef,
-          where("patientEmail", "==", userEmail)
+          where(userRole === "doctor" ? "doctorEmail" : "patientEmail", "==", userEmail)
         );
         const snapshot = await getDocs(q);
-        setAppointments(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))
-        );
+        const futureAppointments = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((app) => new Date(app.timeslot) > new Date());
+        setAppointments(futureAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
     };
     fetchAppointments();
-  }, [userEmail]);
+  }, [userEmail, userRole]);
 
-  const cancelAppointment = async (
-    appointmentId,
-    doctorEmail,
-    timeslot,
-    appData
-  ) => {
+  const cancelAppointment = async (appointmentId, doctorEmail, timeslot, appData) => {
     try {
-      // Delete appointment
       await deleteDoc(doc(db, "appointments", appointmentId));
 
-      // Add timeslot back to doctor
       const doctorRef = doc(db, "doctors", doctorEmail);
       await updateDoc(doctorRef, {
         timeslots: arrayUnion(timeslot),
       });
 
-      alert("Appointment cancelled successfully.");
+      // Send email notification
+      await sendCancelEmail({
+        patient_name: appData.patientName,
+        doctor_name: appData.doctorName,
+        doctor_email: appData.doctorEmail,
+        patient_email: appData.patientEmail,
+        time: timeslot,
+        cancelled_by: userRole,
+      });
 
-      // not even defined anywhere in this code? How is it even being called? This causes errors
-      // Commented out to fix ESLint error
-      // sendCancelEmail({
-      //   patient_name: appData.patientName,
-      //   doctor_name: appData.doctorName,
-      //   doctor_email: appData.doctorEmail,
-      //   patient_email: appData.patientEmail,
-      //   time: timeslot,
-      // });
+      alert("Appointment cancelled successfully.");
     } catch (error) {
-      // console.error("Cancellation failed:", error);
+      console.error("Cancellation failed:", error);
       alert("Something went wrong while canceling. Please try again.");
     }
   };
 
-  const handleReschedule = async (
-    appointmentId,
-    doctorEmail,
-    oldTimeslot,
-    appData
-  ) => {
+  const handleReschedule = async (appointmentId, doctorEmail, oldTimeslot, appData) => {
     const newTimeslot = newTimes[appointmentId];
     if (!newTimeslot) return alert("Please select a new time.");
 
     try {
-      // Update appointment with new time
       const appointmentRef = doc(db, "appointments", appointmentId);
       await updateDoc(appointmentRef, { timeslot: newTimeslot });
 
-      // Update doctor's available timeslots
       const doctorRef = doc(db, "doctors", doctorEmail);
       await updateDoc(doctorRef, {
         timeslots: arrayRemove(oldTimeslot),
@@ -95,18 +80,19 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
         timeslots: arrayUnion(newTimeslot),
       });
 
-      alert("Appointment rescheduled successfully!");
+      // Send email notification
+      await sendRescheduleEmail({
+        patient_name: appData.patientName,
+        doctor_name: appData.doctorName,
+        doctor_email: appData.doctorEmail,
+        patient_email: appData.patientEmail,
+        old_time: oldTimeslot,
+        new_time: newTimeslot,
+        meet_link: appData.meetLink,
+        rescheduled_by: userRole,
+      });
 
-      // This is no where defined in the code, so how can it be called? If it is import thing import it, else explicitly define it in the code above.
-      // Commented out to fix ESLint error
-      // sendRescheduleEmail({
-      //   patient_name: appData.patientName,
-      //   doctor_name: appData.doctorName,
-      //   doctor_email: appData.doctorEmail,
-      //   patient_email: appData.patientEmail,
-      //   newTime: newTimeslot,
-      //   meet_link: appData.meetLink,
-      // });
+      alert("Appointment rescheduled successfully!");
     } catch (error) {
       console.error("Rescheduling failed:", error);
       alert("Something went wrong while rescheduling. Please try again.");
@@ -115,26 +101,16 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
 
   return (
     <motion.div className="p-4">
-      <motion.h2 className="text-xl font-bold mb-4">
-        Your Appointments
-      </motion.h2>
+      <motion.h2 className="text-xl font-bold mb-4">Your Appointments</motion.h2>
       <motion.ul className="space-y-6">
         {appointments.map((app) => (
           <motion.li key={app.id} className="border p-4 rounded shadow">
-            <p>
-              <b>Doctor:</b> {app.doctorName}
-            </p>
-            <p>
-              <b>Patient:</b> {app.patientName}
-            </p>
-            <p>
-              <b>Time:</b> {app.timeslot}
-            </p>
+            <p><b>Doctor:</b> {app.doctorName}</p>
+            <p><b>Patient:</b> {app.patientName}</p>
+            <p><b>Time:</b> {app.timeslot}</p>
             <p>
               <b>Meet Link:</b>{" "}
-              <a href={app.meetLink} className="text-blue-500 underline">
-                {app.meetLink}
-              </a>
+              <a href={app.meetLink} className="text-blue-500 underline">{app.meetLink}</a>
             </p>
 
             <input
@@ -142,7 +118,10 @@ const AppointmentCancelReschedule = ({ userEmail }) => {
               className="mt-2 p-1 border rounded"
               value={newTimes[app.id] || ""}
               onChange={(e) =>
-                setNewTimes((prev) => ({ ...prev, [app.id]: e.target.value }))
+                setNewTimes((prev) => ({
+                  ...prev,
+                  [app.id]: e.target.value,
+                }))
               }
             />
 
