@@ -1,3 +1,4 @@
+// LoginPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   getAuth,
@@ -6,6 +7,8 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
+import { signInWithGoogle } from "../utils/google_api";
+import { requestGoogleAccessToken } from "../utils/google_api";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebaseConfig";
 import { setDoc, doc, getDoc } from "firebase/firestore";
@@ -19,7 +22,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // we don’t auto-redirect here because handleRouting takes care of it
+      // We don’t auto-redirect here because handleRouting takes care of it
     });
     return unsubscribe;
   }, [auth]);
@@ -91,10 +94,10 @@ const LoginPage = () => {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
 
-    // 1) Ensure the consent prompt always appears when we sign in:
+    // Ensure the consent prompt always appears when we sign in:
     provider.setCustomParameters({ prompt: "consent" });
 
-    // 2) Add all non-sensitive scopes:
+    // Add all non-sensitive scopes:
     provider.addScope("https://www.googleapis.com/auth/userinfo.email");
     provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
     provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
@@ -105,7 +108,7 @@ const LoginPage = () => {
     provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
     provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
 
-    // 3) Add all sensitive scopes:
+    // Add all sensitive scopes:
     provider.addScope("https://www.googleapis.com/auth/calendar");
     provider.addScope("https://www.googleapis.com/auth/calendar.events");
     provider.addScope("https://www.googleapis.com/auth/calendar.acls");
@@ -123,15 +126,21 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      await handleRouting(user.email);
-    } catch (err) {
-      console.error("Google login error:", err);
-      setError("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    // 1. Sign in with Firebase
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // 2. Now request Google OAuth access token for calendar access
+    await requestGoogleAccessToken();
+
+    // 3. Then handle your app routing
+    await handleRouting(user.email);
+  } catch (err) {
+    console.error('Google login error:', err);
+    setError('Login failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
   };
 
   const dismissError = () => {
@@ -240,14 +249,15 @@ const LoginPage = () => {
               Don't have an account?{" "}
               <a
                 href="/signup-landing"
-                className="text-purple-600 font-medium hover:text-purple-800"
+                className="text-purple-600 hover:text-purple-700 font-semibold"
               >
-                Start here
+                Sign up
               </a>
             </p>
           </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );

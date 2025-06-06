@@ -29,6 +29,7 @@
     "gapi-script": "^1.2.0",
     "isexe": "^3.1.1",
     "lucide-react": "^0.474.0",
+    "luxon": "^3.6.1",
     "nth-check": "^2.1.1",
     "postcss": "^8.5.3",
     "react": "^18.2.0",
