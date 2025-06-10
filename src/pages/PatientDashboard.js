@@ -33,6 +33,8 @@ const PatientDashboard = () => {
   const [planVersions, setPlanVersions] = useState([]);
   const [planId, setPlanId] = useState(null);
   const [activeVersionIndex, setActiveVersionIndex] = useState(0);
+  const [planMeta, setPlanMeta] = useState(null);
+
 
   // These forms have been defined as per the logic used in during the sign up process
   // Components not used due to the nature of the defined components and their logic
@@ -91,27 +93,33 @@ const PatientDashboard = () => {
 
     (async () => {
       try {
+        // 1) load active plan
         const res = await axios.get(
-          `${API_BASE}/treatment/user/patient/${encodeURIComponent(
-            patientData.email
-          )}/`
+          `${API_BASE}/treatment/user/patient/${encodeURIComponent(patientData.email)}/`
         );
         const active = res.data.find((p) => p.is_terminated === false);
         if (active) {
           setPlanId(active.plan_id);
-          // now fetch its versions
+
+          // 2) fetch versions
           const vRes = await axios.get(
             `${API_BASE}/treatment/${active.plan_id}/versions/`
           );
           setPlanVersions(vRes.data);
-          // default to last version
           setActiveVersionIndex(vRes.data.length - 1);
+
+          // 3) fetch plan metadata (so we know the doctor info)
+          const metaRes = await axios.get(
+            `${API_BASE}/treatment/${encodeURIComponent(active.plan_id)}/`
+          );
+          setPlanMeta(metaRes.data);
         }
       } catch (err) {
         console.error("Error loading treatment plans:", err);
       }
     })();
   }, [patientData]);
+
 
   // helper to fetch a single version’s details
   const fetchVersion = useCallback(
@@ -643,15 +651,28 @@ const PatientDashboard = () => {
           </div>
 
           {/* === Treatment Plan Section === */}
-          {planId ? (
+          {planId && planMeta ? (
             <TreatmentPlanView
               planId={planId}
               versions={planVersions}
               versionIndex={activeVersionIndex}
               role="patient"
+
+              // NEW: pass the patient object
+              patient={{
+                name: patientData.fullName || user.displayName,
+                email: patientData.email,
+              }}
+
+              // NEW: pass the doctor object from planMeta
+              doctor={{
+                name: planMeta.doctor_name,
+                email: planMeta.doctor_email,
+              }}
+
               fetchVersion={fetchVersion}
-              fetchTreatmentPlan={fetchTreatmentPlan}           // newly defined
-              onToggleComplete={handleMarkComplete}              // renamed to match the prop
+              fetchTreatmentPlan={fetchTreatmentPlan}
+              onToggleComplete={handleMarkComplete}
               onTerminate={handleTerminate}
             />
           ) : (
