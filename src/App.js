@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { Routes, Route } from "react-router-dom";
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import HomePage from "./pages/HomePage";
@@ -30,8 +30,14 @@ import ManagePatients from "./pages/ManagePatients";
 import TreatmentRecommendation from "./pages/TreatmentRecommendation";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import { initGoogleApi } from './utils/google_api';
 
-const App = () => (
+const App = () => {
+  useEffect(() => {
+  initGoogleApi();
+}, []);
+
+return (
   <div>
     <Navbar />
     <Routes>
@@ -66,6 +72,7 @@ const App = () => (
       <Route path="/terms-of-service" element={<TermsOfService />} />
     </Routes>
   </div>
-);
+)
+};
 
 export default App;
