@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import PatientSelector from "../components/PatientSelector";
@@ -9,32 +9,30 @@ import { collection, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useNavigate, useLocation } from "react-router-dom";
 import TreatmentTemplates from "../components/TreatmentTemplates";
-import emailjs from "emailjs-com";
+import emailjs from "@emailjs/browser";
+import { sendCreateOrUpdateEmail } from "../components/emailUtils";
+import Footer from "../components/Footer";
 
 // Base URL for your API (adjust if needed)
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
-// EmailJS hard-coded configuration
-const EMAILJS_USER_ID = "UPRSrucfSWrdfXl6E";
-const EMAILJS_SERVICE_ID = "service_wj928rn";
-const EMAILJS_TEMPLATE_CREATE = "template_qe6yy7a";
-const EMAILJS_TEMPLATE_UPDATE = "template_sgkpbvk";
+// EmailJS configuration
+const EMAILJS_USER_ID_CREATE = process.env.REACT_APP_EMAILJS_USER_ID_CREATE;
+const EMAILJS_SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID_CREATE;
+const EMAILJS_TEMPLATE_CREATE = process.env.REACT_APP_EMAILJS_TEMPLATE_CREATE;
+const EMAILJS_TEMPLATE_UPDATE = process.env.REACT_APP_EMAILJS_TEMPLATE_UPDATE;
 
 const CreateTreatmentPlan = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ———————————————————————————
-  // 1) Grab initial patient email + planKey from location.state
-  // ———————————————————————————
+  // State management
   const initialPatientEmail = location.state?.patientEmail || "";
   const planKey = location.state?.planKey ?? null;
 
-  // ———————————————————————————
-  // 2) Component state
-  // ———————————————————————————
   const [selectedPatient, setSelectedPatient] = useState(initialPatientEmail);
   const [goals, setGoals] = useState([]);
+  const [originalGoals, setOriginalGoals] = useState([]); // Store original goals for comparison
   const [errors, setErrors] = useState({});
   const [patients, setPatients] = useState([]);
 
@@ -50,14 +48,17 @@ const CreateTreatmentPlan = () => {
   const [doctor, setDoctor] = useState({ email: "", name: "" });
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Initialize EmailJS with hard-coded User ID
+  // Initialize EmailJS when component mounts
   useEffect(() => {
-    emailjs.init(EMAILJS_USER_ID);
+    if (EMAILJS_USER_ID_CREATE) {
+      emailjs.init(EMAILJS_USER_ID_CREATE);
+      console.log("EmailJS init with user ID:", EMAILJS_USER_ID_CREATE);
+    } else {
+      console.error("EmailJS user ID for create is undefined");
+    }
   }, []);
 
-  // ———————————————————————————
-  // 3) Auth listener → set user and doctor
-  // ———————————————————————————
+  // Auth listener
   useEffect(() => {
     const unsubscribe = getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
@@ -66,6 +67,7 @@ const CreateTreatmentPlan = () => {
           email: firebaseUser.email,
           name: firebaseUser.displayName || "Dr. Unknown",
         });
+        console.log("👤 User authenticated:", firebaseUser.email);
       } else {
         navigate("/login");
       }
@@ -74,33 +76,68 @@ const CreateTreatmentPlan = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // ———————————————————————————
-  // 4) Fetch patient list from Firestore
-  // ———————————————————————————
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "patients"));
-        const list = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setPatients(list);
-      } catch (err) {
-        console.error("Error loading patients:", err);
-      }
-    };
-    fetchPatients();
+  // Fetch patients - memoized for performance
+  const fetchPatients = useCallback(async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "patients"));
+      const list = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPatients(list);
+      console.log("👥 Loaded patients:", list.length);
+    } catch (err) {
+      console.error("Error loading patients:", err);
+    }
   }, []);
 
-  // ———————————————————————————
-  // 5) Fetch existing active plan whenever selectedPatient or doctor.email changes
-  // ———————————————————————————
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
+
+  // Helper function to count words in goals
+  const countWordsInGoals = useCallback((goalsList) => {
+    return goalsList.reduce((total, goal) => {
+      const goalWords = goal.title
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length;
+      const actionWords = goal.actions.reduce((actionTotal, action) => {
+        return (
+          actionTotal +
+          action.description
+            .trim()
+            .split(/\s+/)
+            .filter((word) => word.length > 0).length
+        );
+      }, 0);
+      return total + goalWords + actionWords;
+    }, 0);
+  }, []);
+
+  // Check if edit has significant changes (5+ word difference)
+  const hasSignificantChanges = useMemo(() => {
+    if (!isEditing || originalGoals.length === 0) return true;
+
+    const originalWordCount = countWordsInGoals(originalGoals);
+    const currentWordCount = countWordsInGoals(goals);
+    const difference = Math.abs(currentWordCount - originalWordCount);
+
+    console.log("Word count comparison:", {
+      originalWordCount,
+      currentWordCount,
+      difference,
+    });
+    return difference >= 5;
+  }, [goals, originalGoals, isEditing, countWordsInGoals]);
+
+  // Fetch existing plan
   useEffect(() => {
     if (!selectedPatient) {
       setPlanId(null);
       setVersionId(null);
       setGoals([]);
+      setOriginalGoals([]);
       setCreatedAt(null);
       setLastUpdated(null);
       setIsEditing(false);
@@ -119,13 +156,20 @@ const CreateTreatmentPlan = () => {
         const res = await axios.get(
           `${API_BASE}/treatment/user/patient/${encodeURIComponent(
             selectedPatient
-          )}/`
+          )}/`,
+          {
+            timeout: 10000, // 10 second timeout for security
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
         const active = Array.isArray(res.data)
           ? res.data.find((p) => p.is_terminated === false)
           : null;
 
         if (active) {
+          // Security check - verify doctor permission
           if (active.doctor_email !== doctor.email) {
             console.warn("Doctor email mismatch, cannot edit");
             setFetchError("You do not have permission to edit this plan.");
@@ -136,24 +180,28 @@ const CreateTreatmentPlan = () => {
           setPlanId(active.plan_id);
           setCreatedAt(active.created_at);
 
-          // Load versions
           const vRes = await axios.get(
             `${API_BASE}/treatment/${encodeURIComponent(
               active.plan_id
-            )}/versions/`
+            )}/versions/`,
+            {
+              timeout: 10000,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
           );
           if (!Array.isArray(vRes.data) || vRes.data.length === 0) {
             console.warn("No versions found for plan", active.plan_id);
             setGoals([]);
+            setOriginalGoals([]);
             setIsEditing(false);
             return;
           }
 
-          // Use last version
           const last = vRes.data[vRes.data.length - 1];
           setVersionId(last.version_id);
 
-          // Normalize goal/action objects
           const fetchedGoals = last.goals.map((goal) => ({
             ...goal,
             id: goal.id || uuidv4(),
@@ -167,13 +215,14 @@ const CreateTreatmentPlan = () => {
           }));
 
           setGoals(fetchedGoals);
+          setOriginalGoals(JSON.parse(JSON.stringify(fetchedGoals))); // Deep copy for comparison
           setLastUpdated(last.end_date);
           setIsEditing(true);
         } else {
-          // No active plan → “create” mode
           setPlanId(null);
           setVersionId(null);
           setGoals([]);
+          setOriginalGoals([]);
           setCreatedAt(null);
           setLastUpdated(null);
           setIsEditing(false);
@@ -184,6 +233,7 @@ const CreateTreatmentPlan = () => {
           setFetchError(null);
           setIsEditing(false);
           setGoals([]);
+          setOriginalGoals([]);
           setPlanId(null);
           setVersionId(null);
         } else {
@@ -199,9 +249,7 @@ const CreateTreatmentPlan = () => {
     fetchActivePlan();
   }, [selectedPatient, doctor.email]);
 
-  // ———————————————————————————
-  // 6) If no existing plan AND planKey exists → prefill from a template
-  // ———————————————————————————
+  // Template prefill
   useEffect(() => {
     if (
       !authLoading &&
@@ -227,6 +275,7 @@ const CreateTreatmentPlan = () => {
       }));
 
       setGoals(prefilledGoals);
+      setOriginalGoals([]);
       const now = new Date().toISOString();
       setCreatedAt(now);
       setLastUpdated(now);
@@ -243,83 +292,122 @@ const CreateTreatmentPlan = () => {
     goals.length,
   ]);
 
-  if (authLoading) return null; // wait until auth check completes
+  // Goal handlers - memoized for performance
+  const addGoal = useCallback(
+    () =>
+      setGoals((prev) => [...prev, { id: uuidv4(), title: "", actions: [] }]),
+    []
+  );
 
-  // ———————————————————————————
-  // 7) Find the “selectedPatientData” so we know their name and email
-  // ———————————————————————————
-  const selectedPatientData = patients.find((p) => p.email === selectedPatient);
+  const deleteGoal = useCallback(
+    (id) => setGoals((prev) => prev.filter((g) => g.id !== id)),
+    []
+  );
 
-  // ———————————————————————————
-  // 8) Goal & Action handlers (unchanged)
-  // ———————————————————————————
-  const addGoal = () =>
-    setGoals((prev) => [...prev, { id: uuidv4(), title: "", actions: [] }]);
-  const deleteGoal = (id) =>
-    setGoals((prev) => prev.filter((g) => g.id !== id));
-  const updateGoalTitle = (id, title) =>
-    setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, title } : g)));
-  const addAction = (goalId) =>
-    setGoals((prev) =>
-      prev.map((g) =>
-        g.id === goalId
-          ? {
-              ...g,
-              actions: [
-                ...g.actions,
-                {
-                  id: uuidv4(),
-                  description: "",
-                  priority: 1,
-                  assigned_to: "patient",
-                  is_completed: false,
-                },
-              ],
-            }
-          : g
-      )
-    );
-  const updateAction = (goalId, actionId, field, value) =>
-    setGoals((prev) =>
-      prev.map((g) =>
-        g.id === goalId
-          ? {
-              ...g,
-              actions: g.actions.map((a) =>
-                a.id === actionId ? { ...a, [field]: value } : a
-              ),
-            }
-          : g
-      )
-    );
-  const deleteAction = (goalId, actionId) =>
-    setGoals((prev) =>
-      prev.map((g) =>
-        g.id === goalId
-          ? { ...g, actions: g.actions.filter((a) => a.id !== actionId) }
-          : g
-      )
-    );
+  const updateGoalTitle = useCallback(
+    (id, title) =>
+      setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, title } : g))),
+    []
+  );
 
-  // ———————————————————————————
-  // validateForm() (unchanged)
-  // ———————————————————————————
-  const validateForm = () => {
+  const addAction = useCallback(
+    (goalId) =>
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id === goalId
+            ? {
+                ...g,
+                actions: [
+                  ...g.actions,
+                  {
+                    id: uuidv4(),
+                    description: "",
+                    priority: 1,
+                    assigned_to: "patient",
+                    is_completed: false,
+                  },
+                ],
+              }
+            : g
+        )
+      ),
+    []
+  );
+
+  const updateAction = useCallback(
+    (goalId, actionId, field, value) =>
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id === goalId
+            ? {
+                ...g,
+                actions: g.actions.map((a) =>
+                  a.id === actionId ? { ...a, [field]: value } : a
+                ),
+              }
+            : g
+        )
+      ),
+    []
+  );
+
+  const deleteAction = useCallback(
+    (goalId, actionId) =>
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id === goalId
+            ? { ...g, actions: g.actions.filter((a) => a.id !== actionId) }
+            : g
+        )
+      ),
+    []
+  );
+
+  // Validation with security checks
+  const validateForm = useCallback(() => {
     let valid = true;
     const errs = {};
-    if (!selectedPatient) {
+
+    // Input sanitization check
+    if (!selectedPatient || typeof selectedPatient !== "string") {
       errs.patient = "Patient must be selected.";
       valid = false;
     }
+
     if (goals.length === 0) {
       errs.goals = "At least one goal is required.";
       valid = false;
     }
+
+    if (goals.length > 20) {
+      // Reasonable limit for security
+      errs.goals = "Maximum 20 goals allowed.";
+      valid = false;
+    }
+
+    // Check for significant changes requirement
+    if (isEditing && !hasSignificantChanges) {
+      errs.changes =
+        "Please make at least 5 words worth of changes to update the treatment plan.";
+      valid = false;
+    }
+
     goals.forEach((goal, i) => {
-      if (goal.title.trim().split(" ").length < 5) {
+      // Sanitize and validate goal title
+      const sanitizedTitle = goal.title.trim();
+      if (
+        sanitizedTitle.split(/\s+/).filter((word) => word.length > 0).length < 5
+      ) {
         errs[`goal_${i}`] = "Goal must be at least 5 words.";
         valid = false;
       }
+
+      if (sanitizedTitle.length > 500) {
+        // Character limit for security
+        errs[`goal_${i}_length`] = "Goal must be less than 500 characters.";
+        valid = false;
+      }
+
       if (goal.actions.length < 1) {
         errs[`goal_actions_min_${i}`] = "Add at least one action.";
         valid = false;
@@ -327,31 +415,119 @@ const CreateTreatmentPlan = () => {
         errs[`goal_actions_max_${i}`] = "Maximum 10 actions allowed.";
         valid = false;
       }
+
       goal.actions.forEach((action, j) => {
-        if (action.description.trim().split(" ").length < 5) {
+        const sanitizedDesc = action.description.trim();
+        if (
+          sanitizedDesc.split(/\s+/).filter((word) => word.length > 0).length <
+          5
+        ) {
           errs[`action_${i}_${j}`] = "Action must be at least 5 words.";
+          valid = false;
+        }
+
+        if (sanitizedDesc.length > 1000) {
+          // Character limit for security
+          errs[`action_${i}_${j}_length`] =
+            "Action must be less than 1000 characters.";
           valid = false;
         }
       });
     });
+
     setErrors(errs);
     return valid;
-  };
+  }, [selectedPatient, goals, isEditing, hasSignificantChanges]);
 
-  const clearForm = () => {
+  const clearForm = useCallback(() => {
     setGoals([]);
+    setOriginalGoals([]);
     setErrors({});
     setSelectedPatient("");
+  }, []);
+
+  if (authLoading) return null;
+
+  const selectedPatientData = patients.find((p) => p.email === selectedPatient);
+
+  // Enhanced email sending function with better error handling
+  const sendEmailWithRetry = async (
+    templateParams,
+    templateId,
+    isUpdate = false
+  ) => {
+    console.log(
+      `📧 Attempting to send ${isUpdate ? "UPDATE" : "CREATE"} email...`
+    );
+
+    // Guard env
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_USER_ID_CREATE) {
+      console.error("EmailJS service ID or user ID is missing");
+      throw new Error("EmailJS configuration missing");
+    }
+
+    // Validate required fields with security checks
+    if (
+      !templateParams.to_email ||
+      !templateParams.patient_name ||
+      !templateParams.doctor_name
+    ) {
+      console.error("❌ Missing required email parameters:", templateParams);
+      throw new Error("Missing required email parameters");
+    }
+
+    // Validate email format for security
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(templateParams.to_email)) {
+      console.error("❌ Invalid email format:", templateParams.to_email);
+      throw new Error("Invalid email format");
+    }
+
+    // Sanitize template parameters
+    const sanitizedParams = {
+      ...templateParams,
+      patient_name: templateParams.patient_name.replace(/[<>]/g, ""), // Basic XSS protection
+      doctor_name: templateParams.doctor_name.replace(/[<>]/g, ""),
+    };
+
+    try {
+      const response = await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        templateId,
+        sanitizedParams,
+        EMAILJS_USER_ID_CREATE
+      );
+      console.log("✅ Email sent successfully:", response);
+      return response;
+    } catch (error) {
+      console.error("❌ Email sending failed:", error);
+      if (error.status === 400) {
+        throw new Error("Email configuration error. Check EmailJS settings.");
+      } else if (error.status === 401) {
+        throw new Error("EmailJS authentication failed. Check credentials.");
+      } else if (error.status === 403) {
+        throw new Error("EmailJS access denied. Check permissions.");
+      } else if (error.status === 429) {
+        throw new Error("EmailJS rate limit exceeded. Try later.");
+      } else {
+        throw new Error(`Email failed to send: ${error.message || "Unknown"}`);
+      }
+    }
   };
 
-  // ———————————————————————————
-  // 9) handleSavePlan() → create vs update logic + EmailJS calls
-  // ———————————————————————————
-  // Fixed handleSavePlan function with proper EmailJS integration
+  // Main save function
   const handleSavePlan = async () => {
-    console.log(">>> handleSavePlan() called");
+    console.log("💾 Starting save process...");
+
     if (!validateForm()) {
-      console.warn(">>> Validation failed, errors:", errors);
+      console.warn("❌ Form validation failed");
+      return;
+    }
+
+    // Validate patient data
+    if (!selectedPatientData) {
+      console.error("❌ No patient data found");
+      alert("Patient data not found. Please select a valid patient.");
       return;
     }
 
@@ -362,11 +538,12 @@ const CreateTreatmentPlan = () => {
       day: "numeric",
     });
 
+    // Sanitize goals payload
     const goalsPayload = goals.map((goal) => ({
-      title: goal.title,
+      title: goal.title.trim(),
       actions: goal.actions.map((a) => ({
-        description: a.description,
-        priority: a.priority,
+        description: a.description.trim(),
+        priority: Math.max(1, Math.min(5, parseInt(a.priority) || 1)), // Ensure valid priority range
         assigned_to: a.assigned_to,
       })),
     }));
@@ -380,53 +557,37 @@ const CreateTreatmentPlan = () => {
       end_date: now,
     };
 
+    console.log("📝 Saving plan data:", baseData);
+
     try {
       let response;
       let emailSuccess = false;
+      let emailError = null;
 
+      // Save the plan first
       if (isEditing && planId && versionId) {
-        // ----------------------------
-        // UPDATE existing plan
-        // ----------------------------
+        console.log("🔄 Updating existing plan...");
         response = await axios.put(
           `${API_BASE}/treatment/${encodeURIComponent(
             planId
           )}/versions/${encodeURIComponent(versionId)}/`,
-          baseData
+          baseData,
+          {
+            timeout: 15000,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
-        console.log("Plan updated:", response.data);
-
-        // Send UPDATE email to patient
-        const updateTemplateParams = {
-          to_email: selectedPatient,
-          patient_name:
-            selectedPatientData?.name ||
-            selectedPatientData?.full_name ||
-            "Patient",
-          plan_name: `Treatment Plan #${planId}`,
-          doctor_name: doctor.name,
-          update_date: formattedDate,
-          plan_link: `${window.location.origin}/patient-dashboard`, // Adjust this URL as needed
-        };
-
-        console.log("Sending UPDATE email with params:", updateTemplateParams);
-
-        try {
-          await emailjs.send(
-            EMAILJS_SERVICE_ID,
-            EMAILJS_TEMPLATE_UPDATE,
-            updateTemplateParams
-          );
-          console.log("✅ Update email sent successfully");
-          emailSuccess = true;
-        } catch (emailError) {
-          console.error("❌ Failed to send update email:", emailError);
-        }
+        console.log("✅ Plan updated successfully");
       } else {
-        // ----------------------------
-        // CREATE new plan
-        // ----------------------------
-        response = await axios.post(`${API_BASE}/treatment/create/`, baseData);
+        console.log("🆕 Creating new plan...");
+        response = await axios.post(`${API_BASE}/treatment/create/`, baseData, {
+          timeout: 15000,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
         const { plan_id, version_id } = response.data;
 
         setPlanId(plan_id);
@@ -434,186 +595,229 @@ const CreateTreatmentPlan = () => {
         setCreatedAt(baseData.created_at);
         setLastUpdated(baseData.end_date);
         setIsEditing(true);
+        console.log("✅ New plan created successfully");
+      }
 
-        console.log("New plan created:", response.data);
+      // Prepare email parameters
+      const patientName =
+        selectedPatientData.name ||
+        selectedPatientData.full_name ||
+        selectedPatientData.firstName ||
+        "Patient";
 
-        // Send CREATE email to patient
-        const createTemplateParams = {
+      console.log("👤 Patient name for email:", patientName);
+
+      // Try to send email
+      try {
+        const baseEmailParams = {
           to_email: selectedPatient,
-          patient_name:
-            selectedPatientData?.name ||
-            selectedPatientData?.full_name ||
-            "Patient",
+          patient_name: patientName,
           doctor_name: doctor.name,
-          creation_date: formattedDate,
-          plan_link: `${window.location.origin}/patient-dashboard`, // Adjust this URL as needed
         };
 
-        console.log("Sending CREATE email with params:", createTemplateParams);
+        if (isEditing && planId && versionId) {
+          const updateParams = {
+            ...baseEmailParams,
+            plan_name: `Treatment Plan #${planId}`,
+            update_date: formattedDate,
+            plan_link: `${window.location.origin}/patient-dashboard`,
+          };
 
-        try {
-          await emailjs.send(
-            EMAILJS_SERVICE_ID,
+          console.log("📧 Sending UPDATE email with params:", updateParams);
+          await sendEmailWithRetry(updateParams, EMAILJS_TEMPLATE_UPDATE, true);
+        } else {
+          const createParams = {
+            ...baseEmailParams,
+            creation_date: formattedDate,
+            plan_link: `${window.location.origin}/patient-dashboard`,
+          };
+
+          console.log("📧 Sending CREATE email with params:", createParams);
+          await sendEmailWithRetry(
+            createParams,
             EMAILJS_TEMPLATE_CREATE,
-            createTemplateParams
+            false
           );
-          console.log("✅ Create email sent successfully");
-          emailSuccess = true;
-        } catch (emailError) {
-          console.error("❌ Failed to send create email:", emailError);
         }
+
+        emailSuccess = true;
+        console.log("✅ Email sent successfully!");
+      } catch (error) {
+        console.error("📧 Email sending failed:", error);
+        emailError = error.message;
       }
 
-      // Show appropriate success/error message
-      if (emailSuccess) {
-        alert("Treatment plan saved and email sent successfully!");
-      } else {
-        alert(
-          "Treatment plan saved, but email failed to send. Please check your EmailJS configuration."
-        );
-      }
-    } catch (error) {
-      console.error("Error saving treatment plan:", error);
-      alert(
-        "Failed to save treatment plan: " +
-          (error.response?.data?.message || error.message)
-      );
-    }
-  };
+      // Show success message
+      const successMessage = emailSuccess
+        ? `Treatment plan ${
+            isEditing ? "updated" : "created"
+          } successfully! Email notification sent to patient.`
+        : `Treatment plan ${isEditing ? "updated" : "created"} successfully! ${
+            emailError
+              ? `Email failed: ${emailError}`
+              : "Email notification could not be sent."
+          }`;
 
-  const sendEmail = async (serviceId, templateId, templateParams) => {
-    if (!serviceId || !templateId) {
-      console.error("EmailJS configuration missing!");
-      return;
-    }
+      alert(successMessage);
 
-    console.log("Sending email with params:", {
-      serviceId,
-      templateId,
-      templateParams,
-    });
-
-    try {
-      const response = await emailjs.send(
-        serviceId,
-        templateId,
-        templateParams
-      );
-      console.log("Email sent successfully:", response);
-      return response;
-    } catch (error) {
-      console.error("Email failed to send:", {
-        status: error.status,
-        text: error.text,
-        details: error,
+      // Navigate to treatment-recommendation page
+      console.log("🔄 Navigating to treatment-recommendation page...");
+      navigate("/treatment-recommendation", {
+        state: {
+          patientEmail: selectedPatient,
+          planId: planId,
+          success: true,
+          isUpdate: isEditing,
+        },
       });
-      throw error;
+    } catch (error) {
+      console.error("❌ Error saving plan:", error);
+      let errorMessage = "Failed to save treatment plan. Please try again.";
+
+      if (error.response?.status === 401) {
+        errorMessage = "Authentication failed. Please log in again.";
+        navigate("/login");
+      } else if (error.response?.status === 403) {
+        errorMessage = "You don't have permission to perform this action.";
+      } else if (error.response?.status === 400) {
+        errorMessage = "Invalid data provided. Please check your inputs.";
+      } else if (error.code === "ECONNABORTED") {
+        errorMessage =
+          "Request timed out. Please check your connection and try again.";
+      }
+
+      alert(errorMessage);
     }
   };
 
-  // ———————————————————————————
-  // RENDER
-  // ———————————————————————————
+  // Render component
   return (
-    <div className="bg-white min-h-screen py-12 px-4 md:px-10 lg:px-20">
-      <div className="max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-xl p-10">
-        <h1 className="text-4xl font-extrabold text-orange-600 mb-4 text-center">
-          {isEditing ? "Edit Treatment Plan" : "Create a New Treatment Plan"}
-        </h1>
+    <div>
+      <div className="bg-white min-h-screen py-12 px-4 md:px-10 lg:px-20">
+        <div className="max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-xl p-10">
+          <h1 className="text-4xl font-extrabold text-orange-600 mb-4 text-center">
+            {isEditing ? "Edit Treatment Plan" : "Create a New Treatment Plan"}
+          </h1>
 
-        {isEditing && createdAt && lastUpdated && (
-          <div className="text-sm text-gray-600 text-center mb-6">
-            <p>Created: {new Date(createdAt).toLocaleDateString()}</p>
-            <p>Last Updated: {new Date(lastUpdated).toLocaleDateString()}</p>
-            <p className="mt-2 text-orange-600 font-medium">
-              You are editing an existing treatment plan. Any changes will
-              update this plan.
-            </p>
-          </div>
-        )}
-
-        {/* Display-only PatientSelector */}
-        {selectedPatientData ? (
-          <PatientSelector selectedPatientData={selectedPatientData} />
-        ) : (
-          <div className="mb-6 text-center text-red-500">
-            No patient selected. Please go back and choose a patient.
-          </div>
-        )}
-
-        {fetchError && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {fetchError}
-          </div>
-        )}
-
-        {isLoading ? (
-          <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
-            <p className="ml-3 text-gray-600">Processing...</p>
-          </div>
-        ) : (
-          <>
-            {errors.goals && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                {errors.goals}
-              </div>
-            )}
-
-            {goals.length > 0 && (
-              <div className="mt-6 mb-4">
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                  {isEditing ? "Current Goals" : "Goals"}
-                </h2>
-                <p className="text-gray-600 mb-4">
-                  {isEditing
-                    ? "These are the current goals for this treatment plan. You can edit them or add new ones."
-                    : "Define meaningful goals for this treatment plan."}
+          {isEditing && createdAt && lastUpdated && (
+            <div className="text-sm text-gray-600 text-center mb-6">
+              <p>Created: {new Date(createdAt).toLocaleDateString()}</p>
+              <p>Last Updated: {new Date(lastUpdated).toLocaleDateString()}</p>
+              <p className="mt-2 text-orange-600 font-medium">
+                You are editing an existing treatment plan. Any changes will
+                update this plan.
+              </p>
+              {!hasSignificantChanges && (
+                <p className="mt-2 text-red-600 font-medium">
+                  Please make at least 5 words worth of changes to save the
+                  update.
                 </p>
-              </div>
-            )}
-
-            {goals.map((goal, idx) => (
-              <GoalEditor
-                key={goal.id}
-                goal={goal}
-                goalIndex={idx}
-                updateGoalTitle={updateGoalTitle}
-                deleteGoal={deleteGoal}
-                addAction={addAction}
-                updateAction={updateAction}
-                deleteAction={deleteAction}
-                errors={errors}
-                isEditing={isEditing}
-              />
-            ))}
-
-            <div className="mb-10 mt-6">
-              <button
-                onClick={addGoal}
-                className="w-full bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white px-6 py-3 rounded-xl shadow-md font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
-              >
-                ➕ Add New Goal
-              </button>
+              )}
             </div>
+          )}
 
-            <TreatmentPlanSummary
-              selectedPatient={selectedPatient}
-              goals={goals}
-              patients={patients}
-              doctor={doctor}
-              validateForm={validateForm}
-              clearForm={clearForm}
-              isEditing={isEditing}
-              planId={planId}
-              versionId={versionId}
-              createdAt={createdAt}
-              lastUpdated={lastUpdated}
-              onSavePlan={handleSavePlan}
-            />
-          </>
-        )}
+          {/* Display-only PatientSelector */}
+          {selectedPatientData ? (
+            <PatientSelector selectedPatientData={selectedPatientData} />
+          ) : (
+            <div className="mb-6 text-center text-red-500">
+              No patient selected. Please go back and choose a patient.
+            </div>
+          )}
+
+          {fetchError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              {fetchError}
+            </div>
+          )}
+
+          {/* Show validation errors */}
+          {(errors.goals || errors.changes) && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              {errors.goals && <div>{errors.goals}</div>}
+              {errors.changes && <div className="mt-2">{errors.changes}</div>}
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
+              <p className="ml-3 text-gray-600">Processing...</p>
+            </div>
+          ) : (
+            <>
+              {goals.length > 0 && (
+                <div className="mt-6 mb-4">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    {isEditing ? "Current Goals" : "Goals"}
+                  </h2>
+                  <p className="text-gray-600 mb-4">
+                    {isEditing
+                      ? "These are the current goals for this treatment plan. You can edit them or add new ones."
+                      : "Define meaningful goals for this treatment plan."}
+                  </p>
+                </div>
+              )}
+
+              {goals.map((goal, idx) => (
+                <GoalEditor
+                  key={goal.id}
+                  goal={goal}
+                  goalIndex={idx}
+                  updateGoalTitle={updateGoalTitle}
+                  deleteGoal={deleteGoal}
+                  addAction={addAction}
+                  updateAction={updateAction}
+                  deleteAction={deleteAction}
+                  errors={errors}
+                  isEditing={isEditing}
+                />
+              ))}
+
+              <div className="mb-10 mt-6">
+                <button
+                  onClick={addGoal}
+                  className="w-full bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white px-6 py-3 rounded-xl shadow-md font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
+                >
+                  ➕ Add New Goal
+                </button>
+              </div>
+
+              <TreatmentPlanSummary
+                selectedPatient={selectedPatient}
+                goals={goals}
+                patients={patients}
+                doctor={doctor}
+                validateForm={validateForm}
+                clearForm={clearForm}
+                isEditing={isEditing}
+                planId={planId}
+                versionId={versionId}
+                createdAt={createdAt}
+                lastUpdated={lastUpdated}
+                onSave={handleSavePlan}
+                hasSignificantChanges={hasSignificantChanges}
+                onAfterSaveEmail={({
+                  isUpdate,
+                  selectedPatient,
+                  patientName,
+                  doctorName,
+                  planId,
+                }) =>
+                  sendCreateOrUpdateEmail({
+                    isUpdate,
+                    selectedPatient,
+                    patientName,
+                    doctorName,
+                    planId,
+                  })
+                }
+              />
+            </>
+          )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };
