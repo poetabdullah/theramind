@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import axios from "axios";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 // Base URL for your API
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -217,10 +218,10 @@ export default function TerminatedTreatmentPlans({
             onClick={toggleExpand}
             className="w-full flex justify-between items-center p-4 focus:outline-none"
           >
-            <h2 className="text-2xl font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-violet-800">
               Plan {index + 1}:{" "}
               {planInfo?.plan_name || meta.plan_name || meta.plan_id}
-            </h2>
+            </h3>
             <span className="text-sm text-gray-600 flex items-center">
               Last Updated: {lastUpdatedDisplay}
               <span className="ml-2">{isExpanded ? "▲" : "▼"}</span>
@@ -375,13 +376,8 @@ export default function TerminatedTreatmentPlans({
     );
   };
 
-  if (loading) {
-    return (
-      <div className="py-8 text-center text-gray-600">
-        Loading previous treatment plans...
-      </div>
-    );
-  }
+  if (loading) return <LoadingPlaceholder />;
+
   if (error) {
     return <div className="py-8 text-center text-red-600">{error}</div>;
   }
