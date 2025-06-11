@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { CheckSquare, Square } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import emailjs from "emailjs-com";
+import emailjs from "@emailjs/browser";
 
 export default function TreatmentPlanView({
   planId,
@@ -19,6 +19,10 @@ export default function TreatmentPlanView({
 }) {
   const navigate = useNavigate();
 
+  const USER_ID_VIEW = process.env.REACT_APP_EMAILJS_USER_ID_VIEW;
+  const SERVICEID = process.env.REACT_APP_EMAILJS_SERVICEID;
+  const TEMPLATE_TERMINATED = process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED;
+
   const [currentIdx, setCurrentIdx] = useState(versionIndex);
   const [data, setData] = useState(null);
   const [treatmentPlan, setTreatmentPlan] = useState(null);
@@ -26,6 +30,17 @@ export default function TreatmentPlanView({
   const [allVersionsData, setAllVersionsData] = useState({});
   const [errors, setErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  useEffect(() => {
+    emailjs.init(process.env.REACT_APP_EMAILJS_USER_ID_VIEW);
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────
   // 1) Validate required props
@@ -240,22 +255,18 @@ export default function TreatmentPlanView({
         to_email: patient.email,
       });
       await emailjs.send(
-        process.env.REACT_APP_EMAILJS_SERVICEID, // e.g. "service_b70nrww"
-        process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED, // e.g. "template_92h9fdb"
+        SERVICEID,
+        TEMPLATE_TERMINATED,
         {
-          plan_name: treatmentPlan?.plan_name,
-          doctor_name: doctor.name,
-          termination_date: new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          }),
-          plan_link: `${window.location.origin}/treatment-history/${patient.email}`,
-
-          // ← This must match exactly the “To” variable you set in the EmailJS template:
           patient_name: patient.name,
-          patient_email: patient.email, // ← EmailJS will substitute this into {{patient_email}}
-        }
+          patient_email: patient.email,
+          doctor_name: doctor.name,
+          doctor_email: doctor.email,
+          plan_name: treatmentPlan?.plan_name,
+          termination_date: formattedDate,
+          plan_link: `${window.location.origin}/treatment-history/${patient.email}`,
+        },
+        USER_ID_VIEW
       );
 
       console.log("✅ Email to patient sent");
