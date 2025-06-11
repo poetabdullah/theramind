@@ -1,5 +1,3 @@
-// src/components/TreatmentPlanView.js
-
 import React, { useState, useEffect, useMemo } from "react";
 import { CheckSquare, Square } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +28,8 @@ export default function TreatmentPlanView({
   const [allVersionsData, setAllVersionsData] = useState({});
   const [errors, setErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
+  const [terminationResult, setTerminationResult] = useState(null); // null | 'success' | 'error'
+  const [terminationError, setTerminationError] = useState(null);
 
   const today = new Date();
   const formattedDate = today.toLocaleDateString("en-US", {
@@ -42,9 +42,7 @@ export default function TreatmentPlanView({
     emailjs.init(process.env.REACT_APP_EMAILJS_USER_ID_VIEW);
   }, []);
 
-  // ─────────────────────────────────────────────────────────────────
   // 1) Validate required props
-  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     const newErrors = {};
     if (!fetchTreatmentPlan || typeof fetchTreatmentPlan !== "function") {
@@ -76,16 +74,12 @@ export default function TreatmentPlanView({
     planId,
   ]);
 
-  // ─────────────────────────────────────────────────────────────────
-  // 2) Load plan metadata (doctor_name, etc.)
-  // ─────────────────────────────────────────────────────────────────
+  // 2) Load plan metadata
   useEffect(() => {
     async function loadPlan() {
       if (!planId || !fetchTreatmentPlan) return;
       try {
-        console.log("Loading plan metadata for:", planId);
         const planData = await fetchTreatmentPlan(planId);
-        console.log("Got plan data:", planData);
         setTreatmentPlan(planData);
       } catch (e) {
         console.error("Error fetching treatment plan:", e);
@@ -95,9 +89,7 @@ export default function TreatmentPlanView({
     loadPlan();
   }, [planId, fetchTreatmentPlan]);
 
-  // ─────────────────────────────────────────────────────────────────
   // 3) Load current version
-  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     async function loadVersion() {
       setLoading(true);
@@ -108,10 +100,7 @@ export default function TreatmentPlanView({
         return;
       }
       try {
-        console.log("Loading version", vid, "for plan", planId);
-        if (!fetchVersion) throw new Error("fetchVersion is not a function");
         const resp = await fetchVersion(planId, vid);
-        console.log("Got version data:", resp);
         const versionData = { ...resp, version_id: vid };
         setData(versionData);
         setAllVersionsData((prev) => ({
@@ -128,9 +117,7 @@ export default function TreatmentPlanView({
     loadVersion();
   }, [currentIdx, versions, planId, fetchVersion]);
 
-  // ─────────────────────────────────────────────────────────────────
   // 4) Load all versions for overall progress
-  // ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     async function loadAll() {
       if (!fetchVersion) return;
@@ -138,7 +125,6 @@ export default function TreatmentPlanView({
       const allData = {};
       for (const version of versions) {
         try {
-          console.log("Loading (all) version", version.version_id);
           const resp = await fetchVersion(planId, version.version_id);
           allData[version.version_id] = {
             ...resp,
@@ -156,12 +142,9 @@ export default function TreatmentPlanView({
   const prev = () => setCurrentIdx((i) => Math.max(0, i - 1));
   const next = () => setCurrentIdx((i) => Math.min(versions.length - 1, i + 1));
 
-  // ─────────────────────────────────────────────────────────────────
   // 5) Toggle “complete” on individual actions
-  // ─────────────────────────────────────────────────────────────────
   const handleToggle = async ({ goalId, actionId, newStatus }) => {
     try {
-      console.log("handleToggle:", { goalId, actionId, newStatus });
       if (!onToggleComplete) return;
       await onToggleComplete({ goalId, actionId, newStatus });
       setData((prev) => {
@@ -221,23 +204,10 @@ export default function TreatmentPlanView({
     return parseFloat((sum / arr.length).toFixed(2));
   }, [versions, allVersionsData]);
 
-  // ─────────────────────────────────────────────────────────────────
   // 6) Confirmation “Yes → terminate” handler
-  // ─────────────────────────────────────────────────────────────────
   const handleConfirmTerminate = async () => {
-    // ❹ Log the EmailJS vars so you can confirm they’re not undefined
-    console.log(
-      "EmailJS ServiceID:",
-      process.env.REACT_APP_EMAILJS_SERVICEID,
-      "TemplateID:",
-      process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED
-    );
-
     try {
-      console.log("handleConfirmTerminate: calling onTerminate(", planId, ")");
       await onTerminate(planId);
-      console.log("✅ onTerminate succeeded — will now send emails");
-
       const commonParams = {
         plan_name: treatmentPlan?.plan_name || "Your Treatment Plan",
         doctor_name: doctor.name,
@@ -248,12 +218,6 @@ export default function TreatmentPlanView({
         }),
         plan_link: `${window.location.origin}/treatment-history/${patient.email}`,
       };
-
-      console.log("Sending EmailJS to patient:", {
-        ...commonParams,
-        patient_name: patient.name,
-        to_email: patient.email,
-      });
       await emailjs.send(
         SERVICEID,
         TEMPLATE_TERMINATED,
@@ -264,42 +228,29 @@ export default function TreatmentPlanView({
           doctor_email: doctor.email,
           plan_name: treatmentPlan?.plan_name,
           termination_date: formattedDate,
-          plan_link: `${window.location.origin}/treatment-history/${patient.email}`,
+          plan_link: commonParams.plan_link,
         },
         USER_ID_VIEW
       );
-
-      console.log("✅ Email to patient sent");
-
-      console.log("Sending EmailJS to doctor:", {
-        ...commonParams,
-        patient_name: doctor.name, // name insertion
-        doctor_email: doctor.email, // MUST match {{doctor_email}} in the template’s “To”
-      });
-
       await emailjs.send(
-        process.env.REACT_APP_EMAILJS_SERVICEID,
-        process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED,
+        SERVICEID,
+        TEMPLATE_TERMINATED,
         {
+          patient_name: doctor.name,
+          doctor_email: doctor.email,
           ...commonParams,
-          patient_name: doctor.name, // or “doctor_name” – whatever variable your HTML uses
-          doctor_email: doctor.email, // ← this lines up with {{doctor_email}} in the template’s To
-        }
+        },
+        USER_ID_VIEW
       );
-      console.log("✅ Email to doctor sent");
-
-      alert("Treatment plan is terminated");
-      navigate("/doctor-dashboard");
+      setTerminationResult("success");
     } catch (err) {
       console.error("Error terminating plan or sending emails:", err);
-      alert("Could not terminate plan. Please try again.");
-      setShowConfirm(false);
+      setTerminationError(err.message || "Error occurred");
+      setTerminationResult("error");
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────
-  // 7) If critical props are missing, show an error block
-  // ─────────────────────────────────────────────────────────────────
+  // 7) If critical props missing
   if (Object.keys(errors).length) {
     return (
       <div className="my-8 p-6 bg-red-50 rounded-2xl shadow border border-red-200">
@@ -320,9 +271,7 @@ export default function TreatmentPlanView({
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  // 8) Show loading state
-  // ─────────────────────────────────────────────────────────────────
+  // 8) Show loading
   if (loading) {
     return (
       <div className="my-8 p-6 bg-white rounded-2xl shadow border border-purple-100 text-center text-purple-600">
@@ -331,9 +280,7 @@ export default function TreatmentPlanView({
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  // 9) If no data or error
-  // ─────────────────────────────────────────────────────────────────
+  // 9) If no data
   if (!data || data.error) {
     return (
       <div className="my-8 p-6 bg-yellow-50 rounded-2xl shadow border border-yellow-200 text-center">
@@ -353,32 +300,7 @@ export default function TreatmentPlanView({
 
   return (
     <div className="mb-8 relative">
-      {/* 10) Confirmation Overlay */}
-      {showConfirm && (
-        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Are you sure you want to terminate this plan?
-            </h3>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition"
-              >
-                No
-              </button>
-              <button
-                onClick={handleConfirmTerminate}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
-              >
-                Yes, Terminate
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 11) Header */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
           Treatment Plan
@@ -430,7 +352,7 @@ export default function TreatmentPlanView({
         </div>
       </div>
 
-      {/* 12) Main Card */}
+      {/* Main Card */}
       <div className="bg-white shadow-lg rounded-2xl border border-purple-100 overflow-hidden">
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 border-b border-purple-100">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
@@ -538,7 +460,7 @@ export default function TreatmentPlanView({
             </div>
           ))}
 
-          {/* 13) Overall Progress */}
+          {/* Overall Progress */}
           <div className="border-t pt-6 space-y-4 border-gray-200">
             <div className="flex justify-between mb-2">
               <span className="text-lg font-semibold text-gray-800">
@@ -556,15 +478,91 @@ export default function TreatmentPlanView({
             </div>
           </div>
 
-          {/* 14) Terminate button (doctor only) */}
+          {/* Terminate button (doctor only) with inline confirmation above button */}
           {role === "doctor" && isCurrent && !data.is_terminated && (
             <div className="border-t pt-6 border-gray-200">
-              <button
-                onClick={() => setShowConfirm(true)}
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 py-3 text-white rounded-lg font-bold shadow hover:shadow-lg transition"
-              >
-                Terminate Plan
-              </button>
+              {showConfirm && (
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+                  {terminationResult === null && (
+                    <>
+                      <p className="text-gray-800 mb-3">
+                        Are you sure you want to terminate this plan?
+                      </p>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={() => {
+                            setShowConfirm(false);
+                            setTerminationResult(null);
+                            setTerminationError(null);
+                          }}
+                          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition"
+                        >
+                          No
+                        </button>
+                        <button
+                          onClick={handleConfirmTerminate}
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
+                        >
+                          Yes, Terminate
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  {terminationResult === "success" && (
+                    <>
+                      <p className="text-green-700 mb-3">
+                        Treatment plan terminated successfully.
+                      </p>
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => {
+                            setShowConfirm(false);
+                            setTerminationResult(null);
+                            navigate("/doctor-dashboard");
+                          }}
+                          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  {terminationResult === "error" && (
+                    <>
+                      <p className="text-red-700 mb-2">
+                        Error terminating plan
+                      </p>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {terminationError}
+                      </p>
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => {
+                            setShowConfirm(false);
+                            setTerminationResult(null);
+                            setTerminationError(null);
+                          }}
+                          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              {!showConfirm && (
+                <button
+                  onClick={() => {
+                    setShowConfirm(true);
+                    setTerminationResult(null);
+                    setTerminationError(null);
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 py-3 text-white rounded-lg font-bold shadow hover:shadow-lg transition"
+                >
+                  Terminate Plan
+                </button>
+              )}
             </div>
           )}
         </div>
