@@ -126,7 +126,11 @@ const DoctorDashboard = () => {
                 case "personal":
                     updateObj = {
                         location: updatedData.location,
-                        contact: updatedData.contact
+                        contact: updatedData.contact,
+                        // if expertise present, include it
+                        ...(Array.isArray(updatedData.expertise)
+                            ? { expertise: updatedData.expertise }
+                            : {}),
                     };
                     break;
                 case "education":
