@@ -74,6 +74,7 @@
     ]
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "crypto-browserify": "^3.12.1",
     "http-proxy-middleware": "^3.0.5",
     "os-browserify": "^0.3.0",
