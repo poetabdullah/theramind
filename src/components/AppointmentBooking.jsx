@@ -13,7 +13,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { createGoogleMeetEvent, initGoogleApi } from '../utils/google_api';
+import { createGoogleMeetEvent, initGoogleApi, requestAccessToken, waitForGoogle } from '../utils/google_api';
 import { sendAppointmentConfirmationEmail } from './AppointmentConfirmationEmail';
 import { deleteGoogleCalendarEvent } from '../utils/google_api';
 
@@ -30,6 +30,18 @@ const AppointmentBooking = () => {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
+    (async () => {
+      try {
+        await waitForGoogle();
+        await initGoogleApi();
+      } catch (err) {
+        console.error("Failed to init Google API:", err);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    initGoogleApi().catch(console.error);
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -131,8 +143,9 @@ const AppointmentBooking = () => {
       const start = new Date(selectedTimeslot);
       const end = new Date(start.getTime() + 30 * 60000);
 
-      if (!window.gapi.client.getToken()) {
-        await initGoogleApi();
+      const access_token = await requestAccessToken('consent');
+      if (!access_token) {
+        throw new Error('Failed to get access token for Google Calendar');
       }
 
       const calendarEvent = await createGoogleMeetEvent(
@@ -141,7 +154,8 @@ const AppointmentBooking = () => {
         start.toISOString(),
         end.toISOString(),
         patientEmail,
-        currentUser
+        currentUser,
+        access_token
       );
 
       const meetLink =
@@ -264,7 +278,7 @@ const AppointmentBooking = () => {
             title="Select a Timeslot"
             onChange={(e) => setSelectedTimeslot(e.target.value)}
           >
-            <motion.ption value="">Select a Timeslot</motion.ption>
+            <motion.option value="">Select a Timeslot</motion.option>
             {selectedDoctor.timeslots
               .filter((slot) => new Date(slot) > new Date())
               .sort((a, b) => new Date(a) - new Date(b))
