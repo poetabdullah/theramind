@@ -1,10 +1,10 @@
-// PatientSignUp.js (Updated to request OAuth scopes for patients)
+// PatientSignUp.js (Optimized OAuth, same logic)
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  signOut
+  signOut,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
@@ -17,12 +17,40 @@ import EnterCaptchaForm from "../components/EnterCaptchaForm";
 import EnterTwoFactorForm from "../components/EnterTwoFactorForm";
 import Footer from "../components/Footer";
 
+// Define steps once
 const steps = [
-  "Sign Up",      // 1
-  "Enter 2FA",    // 2
-  "Enter CAPTCHA",// 3
-  "Enter Details",// 4
-  "Health History"// 5
+  "Sign Up",       // 1
+  "Enter 2FA",     // 2
+  "Enter CAPTCHA", // 3
+  "Enter Details", // 4
+  "Health History" // 5
+];
+
+// Define OAuth scopes once
+const OAUTH_SCOPES = [
+  // Non-sensitive
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/userinfo.profile",
+  "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+  "https://www.googleapis.com/auth/calendar.events.freebusy",
+  "https://www.googleapis.com/auth/calendar.app.created",
+  "https://www.googleapis.com/auth/calendar.events.public.readonly",
+  "https://www.googleapis.com/auth/calendar.settings.readonly",
+  "https://www.googleapis.com/auth/calendar.freebusy",
+  "https://www.googleapis.com/auth/meetings.space.settings",
+  // Sensitive
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.acls",
+  "https://www.googleapis.com/auth/calendar.acls.readonly",
+  "https://www.googleapis.com/auth/calendar.calendars",
+  "https://www.googleapis.com/auth/calendar.calendars.readonly",
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/calendar.events.owned",
+  "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+  "https://www.googleapis.com/auth/calendar.events.readonly",
+  "https://www.googleapis.com/auth/meetings.space.created",
+  "https://www.googleapis.com/auth/meetings.space.readonly",
 ];
 
 const PatientSignUp = () => {
@@ -35,109 +63,84 @@ const PatientSignUp = () => {
     mentalHealthConditions: [],
     familyHistory: "",
     significantTrauma: "",
-    childhoodChallenges: []
+    childhoodChallenges: [],
   });
   const [captchaCode, setCaptchaCode] = useState("");
   const [userInput, setUserInput] = useState("");
   const [error, setError] = useState({});
+
   const navigate = useNavigate();
 
-  // Ensure any existing Firebase auth session is signed out before starting signup
-  useEffect(() => {
-    const cleanupAuth = async () => {
-      try {
-        await signOut(auth);
-      } catch (err) {
-        console.log("No active user to sign out");
-      }
-    };
-    cleanupAuth();
+  // Memoize auth instance
+  const authInstance = useMemo(() => auth, []);
+  // Prepare a single GoogleAuthProvider instance with scopes & parameters
+  const googleProvider = useMemo(() => {
+    const provider = new GoogleAuthProvider();
+    // Force account selector & consent
+    provider.setCustomParameters({ prompt: "select_account" });
+    provider.setCustomParameters({ prompt: "consent" });
+    // Add scopes once
+    OAUTH_SCOPES.forEach((scope) => provider.addScope(scope));
+    return provider;
   }, []);
 
-  // Generate a new CAPTCHA when we arrive at step 3
+  // Ensure any existing Firebase auth session is signed out before signup starts
   useEffect(() => {
-    if (step === 3) {
-      generateCaptcha();
-    }
-  }, [step]);
+    (async () => {
+      try {
+        await signOut(authInstance);
+      } catch {
+        // ignore if no active user
+      }
+    })();
+  }, [authInstance]);
 
-  const generateCaptcha = () => {
+  // Generate a new CAPTCHA when step === 3
+  const generateCaptcha = useCallback(() => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let captcha = "";
     for (let i = 0; i < 6; i++) {
       captcha += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setCaptchaCode(captcha);
-    setUserInput(""); // clear previous input
-  };
+    setUserInput("");
+  }, []);
 
-  // Step 1: Handle Google Sign-Up (patient only needs email + profile)
-  const handleGoogleSignUp = async () => {
+  useEffect(() => {
+    if (step === 3) {
+      generateCaptcha();
+    }
+  }, [step, generateCaptcha]);
+
+  // === Step 1: Google Sign-Up handler ===
+  const handleGoogleSignUp = useCallback(async () => {
     setError({});
     try {
-      // Always sign out any cached user so "select_account" prompt appears
-      await signOut(auth);
-
-      const provider = new GoogleAuthProvider();
-
-      // Force account selector & consent every time
-      provider.setCustomParameters({ prompt: "select_account" });
-
-      // 1) Ensure the consent prompt always appears when we sign in:
-      provider.setCustomParameters({ prompt: "consent" });
-
-      // 2) Add all non-sensitive scopes:
-      provider.addScope("https://www.googleapis.com/auth/userinfo.email");
-      provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
-      provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.public.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.settings.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.freebusy");
-      provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
-      provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
-
-      // 3) Add all sensitive scopes:
-      provider.addScope("https://www.googleapis.com/auth/calendar");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events");
-      provider.addScope("https://www.googleapis.com/auth/calendar.acls");
-      provider.addScope("https://www.googleapis.com/auth/calendar.acls.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.calendars");
-      provider.addScope("https://www.googleapis.com/auth/calendar.calendars.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.readonly");
-      provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
-      provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
-
-
-      const result = await signInWithPopup(auth, provider);
+      // Always sign out cached user so prompt appears
+      await signOut(authInstance);
+      // Sign in with pre-configured provider
+      const result = await signInWithPopup(authInstance, googleProvider);
       const user = result.user;
-
-      // Check if this email already exists under "patients" in Firestore
+      // Check if patient exists
       const userDoc = await getDoc(doc(db, "patients", user.email));
-
       if (userDoc.exists()) {
-        // If patient already exists, send them straight to dashboard
         navigate("/patient-dashboard");
       } else {
-        // New patient → advance to 2FA (step 2), preserving name & email
-        setUserData({
+        setUserData((prev) => ({
+          ...prev,
           name: user.displayName || "",
-          email: user.email || ""
-        });
+          email: user.email || "",
+        }));
         setStep(2);
       }
     } catch (authErr) {
-      console.error("Google Sign-In Error:", authErr.message);
+      console.error("Google Sign-In Error:", authErr);
       setError({ general: "Google sign-in failed. Please try again." });
     }
-  };
+  }, [authInstance, googleProvider, navigate]);
 
-  // Step 2: 2FA Verification is handled by EnterTwoFactorForm
-  // Step 3: CAPTCHA Verification
-  const handleVerifyCaptcha = () => {
+  // === Step 3: Verify CAPTCHA ===
+  const handleVerifyCaptcha = useCallback(() => {
     if (userInput.trim().toUpperCase() === captchaCode.toUpperCase()) {
       setStep(4);
       setError({});
@@ -145,36 +148,45 @@ const PatientSignUp = () => {
       setError({ general: "Invalid CAPTCHA. Please try again." });
       generateCaptcha();
     }
-  };
+  }, [userInput, captchaCode, generateCaptcha]);
 
-  // Step 4: Patient Details Form
-  const handlePatientDetailsSubmit = (data) => {
-    if (data.dob && data.location) {
-      setUserData({ ...userData, ...data });
-      setStep(5);
-      setError({});
-    } else {
-      setError({ general: "Please fill in all required fields." });
-    }
-  };
+  // === Step 4: Patient details submit ===
+  const handlePatientDetailsSubmit = useCallback(
+    (data) => {
+      if (data.dob && data.location) {
+        setUserData((prev) => ({ ...prev, ...data }));
+        setStep(5);
+        setError({});
+      } else {
+        setError({ general: "Please fill in all required fields." });
+      }
+    },
+    []
+  );
 
-  // Step 5: Health History Form → save to Firestore
-  const handleHealthHistorySubmit = async (historyData) => {
-    try {
-      const finalData = {
-        ...userData,
-        ...historyData,
-        createdAt: new Date(),
-        userId: auth.currentUser ? auth.currentUser.uid : Date.now().toString()
-      };
-
-      await setDoc(doc(db, "patients", finalData.email), finalData);
-      navigate("/patient-dashboard");
-    } catch (err) {
-      console.error("Error saving user data:", err);
-      setError({ general: "Failed to save your health history. Please try again." });
-    }
-  };
+  // === Step 5: Health history submit ===
+  const handleHealthHistorySubmit = useCallback(
+    async (historyData) => {
+      try {
+        const finalData = {
+          ...userData,
+          ...historyData,
+          createdAt: new Date(),
+          userId: authInstance.currentUser
+            ? authInstance.currentUser.uid
+            : Date.now().toString(),
+        };
+        await setDoc(doc(db, "patients", finalData.email), finalData);
+        navigate("/patient-dashboard");
+      } catch (err) {
+        console.error("Error saving user data:", err);
+        setError({
+          general: "Failed to save your health history. Please try again.",
+        });
+      }
+    },
+    [userData, authInstance, navigate]
+  );
 
   return (
     <div>
@@ -214,9 +226,7 @@ const PatientSignUp = () => {
           )}
 
           <div className="transition-all duration-300">
-            {step === 1 && (
-              <OAuthSignUp onSuccess={handleGoogleSignUp} />
-            )}
+            {step === 1 && <OAuthSignUp onSuccess={handleGoogleSignUp} />}
 
             {step === 2 && (
               <EnterTwoFactorForm
