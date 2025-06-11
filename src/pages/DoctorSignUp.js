@@ -1,6 +1,6 @@
-// DoctorSignUp.js (Updated to request full OAuth scopes for doctors)
+// DoctorSignUp.js (Optimized OAuth/provider instantiation, same logic)
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { GoogleAuthProvider, signOut, signInWithPopup } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import {
@@ -27,15 +27,44 @@ const steps = [
     "Profile & Verify",
 ];
 
-// initialize storage instance
+// initialize storage instance once
 const storage = getStorage();
 
-// Upload file and return URL
+// Upload file and return URL (unchanged)
 async function uploadFile(path, file) {
     const fileRef = storageRef(storage, path);
     await uploadBytes(fileRef, file);
     return getDownloadURL(fileRef);
 }
+
+// Define OAuth scopes once
+const DOCTOR_OAUTH_SCOPES = [
+    // Basic profile
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    // Non-sensitive Calendar scopes
+    "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+    "https://www.googleapis.com/auth/calendar.events.freebusy",
+    "https://www.googleapis.com/auth/calendar.app.created",
+    "https://www.googleapis.com/auth/calendar.events.public.readonly",
+    "https://www.googleapis.com/auth/calendar.settings.readonly",
+    "https://www.googleapis.com/auth/calendar.freebusy",
+    // Sensitive Calendar scopes
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/calendar.acls",
+    "https://www.googleapis.com/auth/calendar.acls.readonly",
+    "https://www.googleapis.com/auth/calendar.calendars",
+    "https://www.googleapis.com/auth/calendar.calendars.readonly",
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar.events.owned",
+    "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+    "https://www.googleapis.com/auth/calendar.events.readonly",
+    // Meet scopes
+    "https://www.googleapis.com/auth/meetings.space.settings",
+    "https://www.googleapis.com/auth/meetings.space.created",
+    "https://www.googleapis.com/auth/meetings.space.readonly",
+];
 
 export default function DoctorSignUp() {
     const [step, setStep] = useState(1);
@@ -64,134 +93,88 @@ export default function DoctorSignUp() {
         verified: false,
         status: "pending",
     });
-
     const [error, setError] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // Always sign out before starting signup flow
-        signOut(auth).catch(() => { });
+    // Memoize auth instance
+    const authInstance = useMemo(() => auth, []);
+
+    // Prepare a single GoogleAuthProvider with scopes & parameters
+    const googleProvider = useMemo(() => {
+        const provider = new GoogleAuthProvider();
+        // Force fresh account prompt
+        provider.setCustomParameters({ prompt: "select_account" });
+        // Add scopes once
+        DOCTOR_OAUTH_SCOPES.forEach((scope) => provider.addScope(scope));
+        return provider;
     }, []);
 
-    // Step 1: Handle Google Sign-Up for doctors (request full calendar & Meet scopes)
-    const handleGoogleSignUp = async () => {
+    // Always sign out before starting signup flow
+    useEffect(() => {
+        (async () => {
+            try {
+                await signOut(authInstance);
+            } catch { }
+        })();
+    }, [authInstance]);
+
+    // Step 1: Google Sign-Up for doctors (same logic, but provider memoized)
+    const handleGoogleSignUp = useCallback(async () => {
         setError("");
         try {
-            // Guarantee a fresh account selection prompt
-            await signOut(auth);
-            const provider = new GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: "select_account" });
-
-            // 1) Basic profile scopes:
-            provider.addScope("https://www.googleapis.com/auth/userinfo.email");
-            provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
-
-            // 2) Non-sensitive Calendar scopes:
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
-            );
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.events.freebusy"
-            );
-            provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.events.public.readonly"
-            );
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.settings.readonly"
-            );
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.freebusy"
-            );
-
-            // 3) Sensitive Calendar scopes:
-            provider.addScope("https://www.googleapis.com/auth/calendar");
-            provider.addScope("https://www.googleapis.com/auth/calendar.events");
-            provider.addScope("https://www.googleapis.com/auth/calendar.acls");
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.acls.readonly"
-            );
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.calendars"
-            );
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.calendars.readonly"
-            );
-            provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.events.owned"
-            );
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.events.owned.readonly"
-            );
-            provider.addScope(
-                "https://www.googleapis.com/auth/calendar.events.readonly"
-            );
-
-            // 4) Meet scopes:
-            provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
-            provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
-            provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
-
-            const { user } = await signInWithPopup(auth, provider);
+            await signOut(authInstance);
+            const result = await signInWithPopup(authInstance, googleProvider);
+            const user = result.user;
             const email = user.email;
-
-            // If the user already exists as a doctor or patient, handle accordingly
+            // References
             const doctorRef = doc(db, "doctors", email);
             const patientRef = doc(db, "patients", email);
-
             const [doctorSnap, patientSnap] = await Promise.all([
                 getDoc(doctorRef),
                 getDoc(patientRef),
             ]);
-
             if (doctorSnap.exists()) {
                 const doctorData = doctorSnap.data();
                 const status = doctorData.status;
-
                 if (!status) {
-                    // Edge case: doctor record exists but missing status
                     setDoctor((d) => ({
                         ...d,
                         uid: user.uid,
-                        email: user.email,
+                        email,
                         fullName: user.displayName || "",
                     }));
                     setStep(2);
                     return;
                 }
-
                 switch (status) {
                     case "approved":
                         navigate("/doctor-dashboard");
                         return;
                     case "pending":
                         setError("Your application is still pending approval.");
-                        await signOut(auth);
+                        await signOut(authInstance);
                         return;
                     case "rejected":
                         setError(
                             "Your application has been rejected. Contact TheraMind for more information."
                         );
-                        await signOut(auth);
+                        await signOut(authInstance);
                         navigate("/");
                         return;
                     default:
                         setError("Unknown application status. Please contact support.");
-                        await signOut(auth);
+                        await signOut(authInstance);
                         return;
                 }
             } else if (patientSnap.exists()) {
-                // If the email is already a patient, redirect to patient dashboard
                 navigate("/patient-dashboard");
                 return;
             } else {
-                // New user: initialize doctor object and move to step 2
                 setDoctor((d) => ({
                     ...d,
                     uid: user.uid,
-                    email: user.email,
+                    email,
                     fullName: user.displayName || "",
                 }));
                 setStep(2);
@@ -200,70 +183,70 @@ export default function DoctorSignUp() {
             console.error("OAuth Error:", err);
             setError(err.message || "Google sign-in failed. Please try again.");
         }
-    };
+    }, [authInstance, googleProvider, navigate]);
 
-    const updateField = (field, value) =>
+    // Utility to update simple fields
+    const updateField = useCallback((field, value) => {
         setDoctor((d) => ({ ...d, [field]: value }));
+    }, []);
 
-    const updateArray = (arr, idx, key, value) => {
-        const copy = [...doctor[arr]];
-        copy[idx] = { ...copy[idx], [key]: value };
-        setDoctor((d) => ({ ...d, [arr]: copy }));
-    };
+    // Utility to update arrays (education/experiences)
+    const updateArray = useCallback((arr, idx, key, value) => {
+        setDoctor((d) => {
+            const copy = [...d[arr]];
+            copy[idx] = { ...copy[idx], [key]: value };
+            return { ...d, [arr]: copy };
+        });
+    }, []);
 
-    const handleSubmit = async () => {
+    // Step 5: Submit final doctor data (upload files, same logic)
+    const handleSubmit = useCallback(async () => {
         setError("");
         try {
             if (!doctor.email) throw new Error("Missing user credentials.");
-
-            // Ensure the user is signed in before uploading files
-            const user = auth.currentUser;
+            const user = authInstance.currentUser;
             if (!user)
                 throw new Error("User is not authenticated. Please sign in first.");
-
             // Upload education proofs
             const education = await Promise.all(
                 doctor.education.map(async (edu, i) => {
                     let proofUrl = null;
-                    if (edu.proof)
+                    if (edu.proof) {
                         proofUrl = await uploadFile(
                             `doctors/${doctor.email}/education${i}`,
                             edu.proof
                         );
+                    }
                     return { ...edu, proof: proofUrl };
                 })
             );
-
             // Upload experience resumes
             const experiences = await Promise.all(
                 doctor.experiences.map(async (exp, i) => {
                     let resumeUrl = null;
-                    if (exp.resume)
+                    if (exp.resume) {
                         resumeUrl = await uploadFile(
                             `doctors/${doctor.email}/experience${i}`,
                             exp.resume
                         );
+                    }
                     return { ...exp, resume: resumeUrl };
                 })
             );
-
-            // Prepare data for Firestore
             const dataToSave = {
                 ...doctor,
-                profilePic: doctor.profilePic || null, // from Google photoURL if available
+                profilePic: doctor.profilePic || null,
                 education,
                 experiences,
                 createdAt: new Date(),
             };
-
-            // Save doctor record to Firestore
             await setDoc(doc(db, "doctors", doctor.email), dataToSave);
             setSubmitted(true);
         } catch (err) {
             console.error("Submission Error:", err);
             setError(err.message || "Failed to submit application. Please try again.");
         }
-    };
+    }, [doctor, authInstance]);
 
     if (submitted) {
         return (
