@@ -11,6 +11,7 @@ import ListViewCard from '../components/ListViewCard';
 import DoctorTimeslotManagement from '../components/DoctorTimeslotManagement';
 import DoctorAppointment from '../components/DoctorAppointment';
 import ManagePatientsCard from '../components/ManagePatientsCard';
+import Footer from "../components/Footer";
 
 // Main Dashboard Component
 const DoctorDashboard = () => {
@@ -186,113 +187,116 @@ const DoctorDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-orange-100 to-orange-50">
-            {/* Main Content */}
-            <main className="container mx-auto px-4 py-8">
-                {/* Greeting Section - Now inside the main container */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
-                        Hi, {doctorData?.fullName || "Doctor"}
-                    </h1>
-                </div>
+        <div>
+            <div className="min-h-screen bg-gradient-to-r from-orange-100 to-orange-50">
+                {/* Main Content */}
+                <main className="container mx-auto px-4 py-8">
+                    {/* Greeting Section - Now inside the main container */}
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                            Hi, {doctorData?.fullName || "Doctor"}
+                        </h1>
+                    </div>
 
-                {doctorData && (
-                    <>
-                        <DoctorInfoCard
-                            doctorData={doctorData}
-                            setDoctorData={setDoctorData}
-                            isEditing={editingSection === "personal"}
-                            setIsEditing={(editing) => setEditingSection(editing ? "personal" : null)}
-                            handleSave={handleSave}
-                        />
+                    {doctorData && (
+                        <>
+                            <DoctorInfoCard
+                                doctorData={doctorData}
+                                setDoctorData={setDoctorData}
+                                isEditing={editingSection === "personal"}
+                                setIsEditing={(editing) => setEditingSection(editing ? "personal" : null)}
+                                handleSave={handleSave}
+                            />
 
-                        <DoctorEducationCard
-                            doctorData={doctorData}
-                            setDoctorData={setDoctorData}
-                            isEditing={editingSection === "education"}
-                            setIsEditing={(editing) => setEditingSection(editing ? "education" : null)}
-                            handleSave={handleSave}
-                        />
+                            <DoctorEducationCard
+                                doctorData={doctorData}
+                                setDoctorData={setDoctorData}
+                                isEditing={editingSection === "education"}
+                                setIsEditing={(editing) => setEditingSection(editing ? "education" : null)}
+                                handleSave={handleSave}
+                            />
 
-                        <DoctorExperienceCard
-                            doctorData={doctorData}
-                            setDoctorData={setDoctorData}
-                            isEditing={editingSection === "experience"}
-                            setIsEditing={(editing) => setEditingSection(editing ? "experience" : null)}
-                            handleSave={handleSave}
-                        />
+                            <DoctorExperienceCard
+                                doctorData={doctorData}
+                                setDoctorData={setDoctorData}
+                                isEditing={editingSection === "experience"}
+                                setIsEditing={(editing) => setEditingSection(editing ? "experience" : null)}
+                                handleSave={handleSave}
+                            />
 
-                        <DoctorBioCard
-                            doctorData={doctorData}
-                            setDoctorData={setDoctorData}
-                            isEditing={editingSection === "bio"}
-                            setIsEditing={(editing) => setEditingSection(editing ? "bio" : null)}
-                            handleSave={handleSave}
-                        />
-                        {/* Timeslot Management Section */}
-                        <div className="mt-10">
-                            <DoctorTimeslotManagement doctorEmail={doctorData.email} />
-                        </div>
-                        {/* Doctor's Appointment Section */}
-                        <div className="mt-10">
-                            <DoctorAppointment doctorEmail={doctorData.email} />
-                        </div>
-
-                        {/* Manage Patients Section */}
-                        <div className="mt-12 mb-8">
-                            <ManagePatientsCard />
-                        </div>
-
-                        {/* Articles Section - Added mt-12 for more margin from previous card */}
-                        <div className="mt-12 mb-8">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-semibold bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
-                                    Your Medical Articles
-                                </h2>
-                                <button
-                                    onClick={() => navigate("/write-education")}
-                                    className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500  text-white rounded-lg shadow hover:from-orange-500 hover:to-orange-600 transition"
-                                >
-                                    Write an Article
-                                </button>
+                            <DoctorBioCard
+                                doctorData={doctorData}
+                                setDoctorData={setDoctorData}
+                                isEditing={editingSection === "bio"}
+                                setIsEditing={(editing) => setEditingSection(editing ? "bio" : null)}
+                                handleSave={handleSave}
+                            />
+                            {/* Timeslot Management Section */}
+                            <div className="mt-10">
+                                <DoctorTimeslotManagement doctorEmail={doctorData.email} />
+                            </div>
+                            {/* Doctor's Appointment Section */}
+                            <div className="mt-10">
+                                <DoctorAppointment doctorEmail={doctorData.email} />
                             </div>
 
-                            {loadingArticles ? (
-                                <div className="py-8 text-center text-gray-500">
-                                    Loading your articles...
-                                </div>
-                            ) : articlesError ? (
-                                <div className="py-8 text-center text-red-500">{articlesError}</div>
-                            ) : articles.length === 0 ? (
-                                <div className="py-8 text-center text-gray-500 bg-white rounded-2xl border border-orange-100 shadow">
-                                    You have not published any medical articles yet.
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {articles.map((article) => (
-                                        <ListViewCard
-                                            key={article.id}
-                                            id={article.id}
-                                            title={article.title}
-                                            content={article.content || "No content available"}
-                                            author={article.author || doctorData.fullName}
-                                            date={
-                                                article.date_time
-                                                    ? new Date(article.date_time.seconds * 1000).toLocaleDateString()
-                                                    : "No date available"
-                                            }
-                                            tags={article.tags || []}
-                                            link={`/articles/${article.id}`}
-                                            type="article"
-                                        />
+                            {/* Manage Patients Section */}
+                            <div className="mt-12 mb-8">
+                                <ManagePatientsCard />
+                            </div>
 
-                                    ))}
+                            {/* Articles Section - Added mt-12 for more margin from previous card */}
+                            <div className="mt-12 mb-8">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-semibold bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                                        Your Medical Articles
+                                    </h2>
+                                    <button
+                                        onClick={() => navigate("/write-education")}
+                                        className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500  text-white rounded-lg shadow hover:from-orange-500 hover:to-orange-600 transition"
+                                    >
+                                        Write an Article
+                                    </button>
                                 </div>
-                            )}
-                        </div>
-                    </>
-                )}
-            </main>
+
+                                {loadingArticles ? (
+                                    <div className="py-8 text-center text-gray-500">
+                                        Loading your articles...
+                                    </div>
+                                ) : articlesError ? (
+                                    <div className="py-8 text-center text-red-500">{articlesError}</div>
+                                ) : articles.length === 0 ? (
+                                    <div className="py-8 text-center text-gray-500 bg-white rounded-2xl border border-orange-100 shadow">
+                                        You have not published any medical articles yet.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {articles.map((article) => (
+                                            <ListViewCard
+                                                key={article.id}
+                                                id={article.id}
+                                                title={article.title}
+                                                content={article.content || "No content available"}
+                                                author={article.author || doctorData.fullName}
+                                                date={
+                                                    article.date_time
+                                                        ? new Date(article.date_time.seconds * 1000).toLocaleDateString()
+                                                        : "No date available"
+                                                }
+                                                tags={article.tags || []}
+                                                link={`/articles/${article.id}`}
+                                                type="article"
+                                            />
+
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </main>
+            </div>
+            <Footer />
         </div>
     );
 };
