@@ -1,8 +1,9 @@
 import emailjs from 'emailjs-com';
+import { format } from 'path-browserify';
 
 const SERVICE_ID = 'theramind_service';
 const CANCELLATION_TEMPLATE = 'cancellation_template';
-const RESCHEDULE_TEMPLATE = 'reschedule_email_template';
+const RESCHEDULE_TEMPLATE = 'rescheduling_template';
 const USER_ID = 'TA0YUZ8PvIadVetlu';
 const CANCEL_USER_ID = 'VsfE_hs5ETC-r3Qmc';
 
@@ -53,19 +54,35 @@ export const sendRescheduleEmail = async ({
   meetLink,
   rescheduledBy,
 }) => {
-  const recipientEmail = (patientEmail?.trim() || doctorEmail?.trim()) ?? '';
+    const recipientEmail = patientEmail?.trim() || doctorEmail?.trim() || '';
 
   if (!recipientEmail) {
-    console.error('❌ No valid recipient email found. Cancellation email not sent.');
+    console.error('❌ No valid recipient email found. Rescheduling email not sent.',  
+      patientEmail,
+      doctorEmail,
+  );
     return;
   }
   try {
+    const formatTime = (isoString) => {
+    const date = new Date(isoString);
+    return isNaN(date.getTime())
+      ? "Unavailable"
+      : date.toLocaleString("en-GB", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+      };
     const templateParams = {
       patient_name: patientName,
       doctor_name: doctorName,
       email: recipientEmail,
-      old_time: new Date(oldTime).toLocaleString(),
-      new_time: new Date(newTime).toLocaleString(),
+      new_time: formatTime(newTime),
       meet_link: meetLink,
       rescheduled_by: rescheduledBy,
     };

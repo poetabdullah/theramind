@@ -19,7 +19,8 @@ import { deleteGoogleCalendarEvent, refreshAccessToken, deleteEventWithToken } f
 import { arrayUnion } from 'firebase/firestore';
 import { sendCancelEmail } from '../utils/sendEmail';
 import { set } from 'date-fns';
-//import { sendRescheduleEmail } from '../utils/sendEmail';
+import { send } from 'emailjs-com';
+import { sendRescheduleEmail } from '../utils/sendEmail';
 
 export async function cancelAppointmentAsDoctor(appointmentId, currentDoctorEmail) {
   const appointmentRef = doc(db, "appointments", appointmentId);
@@ -284,26 +285,43 @@ const AppointmentBooking = () => {
   }
 };
 
-const handleRescheduleAppointment = async (appointment, newTimeslot) => {
+const handleRescheduleAppointment = async (
+  appointment,
+  new_time,
+  patientEmail,
+  doctorEmail,
+  appData,
+) => {
+  console.log("Rescheduling to", new_time);
+
+  const {
+    patientName = appointment.patientName || 'Patient',
+    doctorName = appointment.doctorName || 'Doctor',
+    patientEmail: appPatientEmail = appointment.patientEmail,
+    doctorEmail: appDoctorEmail = appointment.doctorEmail,
+  } = appData || {};
+
   try {
-    const newStart = new Date(newTimeslot);
+    const newStart = new Date(new_time);
     const newEnd = new Date(newStart.getTime() + 30 * 60000);
 
     if (isNaN(newStart.getTime())) {
-      alert ("Invalid date format. Please use a valid date.");
+      alert("Invalid date format. Please use a valid date.");
       return;
-  }
-  const doctorDoc = doctors.find((doc) => doc.email === appointment.doctorEmail);
-    if (!doctorDoc) { throw new Error("Doctor not found."); }
+    }
+
+    const doctorDoc = doctors.find((doc) => doc.email === appointment.doctorEmail);
+    if (!doctorDoc) throw new Error("Doctor not found.");
     const doctorRef = doc(db, "doctors", doctorDoc.id);
-    if (!doctorDoc.timeslots.includes(newTimeslot)) {
+
+    if (!doctorDoc.timeslots.includes(new_time)) {
       alert("This timeslot is no longer available.");
       return;
     }
-    //Refreshing Access Token
+
     const newAccessToken = await requestAccessToken(appointment.organizerRefreshToken);
-    //Updating Calendar Event
-    const calendarEventUpdate = await fetch (
+
+    const calendarEventUpdate = await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/${appointment.patientEmail}/events/${appointment.calendarEventId}`,
       {
         method: 'PUT',
@@ -314,35 +332,54 @@ const handleRescheduleAppointment = async (appointment, newTimeslot) => {
         body: JSON.stringify({
           start: { dateTime: newStart.toISOString() },
           end: { dateTime: newEnd.toISOString() },
-      }),
-    }
-  );
+        }),
+      }
+    );
 
-  if (!calendarEventUpdate.ok) {
-    throw new Error("Failed to update Google Calendar event.");
-  }
+    if (!calendarEventUpdate.ok) throw new Error("Failed to update Google Calendar event.");
 
-  const updatedEvent = await calendarEventUpdate.json();
+    const appointmentRef = doc(db, "appointments", appointment.id);
+    await updateDoc(appointmentRef, { timeslot: new_time });
 
-  //Updating Appointment Data In Firestore
-  const appointmentRef = doc(db, "appointments", appointment.id);
-  await updateDoc(appointmentRef, {
-    timeslot: newTimeslot,
-  });
+    const existingTimeslots = Array.isArray(doctorDoc.timeslots) ? doctorDoc.timeslots : [];
 
-  //Updating Doctor's Timeslots
-  const newAvailableTimeslots = doctorDoc.timeslots.filter((slot) => slot !== newTimeslot).concat(appointment.timeslot);
-  await updateDoc(doctorRef, {
-    timeslots: newAvailableTimeslots,
-  });
-  //Updating Local Appointment State
-  setAppointments((prev) =>
-    prev.map((appt) =>
-      appt.id === appointment.id ? { ...appt, timeslot: newTimeslot } : appt
-    )
-  );
-  alert("Appointment rescheduled successfully!");
-  } catch (error) { 
+    const updatedTimeslots = Array.from(
+      new Set(
+        existingTimeslots
+          .filter((slot) => slot !== selectedTimeslot)
+      )
+    );
+
+    console.log("existingTimeslots:", existingTimeslots);
+    console.log("updatedTimeslots:", updatedTimeslots);
+
+    await updateDoc(doctorRef, { timeslots: updatedTimeslots });
+
+    console.log("📤 Sending reschedule email with:", {
+      patientName,
+      doctorName,
+      patientEmail: appPatientEmail,
+      doctorEmail: appDoctorEmail,
+    });
+
+    await sendRescheduleEmail({
+      patientName,
+      doctorName,
+      patientEmail: appPatientEmail,
+      doctorEmail: appDoctorEmail,
+      newTime: new_time,
+      meetLink: appointment.meetLink,
+      rescheduledBy: currentUser?.email || 'Unknown',
+    });
+
+    setAppointments((prev) =>
+      prev.map((appt) =>
+        appt.id === appointment.id ? { ...appt, timeslot: new_time } : appt
+      )
+    );
+
+    alert("Appointment rescheduled successfully!");
+  } catch (error) {
     console.error("Rescheduling failed:", error);
     alert("Failed to reschedule appointment: " + (error?.message || JSON.stringify(error)));
   }
@@ -478,7 +515,7 @@ const handleRescheduleAppointment = async (appointment, newTimeslot) => {
                     <motion.button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleCancelAppointment(appt);
+                        handleCancelAppointment(appt.id, appt.doctorEmail, appt.timeslot, appt);
                       }}
                       className="rounded-lg text-orange-800 font-semibold px-4 py-2 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
                       whileHover={{ scale: 1.05 }}
