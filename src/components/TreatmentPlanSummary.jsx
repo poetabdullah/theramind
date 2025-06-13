@@ -31,6 +31,7 @@ const TreatmentPlanSummary = ({
   versionId,
   createdAt,
   lastUpdated,
+  onAfterSaveEmail,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState(null);
@@ -41,10 +42,8 @@ const TreatmentPlanSummary = ({
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-
     const patient = patients.find((p) => p.email === selectedPatient);
     if (!patient) return;
-
     const payload = {
       doctor_email: doctor.email,
       doctor_name: doctor.name,
@@ -52,24 +51,39 @@ const TreatmentPlanSummary = ({
       patient_name: patient.name,
       goals,
     };
-
     setIsSubmitting(true);
     setSubmissionError(null);
     setSubmissionSuccess(null);
-
     try {
-      await axios.post(`${API_BASE}/treatment/create/`, payload);
+      const res = await axios.post(`${API_BASE}/treatment/create/`, payload);
       setSubmissionSuccess(
         isEditing
           ? "Treatment Plan Updated Successfully!"
           : "Treatment Plan Created Successfully!"
       );
+      // fire parent email callback:
+      if (typeof onAfterSaveEmail === "function") {
+        try {
+          await onAfterSaveEmail({
+            isUpdate: isEditing,
+            selectedPatient: patient.email,
+            patientName: patient.name,
+            doctorName: doctor.name,
+            planId: res.data.plan_id || planId, // if create returns plan_id
+          });
+        } catch (emailErr) {
+          console.error("Email send failed after save:", emailErr);
+          // optionally inform user:
+          setSubmissionError("Saved but email failed: " + emailErr.message);
+        }
+      }
       clearForm();
     } catch (apiError) {
       console.error("API Error:", apiError);
+      // existing fallback ...
       try {
         const ref = collection(db, "treatment_plans");
-        await addDoc(ref, {
+        const docRef = await addDoc(ref, {
           ...payload,
           created_at: serverTimestamp(),
           updated_at: serverTimestamp(),
@@ -80,6 +94,21 @@ const TreatmentPlanSummary = ({
             ? "Treatment Plan Updated (Firestore Fallback)!"
             : "Treatment Plan Created (Firestore Fallback)!"
         );
+        // after fallback save, still attempt email:
+        if (typeof onAfterSaveEmail === "function") {
+          try {
+            await onAfterSaveEmail({
+              isUpdate: isEditing,
+              selectedPatient: patient.email,
+              patientName: patient.name,
+              doctorName: doctor.name,
+              planId: planId || docRef.id,
+            });
+          } catch (emailErr) {
+            console.error("Email send failed after fallback save:", emailErr);
+            setSubmissionError("Saved but email failed: " + emailErr.message);
+          }
+        }
         clearForm();
       } catch (firestoreError) {
         console.error("Firestore Error:", firestoreError);

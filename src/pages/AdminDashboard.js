@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { db } from "../firebaseConfig";
+import { db, storage } from "../firebaseConfig";
+
 import { 
   collection, 
   getDocs, 
@@ -17,9 +18,10 @@ import {
   deleteDoc,
   onSnapshot
 } from "firebase/firestore";
+import { ref, listAll, getDownloadURL } from "firebase/storage";
 import AdminAnalytics from "../components/AdminAnalytics";
-import AdminLogs from "../components/AdminLogs";
 import Footer from "../components/Footer";
+import { sendEmailNotification } from "../components/emailService";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -34,14 +36,19 @@ const AdminDashboard = () => {
     rejectedDoctors: 0,
     blockedPatients: 0,
     totalAppointments: 0,
-    recentSignups: 0
+    recentSignups: 0,
+    activeSessions: 0,
+    todayAppointments: 0
   });
   const [pendingDoctorsList, setPendingDoctorsList] = useState([]);
-  const [patientsList, setPatientssList] = useState([]);
+  const [patientsList, setPatientsList] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [currentUser, setCurrentUser] = useState(null);
   const [realTimeListeners, setRealTimeListeners] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [doctorDocuments, setDoctorDocuments] = useState([]);
   
   const navigate = useNavigate();
   const auth = getAuth();
@@ -52,7 +59,6 @@ const AdminDashboard = () => {
         setCurrentUser(user);
         verifyAdminAccess(user.email);
       } else {
-        // Redirect to login if no user
         setIsAuthorized(false);
         navigate('/login');
       }
@@ -60,7 +66,6 @@ const AdminDashboard = () => {
 
     return () => {
       unsubscribe();
-      // Clean up real-time listeners
       realTimeListeners.forEach(unsubscribe => unsubscribe());
     };
   }, [navigate, auth]);
@@ -68,33 +73,17 @@ const AdminDashboard = () => {
   const verifyAdminAccess = async (email) => {
     try {
       setLoading(true);
-      
-      // Check if user exists in admin collection
       const adminDoc = await getDoc(doc(db, "admin", email));
       
-      if (!adminDoc.exists()) {
+      if (!adminDoc.exists() || adminDoc.data().status !== 'active') {
         setError("Access Denied: You don't have administrator privileges");
         setIsAuthorized(false);
         setLoading(false);
-        // Redirect to home page after 3 seconds
         setTimeout(() => navigate('/'), 3000);
         return;
       }
 
-      const adminInfo = adminDoc.data();
-      
-      // Check if admin account is active
-      if (adminInfo.status !== 'active') {
-        setError("Access Denied: Your administrator account is not active");
-        setIsAuthorized(false);
-        setLoading(false);
-        setTimeout(() => navigate('/'), 3000);
-        return;
-      }
-
-      // Log admin access
       await logAdminActivity(email, 'LOGIN', 'Admin dashboard accessed');
-      
       setIsAuthorized(true);
       await setupRealTimeListeners();
       await fetchDashboardData();
@@ -110,7 +99,7 @@ const AdminDashboard = () => {
   const setupRealTimeListeners = () => {
     const listeners = [];
 
-    // Real-time listener for doctors
+    // Doctors listener
     const doctorsListener = onSnapshot(collection(db, "doctors"), (snapshot) => {
       const doctorsData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -140,7 +129,7 @@ const AdminDashboard = () => {
       }));
     });
 
-    // Real-time listener for patients
+    // Patients listener
     const patientsListener = onSnapshot(collection(db, "patients"), (snapshot) => {
       const patientsData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -150,7 +139,7 @@ const AdminDashboard = () => {
       
       const blockedCount = patientsData.filter(patient => patient.status === 'blocked').length;
       
-      setPatientssList(patientsData);
+      setPatientsList(patientsData);
       setAdminData(prev => ({
         ...prev,
         totalPatients: patientsData.length,
@@ -158,16 +147,42 @@ const AdminDashboard = () => {
       }));
     });
 
-    listeners.push(doctorsListener, patientsListener);
+    // Appointments listener
+    const appointmentsListener = onSnapshot(collection(db, "appointments"), (snapshot) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayAppointments = snapshot.docs.filter(doc => {
+        const appointmentDate = doc.data().date?.toDate();
+        return appointmentDate >= today;
+      }).length;
+
+      setAdminData(prev => ({
+        ...prev,
+        totalAppointments: snapshot.size,
+        todayAppointments
+      }));
+    });
+
+    // System logs listener (all users)
+    const logsListener = onSnapshot(
+      query(collection(db, "admin_logs"), orderBy("timestamp", "desc"), limit(50)), 
+      (snapshot) => {
+        const activities = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().timestamp?.toDate()
+        }));
+        setRecentActivities(activities);
+      }
+    );
+
+    listeners.push(doctorsListener, patientsListener, appointmentsListener, logsListener);
     setRealTimeListeners(listeners);
   };
 
   const fetchDashboardData = async () => {
     try {
-      // Get appointments count
-      const appointmentsSnapshot = await getDocs(collection(db, "appointments"));
-      const appointmentsCount = appointmentsSnapshot.size;
-
       // Get recent signups (last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -186,26 +201,18 @@ const AdminDashboard = () => {
       );
       const recentDoctorsSnapshot = await getDocs(recentDoctorsQuery);
 
-      // Get recent activities
-      const activitiesQuery = query(
-        collection(db, "admin_logs"),
-        orderBy("timestamp", "desc"),
-        limit(10)
+      // Get active sessions (approximate)
+      const activeSessionsQuery = query(
+        collection(db, "sessions"),
+        where("expiresAt", ">", new Date())
       );
-      const activitiesSnapshot = await getDocs(activitiesQuery);
-      const activities = activitiesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate()
-      }));
+      const activeSessionsSnapshot = await getDocs(activeSessionsQuery);
 
       setAdminData(prev => ({
         ...prev,
-        totalAppointments: appointmentsCount,
-        recentSignups: recentPatientsSnapshot.size + recentDoctorsSnapshot.size
+        recentSignups: recentPatientsSnapshot.size + recentDoctorsSnapshot.size,
+        activeSessions: activeSessionsSnapshot.size
       }));
-      
-      setRecentActivities(activities);
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
       setError("Failed to load some dashboard data. Please refresh the page.");
@@ -219,11 +226,36 @@ const AdminDashboard = () => {
         action,
         description,
         timestamp: new Date(),
-        ipAddress: "N/A", // You can implement IP tracking if needed
+        ipAddress: "N/A",
         userAgent: navigator.userAgent
       });
     } catch (err) {
       console.error("Error logging admin activity:", err);
+    }
+  };
+
+  const fetchDoctorDocuments = async (doctorEmail) => {
+    try {
+      setLoading(true);
+      const storageRef = ref(storage, `doctors/${doctorEmail}/documents`);
+      const documents = await listAll(storageRef);
+      
+      const docsWithUrls = await Promise.all(
+        documents.items.map(async (item) => {
+          const url = await getDownloadURL(item);
+          return {
+            name: item.name,
+            url
+          };
+        })
+      );
+      
+      setDoctorDocuments(docsWithUrls);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching doctor documents:", err);
+      setError("Failed to load doctor documents");
+      setLoading(false);
     }
   };
 
@@ -236,6 +268,16 @@ const AdminDashboard = () => {
         status: action === 'approve' ? 'approved' : 'rejected',
         reviewedAt: new Date(),
         reviewedBy: auth.currentUser.email
+      });
+      
+      // Send email notification
+      const doctorDoc = await getDoc(doctorRef);
+      const doctorData = doctorDoc.data();
+      
+      await sendEmailNotification({
+        to: email,
+        subject: `Doctor Application ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+        text: `Dear ${doctorData.name || 'Doctor'},\n\nYour application has been ${action === 'approve' ? 'approved' : 'rejected'} by the administrator.\n\n${action === 'approve' ? 'You can now log in to your account and start receiving patients.' : 'Please contact support if you have any questions.'}\n\nRegards,\nThe Admin Team`
       });
       
       // Log the action
@@ -268,6 +310,28 @@ const AdminDashboard = () => {
         modifiedBy: auth.currentUser.email
       });
       
+      // Terminate all active sessions for blocked users
+      if (action === 'block') {
+        const sessionsQuery = query(
+          collection(db, "sessions"),
+          where("userId", "==", email)
+        );
+        const sessionsSnapshot = await getDocs(sessionsQuery);
+        sessionsSnapshot.forEach(async (sessionDoc) => {
+          await deleteDoc(sessionDoc.ref);
+        });
+      }
+      
+      // Send email notification
+      const patientDoc = await getDoc(patientRef);
+      const patientData = patientDoc.data();
+      
+      await sendEmailNotification({
+        to: email,
+        subject: `Account ${action === 'block' ? 'Blocked' : 'Activated'}`,
+        text: `Dear ${patientData.name || 'User'},\n\nYour account has been ${action === 'block' ? 'blocked by the administrator. You will no longer be able to access your account.' : 'activated. You can now log in and use the platform.'}\n\n${action === 'block' ? 'Please contact support if you believe this is an error.' : ''}\n\nRegards,\nThe Admin Team`
+      });
+      
       // Log the action
       await logAdminActivity(
         auth.currentUser.email, 
@@ -295,6 +359,13 @@ const AdminDashboard = () => {
       
       await deleteDoc(doc(db, "patients", email));
       
+      // Send email notification
+      await sendEmailNotification({
+        to: email,
+        subject: 'Account Deleted',
+        text: `Dear User,\n\nYour account has been permanently deleted by the administrator.\n\nRegards,\nThe Admin Team`
+      });
+      
       // Log the action
       await logAdminActivity(
         auth.currentUser.email, 
@@ -314,7 +385,6 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await logAdminActivity(auth.currentUser.email, 'LOGOUT', 'Admin logged out');
       await signOut(auth);
       navigate('/');
     } catch (err) {
@@ -328,7 +398,39 @@ const AdminDashboard = () => {
     if (type === 'success') setSuccess(null);
   };
 
-  // Show loading screen while checking authorization
+  const viewDoctorDetails = async (doctorEmail) => {
+    try {
+      setLoading(true);
+      const doctorDoc = await getDoc(doc(db, "doctors", doctorEmail));
+      setSelectedDoctor(doctorDoc.data());
+      await fetchDoctorDocuments(doctorEmail);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching doctor details:", err);
+      setError("Failed to load doctor details");
+      setLoading(false);
+    }
+  };
+
+  const viewPatientDetails = async (patientEmail) => {
+    try {
+      setLoading(true);
+      const patientDoc = await getDoc(doc(db, "patients", patientEmail));
+      setSelectedPatient(patientDoc.data());
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching patient details:", err);
+      setError("Failed to load patient details");
+      setLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedDoctor(null);
+    setSelectedPatient(null);
+    setDoctorDocuments([]);
+  };
+
   if (loading || !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-700 via-indigo-600 to-orange-600">
@@ -347,7 +449,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
+      {/* Header
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -365,7 +467,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -455,62 +557,61 @@ const AdminDashboard = () => {
                 )}
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">Total Appointments</h2>
-                <p className="text-3xl font-bold text-green-600">{adminData.totalAppointments}</p>
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">Today's Appointments</h2>
+                <p className="text-3xl font-bold text-green-600">{adminData.todayAppointments}</p>
                 <p className="text-sm text-gray-500 mt-1">
-                  {adminData.recentSignups} recent signups
+                  {adminData.totalAppointments} total
+                </p>
+              </div>
+            </div>
+
+            {/* Second Row of Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">Recent Signups</h2>
+                <p className="text-3xl font-bold text-blue-600">{adminData.recentSignups}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Last 7 days
+                </p>
+              </div>
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">Active Sessions</h2>
+                <p className="text-3xl font-bold text-teal-600">{adminData.activeSessions}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Currently logged in
+                </p>
+              </div>
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">Platform Health</h2>
+                <p className="text-3xl font-bold text-green-600">100%</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  All systems operational
                 </p>
               </div>
             </div>
 
             {/* Recent Activities */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activities</h3>
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{activity.description}</p>
-                        <p className="text-xs text-gray-500">
-                          {activity.adminEmail} • {activity.timestamp?.toLocaleDateString()}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        activity.action === 'APPROVE' ? 'bg-green-100 text-green-800' :
-                        activity.action === 'REJECT' ? 'bg-red-100 text-red-800' :
-                        activity.action === 'BLOCK' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {activity.action}
-                      </span>
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent System Activities</h3>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">{activity.description}</p>
+                      <p className="text-xs text-gray-500">
+                        {activity.adminEmail} • {activity.timestamp?.toLocaleString()}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-                  <button 
-                    onClick={() => setActiveTab('doctors')}
-                    className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition duration-200"
-                  >
-                    Review Doctor Applications ({adminData.pendingDoctors})
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('patients')}
-                    className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-200"
-                  >
-                    Manage Patients ({adminData.totalPatients})
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('analytics')}
-                    className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 transition duration-200"
-                  >
-                    View Analytics
-                  </button>
-                </div>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      activity.action === 'APPROVE' ? 'bg-green-100 text-green-800' :
+                      activity.action === 'REJECT' ? 'bg-red-100 text-red-800' :
+                      activity.action === 'BLOCK' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {activity.action}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </>
@@ -566,6 +667,12 @@ const AdminDashboard = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex space-x-2">
                               <button
+                                onClick={() => viewDoctorDetails(doctor.email)}
+                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+                              >
+                                View
+                              </button>
+                              <button
                                 onClick={() => handleDoctorApproval(doctor.email, 'approve')}
                                 className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
                                 disabled={loading}
@@ -587,42 +694,6 @@ const AdminDashboard = () => {
                   </table>
                 </div>
               )}
-            </div>
-            
-            {/* Doctor Statistics */}
-            <div className="border-t border-gray-200 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                  <h3 className="font-medium text-green-700">Approved Doctors</h3>
-                  <p className="text-3xl font-bold text-green-600 mt-2">{adminData.approvedDoctors}</p>
-                  <div className="mt-2 w-full bg-green-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full transition-all duration-500" 
-                      style={{ width: `${(adminData.approvedDoctors / adminData.totalDoctors) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-                  <h3 className="font-medium text-purple-700">Pending Review</h3>
-                  <p className="text-3xl font-bold text-purple-600 mt-2">{adminData.pendingDoctors}</p>
-                  <div className="mt-2 w-full bg-purple-200 rounded-full h-2">
-                    <div 
-                      className="bg-purple-500 h-2 rounded-full transition-all duration-500" 
-                      style={{ width: `${(adminData.pendingDoctors / adminData.totalDoctors) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-                  <h3 className="font-medium text-red-700">Rejected Applications</h3>
-                  <p className="text-3xl font-bold text-red-600 mt-2">{adminData.rejectedDoctors}</p>
-                  <div className="mt-2 w-full bg-red-200 rounded-full h-2">
-                    <div 
-                      className="bg-red-500 h-2 rounded-full transition-all duration-500" 
-                      style={{ width: `${(adminData.rejectedDoctors / adminData.totalDoctors) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -670,6 +741,12 @@ const AdminDashboard = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
+                          <button
+                            onClick={() => viewPatientDetails(patient.email)}
+                            className="bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700 transition duration-200"
+                          >
+                            View
+                          </button>
                           {patient.status !== 'blocked' ? (
                             <button
                               onClick={() => handlePatientBlock(patient.email, 'block')}
@@ -701,122 +778,61 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-            
-            {/* Patient Statistics */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                <h3 className="font-medium text-blue-700">Active Patients</h3>
-                <p className="text-3xl font-bold text-blue-600 mt-2">
-                  {adminData.totalPatients - adminData.blockedPatients}
-                </p>
-              </div>
-              <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-                <h3 className="font-medium text-yellow-700">Blocked Patients</h3>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{adminData.blockedPatients}</p>
-              </div>
-              <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                <h3 className="font-medium text-green-700">Recent Signups</h3>
-                <p className="text-3xl font-bold text-green-600 mt-2">{adminData.recentSignups}</p>
-              </div>
-            </div>
           </div>
         )}
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
             <AdminAnalytics adminData={adminData} />
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-purple-700 mb-6">Platform Analytics</h2>
-              
-              {/* Analytics Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold">User Growth</h3>
-                  <p className="text-3xl font-bold mt-2">{adminData.recentSignups}</p>
-                  <p className="text-sm opacity-90">Last 7 days</p>
-                </div>
-                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold">Active Doctors</h3>
-                  <p className="text-3xl font-bold mt-2">{adminData.approvedDoctors}</p>
-                  <p className="text-sm opacity-90">Currently approved</p>
-                </div>
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold">Total Appointments</h3>
-                  <p className="text-3xl font-bold mt-2">{adminData.totalAppointments}</p>
-                  <p className="text-sm opacity-90">All time</p>
-                </div>
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold">Platform Health</h3>
-                  <p className="text-3xl font-bold mt-2">98%</p>
-                  <p className="text-sm opacity-90">Uptime</p>
-                </div>
-              </div>
-
-              {/* Chart Placeholder */}
-              <div className="bg-gray-50 p-8 rounded-lg text-center">
-                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <h3 className="text-lg font-medium text-gray-600 mt-4">Advanced Analytics Coming Soon</h3>
-                <p className="text-gray-500 mt-2">Interactive charts and detailed reports will be available here</p>
-              </div>
-            </div>
           </div>
         )}
 
         {activeTab === 'logs' && (
-          <div className="space-y-6">
-            <AdminLogs />
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-purple-700 mb-6">System Logs</h2>
-              
-              {/* Enhanced Logs Display */}
-              <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <span className={`px-3 py-1 text-xs rounded-full font-medium ${
-                            activity.action === 'APPROVE' ? 'bg-green-100 text-green-800' :
-                            activity.action === 'REJECT' ? 'bg-red-100 text-red-800' :
-                            activity.action === 'BLOCK' ? 'bg-yellow-100 text-yellow-800' :
-                            activity.action === 'LOGIN' ? 'bg-blue-100 text-blue-800' :
-                            activity.action === 'LOGOUT' ? 'bg-gray-100 text-gray-800' :
-                            'bg-purple-100 text-purple-800'
-                          }`}>
-                            {activity.action}
-                          </span>
-                          <h3 className="font-medium text-gray-900">{activity.description}</h3>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-600">
-                          <p>Admin: {activity.adminEmail}</p>
-                          <p>Time: {activity.timestamp?.toLocaleString()}</p>
-                        </div>
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-purple-700 mb-6">System Logs</h2>
+            
+            {/* Enhanced Logs Display */}
+            <div className="space-y-4">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <span className={`px-3 py-1 text-xs rounded-full font-medium ${
+                          activity.action === 'APPROVE' ? 'bg-green-100 text-green-800' :
+                          activity.action === 'REJECT' ? 'bg-red-100 text-red-800' :
+                          activity.action === 'BLOCK' ? 'bg-yellow-100 text-yellow-800' :
+                          activity.action === 'LOGIN' ? 'bg-blue-100 text-blue-800' :
+                          activity.action === 'LOGOUT' ? 'bg-gray-100 text-gray-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {activity.action}
+                        </span>
+                        <h3 className="font-medium text-gray-900">{activity.description}</h3>
                       </div>
-                      <div className="text-right text-sm text-gray-500">
-                        <p>{activity.timestamp?.toLocaleDateString()}</p>
-                        <p>{activity.timestamp?.toLocaleTimeString()}</p>
+                      <div className="mt-2 text-sm text-gray-600">
+                        <p>Admin: {activity.adminEmail}</p>
+                        <p>Time: {activity.timestamp?.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-              
-              {recentActivities.length === 0 && (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <p className="text-gray-600 mt-2">No recent activities found</p>
                 </div>
-              )}
+              ))}
             </div>
+            
+            {recentActivities.length === 0 && (
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-gray-600 mt-2">No recent activities found</p>
+              </div>
+            )}
           </div>
         )}
       </div>
-      
-      <Footer />
+
+        <Footer />
     </div>
   );
 };
