@@ -22,9 +22,11 @@ export default function ManagePatientsCard() {
           shadow 
           p-6 
           flex 
-          items-center 
+          flex-col sm:flex-row 
+          items-start sm:items-center 
           justify-between 
-          space-x-4
+          space-y-4 sm:space-y-0 
+          sm:space-x-4
         "
       >
         {/* Icon + text */}
@@ -68,6 +70,7 @@ export default function ManagePatientsCard() {
             hover:to-orange-600
             transition 
             duration-200
+            w-full sm:w-auto
           "
         >
           Manage Patients

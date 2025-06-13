@@ -1,11 +1,10 @@
 // src/pages/LoginPage.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
-  onAuthStateChanged,
   signOut,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -13,136 +12,135 @@ import { db } from "../firebaseConfig";
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import Footer from "../components/Footer";
 
+const GOOGLE_SCOPES = [
+  // Non-sensitive scopes
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/userinfo.profile",
+  "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+  "https://www.googleapis.com/auth/calendar.events.freebusy",
+  "https://www.googleapis.com/auth/calendar.app.created",
+  "https://www.googleapis.com/auth/calendar.events.public.readonly",
+  "https://www.googleapis.com/auth/calendar.settings.readonly",
+  "https://www.googleapis.com/auth/calendar.freebusy",
+  "https://www.googleapis.com/auth/meetings.space.settings",
+  // Sensitive scopes
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.acls",
+  "https://www.googleapis.com/auth/calendar.acls.readonly",
+  "https://www.googleapis.com/auth/calendar.calendars",
+  "https://www.googleapis.com/auth/calendar.calendars.readonly",
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/calendar.events.owned",
+  "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+  "https://www.googleapis.com/auth/calendar.events.readonly",
+  "https://www.googleapis.com/auth/meetings.space.created",
+  "https://www.googleapis.com/auth/meetings.space.readonly",
+];
+
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const auth = getAuth();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // We don’t auto-redirect here because handleRouting() takes care of it
-    });
-    return unsubscribe;
-  }, [auth]);
+  // Memoize auth instance
+  const auth = useMemo(() => getAuth(), []);
 
-  const handleRouting = async (email) => {
-    try {
-      const [patSnap, docSnap, adminSnap] = await Promise.all([
-        getDoc(doc(db, "patients", email)),
-        getDoc(doc(db, "doctors", email)),
-        getDoc(doc(db, "admin", email)),
-      ]);
+  // Read env vars once
+  const USER_ID_VIEW = process.env.REACT_APP_EMAILJS_USER_ID_VIEW;
+  const SERVICEID = process.env.REACT_APP_EMAILJS_SERVICEID;
+  const TEMPLATE_TERMINATED = process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED;
 
-      const isPatient = patSnap.exists();
-      const isDoctor = docSnap.exists();
-      const isAdmin = adminSnap.exists();
+  // === handleRouting: decide where to go after login ===
+  const handleRouting = useCallback(
+    async (email) => {
+      try {
+        // Parallel fetch of patient/doctor/admin doc existence
+        const [patSnap, docSnap, adminSnap] = await Promise.all([
+          getDoc(doc(db, "patients", email)),
+          getDoc(doc(db, "doctors", email)),
+          getDoc(doc(db, "admin", email)),
+        ]);
 
-      if (!isPatient && !isDoctor && !isAdmin) {
-        navigate("/signup-landing");
-        return;
-      }
+        const isPatient = patSnap.exists();
+        const isDoctor = docSnap.exists();
+        const isAdmin = adminSnap.exists();
 
-      if (isPatient) {
-        await setDoc(
-          doc(db, "patients", email),
-          { lastLogin: new Date() },
-          { merge: true }
-        );
-        navigate("/patient-dashboard");
-        return;
-      }
+        if (!isPatient && !isDoctor && !isAdmin) {
+          navigate("/signup-landing");
+          return;
+        }
 
-      if (isAdmin) {
-        navigate("/admin-dashboard");
-        return;
-      }
-
-      if (isDoctor) {
-        const { status } = docSnap.data();
-
-        if (status === "approved") {
+        if (isPatient) {
+          // update lastLogin and navigate
           await setDoc(
-            doc(db, "doctors", email),
+            doc(db, "patients", email),
             { lastLogin: new Date() },
             { merge: true }
           );
-          navigate("/doctor-dashboard");
+          navigate("/patient-dashboard");
           return;
         }
 
-        if (status === "pending") {
-          setError("Your doctor account is still pending approval. Please wait.");
-          await signOut(auth);
+        if (isAdmin) {
+          navigate("/admin-dashboard");
           return;
         }
 
-        if (status === "rejected") {
-          setError("Your doctor application was rejected. Please contact support.");
-          await signOut(auth);
-          return;
+        if (isDoctor) {
+          const { status } = docSnap.data();
+          if (status === "approved") {
+            await setDoc(
+              doc(db, "doctors", email),
+              { lastLogin: new Date() },
+              { merge: true }
+            );
+            navigate("/doctor-dashboard");
+            return;
+          }
+          if (status === "pending") {
+            setError("Your doctor account is still pending approval. Please wait.");
+            await signOut(auth);
+            return;
+          }
+          if (status === "rejected") {
+            setError("Your doctor application was rejected. Please contact support.");
+            await signOut(auth);
+            return;
+          }
         }
+      } catch (err) {
+        console.error("Error in routing:", err);
+        setError("An error occurred during login. Please try again.");
+        await signOut(auth);
       }
-    } catch (err) {
-      console.error("Error in routing:", err);
-      setError("An error occurred during login. Please try again.");
-      await signOut(auth);
-    }
-  };
+    },
+    [navigate, auth]
+  );
 
-  const handleGoogleLogin = async () => {
+  // === handleGoogleLogin: sign in and route ===
+  const handleGoogleLogin = useCallback(async () => {
     setLoading(true);
     setError(null);
 
+    // Create provider once per click
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "consent" });
+    GOOGLE_SCOPES.forEach((scope) => provider.addScope(scope));
+
     try {
-      // 1) Create GoogleAuthProvider and request ALL required scopes (including Calendar & Meet)
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "consent" });
-
-      // Non-sensitive scopes
-      provider.addScope("https://www.googleapis.com/auth/userinfo.email");
-      provider.addScope("https://www.googleapis.com/auth/userinfo.profile");
-      provider.addScope("https://www.googleapis.com/auth/calendar.calendarlist.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.freebusy");
-      provider.addScope("https://www.googleapis.com/auth/calendar.app.created");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.public.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.settings.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.freebusy");
-      provider.addScope("https://www.googleapis.com/auth/meetings.space.settings");
-
-      // Sensitive scopes
-      provider.addScope("https://www.googleapis.com/auth/calendar");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events");
-      provider.addScope("https://www.googleapis.com/auth/calendar.acls");
-      provider.addScope("https://www.googleapis.com/auth/calendar.acls.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.calendars");
-      provider.addScope("https://www.googleapis.com/auth/calendar.calendars.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.owned.readonly");
-      provider.addScope("https://www.googleapis.com/auth/calendar.events.readonly");
-      provider.addScope("https://www.googleapis.com/auth/meetings.space.created");
-      provider.addScope("https://www.googleapis.com/auth/meetings.space.readonly");
-
-      // 2) Sign in with Popup (Firebase will orchestrate a single consent screen
-      //    that includes ALL of the above scopes, if the user hasn’t granted them before)
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
-      // 3) Extract the Google OAuth access token from the credential:
+      // Extract token if present
       const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (credential && credential.accessToken) {
+      if (credential?.accessToken) {
         const calendarAccessToken = credential.accessToken;
         console.log("✅ Google OAuth Access Token:", calendarAccessToken);
-
-        // 4) Store the token for later use by gapi.client.calendar.* calls.
-        //    Here we use localStorage as an example; you can also write it into Firestore if you prefer.
         localStorage.setItem("google_calendar_access_token", calendarAccessToken);
       } else {
         console.warn("⚠️ No Google access token returned. Calendar calls may fail.");
       }
-
-      // 5) Finally, navigate immediately—preserving your original routing logic:
+      // Route based on role
       await handleRouting(user.email);
     } catch (err) {
       console.error("Google login error:", err);
@@ -151,11 +149,11 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [auth, handleRouting]);
 
-  const dismissError = () => {
+  const dismissError = useCallback(() => {
     setError(null);
-  };
+  }, []);
 
   return (
     <div>

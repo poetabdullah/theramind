@@ -92,8 +92,8 @@ const QuestionnaireResponses = ({ patientEmail }) => {
 
   return (
     <div className="bg-white p-4 border rounded-2xl shadow-md w-full">
-      <h2 className="text-xl font-bold mb-4 text-purple-700">
-        Your Latest Assessment & Responses
+      <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
+        Latest Assessment & Responses
       </h2>
       {loading ? (
         <p className="text-gray-500">Loading data...</p>

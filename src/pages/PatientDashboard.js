@@ -1,4 +1,3 @@
-// Patient's dashboard
 import React, { useState, useEffect, useCallback } from "react";
 import {
   collection,
@@ -14,6 +13,7 @@ import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import QuestionnaireResponses from "../components/QuestionnaireResponses";
 import TreatmentPlanView from "../components/TreatmentPlanView";
+import TerminatedTreatmentPlans from "../components/TerminatedTreatmentPlans";
 import axios from "axios";
 
 // Global variable for easier access to the backend:
@@ -35,9 +35,6 @@ const PatientDashboard = () => {
   const [activeVersionIndex, setActiveVersionIndex] = useState(0);
   const [planMeta, setPlanMeta] = useState(null);
 
-
-  // These forms have been defined as per the logic used in during the sign up process
-  // Components not used due to the nature of the defined components and their logic
   const navigate = useNavigate();
   // Form state
   const [detailFormData, setDetailFormData] = useState({
@@ -55,24 +52,6 @@ const PatientDashboard = () => {
   const [detailErrors, setDetailErrors] = useState({});
   const [healthErrors, setHealthErrors] = useState({});
 
-  useEffect(() => {
-    if (patientData) {
-      // Initialize form data with existing patient data from the database
-      // Same as during the sign up process, excluding the few areas that can't be edited.
-      setDetailFormData({
-        birthHistory: patientData.birthHistory || "",
-        location: patientData.location || "",
-      });
-
-      setHealthFormData({
-        mentalHealthConditions: patientData.mentalHealthConditions || [],
-        familyHistory: patientData.familyHistory || "",
-        significantTrauma: patientData.significantTrauma || "",
-        childhoodChallenges: patientData.childhoodChallenges || "",
-      });
-    }
-  }, [patientData]);
-
   const fetchPatientData = useCallback(async (email) => {
     try {
       const q = query(collection(db, "patients"), where("email", "==", email));
@@ -85,7 +64,7 @@ const PatientDashboard = () => {
     } catch (error) {
       console.error("Error fetching patient data:", error);
     }
-  }, []);  // Empty dependency array
+  }, []);
 
   // fetch active treatment plans for this patient
   useEffect(() => {
@@ -93,7 +72,7 @@ const PatientDashboard = () => {
 
     (async () => {
       try {
-        // 1) load active plan
+        // 1) load all plans for patient
         const res = await axios.get(
           `${API_BASE}/treatment/user/patient/${encodeURIComponent(patientData.email)}/`
         );
@@ -113,13 +92,16 @@ const PatientDashboard = () => {
             `${API_BASE}/treatment/${encodeURIComponent(active.plan_id)}/`
           );
           setPlanMeta(metaRes.data);
+        } else {
+          setPlanId(null);
+          setPlanVersions([]);
+          setPlanMeta(null);
         }
       } catch (err) {
         console.error("Error loading treatment plans:", err);
       }
     })();
   }, [patientData]);
-
 
   // helper to fetch a single version’s details
   const fetchVersion = useCallback(
@@ -135,36 +117,43 @@ const PatientDashboard = () => {
   // handler to toggle an action complete/incomplete
   const handleMarkComplete = useCallback(
     async ({ goalId, actionId, newStatus }) => {
-      const versionId = planVersions[activeVersionIndex].version_id;
-      await axios.post(
-        `${API_BASE}/treatment/${planId}/version/${versionId}/complete/`,
-        {
-          goal_id: goalId,
-          action_id: actionId,
-          role: "patient",
-          is_completed: newStatus,  // use the newStatus passed from TreatmentPlanView
-        }
-      );
-      // force TreatmentPlanView to re-fetch by resetting the same index
-      setActiveVersionIndex((i) => i);
+      const versionId = planVersions[activeVersionIndex]?.version_id;
+      if (!planId || !versionId) return;
+      try {
+        await axios.post(
+          `${API_BASE}/treatment/${planId}/version/${versionId}/complete/`,
+          {
+            goal_id: goalId,
+            action_id: actionId,
+            role: "patient",
+            is_completed: newStatus,
+          }
+        );
+        // force TreatmentPlanView to re-fetch by resetting the same index
+        setActiveVersionIndex((i) => i);
+      } catch (err) {
+        console.error("Error marking complete:", err);
+      }
     },
     [planId, planVersions, activeVersionIndex]
   );
 
-
   // handler to terminate
   const handleTerminate = useCallback(async () => {
-    await axios.post(`${API_BASE}/treatment/${planId}/terminate/`);
-    // mark locally as terminated to disable UI
-    setPlanVersions((vers) =>
-      vers.map((v) =>
-        v.version_id === planVersions[activeVersionIndex].version_id
-          ? { ...v, is_terminated: true }
-          : v
-      )
-    );
+    if (!planId) return;
+    try {
+      await axios.post(`${API_BASE}/treatment/${planId}/terminate/`);
+      setPlanVersions((vers) =>
+        vers.map((v, idx) =>
+          v.version_id === planVersions[activeVersionIndex]?.version_id
+            ? { ...v, is_terminated: true }
+            : v
+        )
+      );
+    } catch (err) {
+      console.error("Error terminating plan:", err);
+    }
   }, [planId, planVersions, activeVersionIndex]);
-
 
   // helper to fetch the plan metadata (doctor_name, dates, etc.)
   const fetchTreatmentPlan = useCallback(
@@ -176,7 +165,6 @@ const PatientDashboard = () => {
     },
     []
   );
-
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
@@ -190,7 +178,6 @@ const PatientDashboard = () => {
     return () => unsubscribe();
   }, [navigate, fetchPatientData]);
 
-
   const fetchPatientStories = async (email) => {
     try {
       const q = query(
@@ -202,8 +189,6 @@ const PatientDashboard = () => {
         id: doc.id,
         ...doc.data(),
       }));
-
-      console.log("Fetched Stories:", stories); // Debugging line
 
       setPatientStories(stories);
     } catch (err) {
@@ -246,7 +231,7 @@ const PatientDashboard = () => {
         "Location must be at least 5 characters long.";
     }
 
-    if (patientData.gender === "Female" && !detailFormData.birthHistory) {
+    if (patientData?.gender === "Female" && !detailFormData.birthHistory) {
       validationErrors.birthHistory =
         "Please specify if you have given birth in the past year.";
     }
@@ -276,10 +261,6 @@ const PatientDashboard = () => {
     setHealthErrors(newError);
     return Object.keys(newError).length === 0;
   };
-
-  // Data is editable step by step
-  // Step 1: Can Edit the location
-  // Step 2: Can edit the mental health conditions
 
   const handleContinue = (e) => {
     e.preventDefault();
@@ -395,10 +376,7 @@ const PatientDashboard = () => {
           </h3>
           {["OCD", "Depression", "Trauma", "Anxiety", "Stress"].map(
             (condition) => (
-              <label
-                key={condition}
-                className="flex items-center space-x-3 mb-3"
-              >
+              <label key={condition} className="flex items-center space-x-3 mb-3">
                 <input
                   type="checkbox"
                   name="mentalHealthConditions"
@@ -657,19 +635,14 @@ const PatientDashboard = () => {
               versions={planVersions}
               versionIndex={activeVersionIndex}
               role="patient"
-
-              // NEW: pass the patient object
               patient={{
                 name: patientData.fullName || user.displayName,
                 email: patientData.email,
               }}
-
-              // NEW: pass the doctor object from planMeta
               doctor={{
                 name: planMeta.doctor_name,
                 email: planMeta.doctor_email,
               }}
-
               fetchVersion={fetchVersion}
               fetchTreatmentPlan={fetchTreatmentPlan}
               onToggleComplete={handleMarkComplete}
@@ -681,6 +654,15 @@ const PatientDashboard = () => {
             </div>
           )}
 
+          {/* === Previous Terminated Plans Section === */}
+          {patientData?.email && (
+            <div className="mt-12">
+              {/* === Previous Terminated Plans Section === */}
+              <div className="mt-12 mb-12">
+                <TerminatedTreatmentPlans patientEmail={patientData.email} fetchTreatmentPlan={fetchTreatmentPlan} fetchVersion={fetchVersion} />
+              </div>
+            </div>
+          )}
 
           {/* Patient Stories Section */}
           <div className="mb-8">
@@ -708,7 +690,6 @@ const PatientDashboard = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Uses the ListViewCard to show the preview of the author's stories */}
                 {patientStories.map((story) => (
                   <ListViewCard
                     key={story.id}

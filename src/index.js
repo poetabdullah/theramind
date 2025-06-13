@@ -16,7 +16,7 @@ import App from "./App";
 // ---------------------------------
 // Initialize EmailJS as early as possible.
 // You can pass { blockHeadless: true } as the second argument if you need to block headless browsers.
-emailjs.init("qSC9QChymUGrSFCY5", { blockHeadless: true });
+//emailjs.init("qSC9QChymUGrSFCY5", { blockHeadless: true });
 // ---------------------------------
 
 // ---------------------------------

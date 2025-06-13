@@ -21,10 +21,12 @@ import {
 import { Search, X, ChevronDown, ChevronUp } from "lucide-react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import emailjs from "emailjs-com"; // ← Import EmailJS
+import emailjs from "emailjs-com";
 
 import TreatmentPlanView from "../components/TreatmentPlanView";
 import CreateTreatmentCTA from "../components/CreateTreatmentCTA";
+import QuestionnaireResponses from "../components/QuestionnaireResponses";
+import Footer from "../components/Footer";
 
 // Base URL for your API (make sure this matches your Django server)
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -46,16 +48,12 @@ export default function ManagePatients() {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
-  // —————————————————————————————————————————————————————————
-  // INITIALIZE EmailJS once, on page‐mount
-  // —————————————————————————————————————————————————————————
+  // INITIALIZE EmailJS once
   useEffect(() => {
     emailjs.init("qSC9QChymUGrSFCY5");
   }, []);
 
-  // ————————————————————————————
-  // 1) Grab current doctor email & name from Firebase Auth + Firestore
-  // ————————————————————————————
+  // 1) Grab current doctor email & name
   useEffect(() => {
     const authInstance = getAuth();
     const unsubscribe = onAuthStateChanged(
@@ -64,11 +62,9 @@ export default function ManagePatients() {
         if (!loggedInUser) {
           navigate("/login");
         } else {
-          // 1a) Set doctorEmail so we can query their active patients
           const email = loggedInUser.email;
           setDoctorEmail(email);
 
-          // 1b) Also fetch the doctor's display name from Firestore
           try {
             const docRef = firestoreDoc(db, "doctors", email);
             const docSnap = await getDoc(docRef);
@@ -85,31 +81,25 @@ export default function ManagePatients() {
         }
       }
     );
-
     return () => unsubscribe();
   }, [navigate]);
 
-  // ————————————————————————————
   // 2) Load all active (non-terminated) patients for this doctor
-  // ————————————————————————————
   useEffect(() => {
     if (!doctorEmail) return;
     (async () => {
       try {
-        const q = query(
+        const qSnap = query(
           collection(db, "treatment_plans"),
           where("doctor_email", "==", doctorEmail),
           where("is_terminated", "==", false)
         );
-        const snapshot = await getDocs(q);
-
+        const snapshot = await getDocs(qSnap);
         const map = {};
         snapshot.forEach((docSnap) => {
           const { patient_email, patient_name } = docSnap.data();
-          // Only keep one entry per unique patient email
           map[patient_email] = patient_name;
         });
-
         setPatients(
           Object.entries(map).map(([email, name]) => ({
             patient_email: email,
@@ -148,9 +138,7 @@ export default function ManagePatients() {
     setDropdownOpen(false);
   };
 
-  // ————————————————————————————
   // 3) Whenever a new patient is selected, load their active plan metadata + versions
-  // ————————————————————————————
   useEffect(() => {
     if (!doctorEmail || !selectedPatientEmail) {
       setPlanMeta(null);
@@ -161,18 +149,16 @@ export default function ManagePatients() {
     setLoadingPlan(true);
     (async () => {
       try {
-        // 3a) Query Firestore for a single active (non-terminated) plan record
-        const q = query(
+        const qSnap = query(
           collection(db, "treatment_plans"),
           where("doctor_email", "==", doctorEmail),
           where("patient_email", "==", selectedPatientEmail),
           where("is_terminated", "==", false),
           limit(1)
         );
-        const snap = await getDocs(q);
+        const snap = await getDocs(qSnap);
 
         if (snap.empty) {
-          // No active plan for this patient
           setPlanMeta(null);
           setVersions([]);
           setLoadingPlan(false);
@@ -183,7 +169,7 @@ export default function ManagePatients() {
         const meta = { ...docSnap.data(), plan_id: docSnap.id };
         setPlanMeta(meta);
 
-        // 3b) Fetch that plan’s version list from your API
+        // Fetch versions from backend
         const vRes = await axios.get(
           `${API_BASE}/treatment/${encodeURIComponent(meta.plan_id)}/versions/`
         );
@@ -198,9 +184,7 @@ export default function ManagePatients() {
     })();
   }, [doctorEmail, selectedPatientEmail]);
 
-  // ————————————————————————————
-  // 4) fetchTreatmentPlan() and fetchVersion() are passed down into TreatmentPlanView
-  // ————————————————————————————
+  // 4) fetchTreatmentPlan & fetchVersion
   const fetchTreatmentPlan = useCallback(async (planId) => {
     const res = await axios.get(
       `${API_BASE}/treatment/${encodeURIComponent(planId)}/`
@@ -217,14 +201,11 @@ export default function ManagePatients() {
     return res.data;
   }, []);
 
-  // ————————————————————————————
-  // 5) Toggle “complete” on individual actions
-  // ————————————————————————————
+  // 5) Toggle “complete”
   const onToggleComplete = useCallback(
     async ({ goalId, actionId, newStatus }) => {
       if (!planMeta || !versions.length) return;
       const latest = versions[versions.length - 1];
-
       await axios.post(
         `${API_BASE}/treatment/${encodeURIComponent(
           planMeta.plan_id
@@ -236,8 +217,7 @@ export default function ManagePatients() {
           is_completed: newStatus,
         }
       );
-
-      // Re-fetch all versions so the UI shows updated progress
+      // Re-fetch versions
       const vRes = await axios.get(
         `${API_BASE}/treatment/${encodeURIComponent(
           planMeta.plan_id
@@ -248,24 +228,15 @@ export default function ManagePatients() {
     [planMeta, versions]
   );
 
-  // ————————————————————————————
-  // 6) TERMINATION: call the backend endpoint, then mark planMeta.is_terminated = true
-  //
-  //    TreatmentPlanView will handle sending emails (it expects onTerminate(planId))
-  // ————————————————————————————
+  // 6) Termination
   const onTerminate = useCallback(
     async (planId) => {
-      // If planMeta is null or planId mismatches, bail out
       if (!planMeta || planMeta.plan_id !== planId) {
         throw new Error("No active plan to terminate");
       }
-
-      // 6a) Call backend terminate endpoint (must match Django URL)
       await axios.post(
-        `http://localhost:8000/api/treatment/${planId}/terminate/`
+        `${API_BASE}/treatment/${encodeURIComponent(planId)}/terminate/`
       );
-
-      // 6b) Locally mark it as terminated so we don’t try to re-render it
       setPlanMeta((prev) => (prev ? { ...prev, is_terminated: true } : prev));
     },
     [planMeta]
@@ -294,7 +265,7 @@ export default function ManagePatients() {
             <h2 className="text-xl font-semibold">Select Patient</h2>
           </div>
 
-          {/* 🔽 Dropdown to pick a patient */}
+          {/* Dropdown to pick a patient */}
           <div
             className="w-full p-3 border rounded-xl flex items-center cursor-pointer hover:shadow focus:shadow-lg transition"
             onClick={() => setDropdownOpen((o) => !o)}
@@ -342,34 +313,37 @@ export default function ManagePatients() {
           )}
         </div>
 
-        {/* 🔽 Render TreatmentPlanView if a patient is selected and planMeta exists */}
+        {/* Render TreatmentPlanView + QuestionnaireResponses if a patient is selected and planMeta exists */}
         <div className="w-full max-w-6xl mt-8">
           {selectedPatientEmail && loadingPlan ? (
             <div className="text-center p-6 bg-gray-100 rounded-2xl">
               Loading treatment plan...
             </div>
           ) : selectedPatientEmail && planMeta ? (
-            <TreatmentPlanView
-              planId={planMeta.plan_id}
-              versions={versions}
-              versionIndex={versions.length - 1}
-              role="doctor"
-              fetchTreatmentPlan={fetchTreatmentPlan}
-              fetchVersion={fetchVersion}
-              onToggleComplete={onToggleComplete}
-              onTerminate={onTerminate}
-              /** ─────────────────────────────────────────────────── **/
-              /** Pass both patient & doctor so emails can be sent **/
-              patient={{
-                name: planMeta.patient_name,
-                email: planMeta.patient_email,
-              }}
-              doctor={{
-                name: planMeta.doctor_name,
-                email: planMeta.doctor_email,
-              }}
-              /** ─────────────────────────────────────────────────── **/
-            />
+            <>
+              <TreatmentPlanView
+                planId={planMeta.plan_id}
+                versions={versions}
+                versionIndex={versions.length - 1}
+                role="doctor"
+                fetchTreatmentPlan={fetchTreatmentPlan}
+                fetchVersion={fetchVersion}
+                onToggleComplete={onToggleComplete}
+                onTerminate={onTerminate}
+                patient={{
+                  name: planMeta.patient_name,
+                  email: planMeta.patient_email,
+                }}
+                doctor={{
+                  name: planMeta.doctor_name,
+                  email: planMeta.doctor_email,
+                }}
+              />
+              {/* Render questionnaire responses for the selected patient */}
+              <div className="mt-8">
+                <QuestionnaireResponses patientEmail={selectedPatientEmail} />
+              </div>
+            </>
           ) : selectedPatientEmail ? (
             <div className="text-center p-6 bg-yellow-100 rounded-2xl">
               No active treatment plan for this patient.
@@ -377,6 +351,7 @@ export default function ManagePatients() {
           ) : null}
         </div>
       </div>
+      <Footer />
     </>
   );
 }
