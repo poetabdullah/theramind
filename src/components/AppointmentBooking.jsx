@@ -18,6 +18,7 @@ import { sendAppointmentConfirmationEmail } from './AppointmentConfirmationEmail
 import { deleteGoogleCalendarEvent, refreshAccessToken, deleteEventWithToken } from '../utils/google_api';
 import { arrayUnion } from 'firebase/firestore';
 import { sendCancelEmail } from '../utils/sendEmail';
+import { set } from 'date-fns';
 //import { sendRescheduleEmail } from '../utils/sendEmail';
 
 export async function cancelAppointmentAsDoctor(appointmentId, currentDoctorEmail) {
@@ -58,8 +59,8 @@ const AppointmentBooking = () => {
   const [appointments, setAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  //const [reschedulingId, setReschedulingId] = useState(null);
-  //const [reschedulingTimeslot, setReschedulingTimeslot] = useState('');
+  const [reschedulingId, setReschedulingId] = useState(null);
+  const [reschedulingTimeslot, setReschedulingTimeslot] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -330,7 +331,7 @@ const handleRescheduleAppointment = async (appointment, newTimeslot) => {
   });
 
   //Updating Doctor's Timeslots
-  const newAvailableTimeslots = doctorDoc.timeslots.filter((slot) => slot !== newTimeslot).concat(appointment.timeslots);
+  const newAvailableTimeslots = doctorDoc.timeslots.filter((slot) => slot !== newTimeslot).concat(appointment.timeslot);
   await updateDoc(doctorRef, {
     timeslots: newAvailableTimeslots,
   });
@@ -347,168 +348,230 @@ const handleRescheduleAppointment = async (appointment, newTimeslot) => {
   }
 };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div className="container mx-auto p-4">
-        <motion.h1 className="text-2xl font-bold mb-4">Book an Appointment</motion.h1>
+ return (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <motion.div className="container mx-auto p-4">
+      <motion.h1 className="text-2xl font-bold mb-4">Book an Appointment</motion.h1>
 
-        {error && <p className="text-red-500 mb-2">{error}</p>}
+      {error && <p className="text-red-500 mb-2">{error}</p>}
 
+      <motion.select
+        className="border p-2 w-full mb-2"
+        value={selectedDoctor?.email || ''}
+        onChange={(e) => {
+          const selected = doctors.find((d) => d.email === e.target.value);
+          setSelectedDoctor(selected || null);
+          setSelectedTimeslot('');
+        }}
+      >
+        <motion.option value="">Select a Doctor</motion.option>
+        {doctors.map((doc) => (
+          <motion.option key={doc.id} value={doc.email}>
+            {doc.fullName}
+          </motion.option>
+        ))}
+      </motion.select>
+
+      {selectedDoctor && selectedDoctor.timeslots?.length > 0 && (
         <motion.select
           className="border p-2 w-full mb-2"
-          value={selectedDoctor?.email || ''}
-          onChange={(e) => {
-            const selected = doctors.find((d) => d.email === e.target.value);
-            setSelectedDoctor(selected || null);
-            setSelectedTimeslot('');
+          value={selectedTimeslot}
+          title="Select a Timeslot"
+          onChange={(e) => setSelectedTimeslot(e.target.value)}
+        >
+          <motion.option value="">Select a Timeslot</motion.option>
+          {selectedDoctor.timeslots
+            .filter((slot) => new Date(slot) > new Date())
+            .sort((a, b) => new Date(a) - new Date(b))
+            .map((slot) => (
+              <motion.option key={slot} value={slot}>
+                {new Date(slot).toLocaleString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                })}
+              </motion.option>
+            ))}
+        </motion.select>
+      )}
+
+      <motion.input
+        type="text"
+        className="border p-2 w-full mb-2"
+        placeholder="Enter your name"
+        value={patientName}
+        onChange={(e) => setPatientName(e.target.value)}
+      />
+
+      <motion.button
+        onClick={handleBooking}
+        className={`p-2 rounded w-full text-white ${
+          selectedDoctor && selectedTimeslot && patientName && patientEmail && isSignedIn
+            ? 'bg-purple-500 hover:bg-purple-600'
+            : 'bg-gray-400 cursor-not-allowed'
+        }`}
+        disabled={
+          !selectedDoctor || !selectedTimeslot || !patientName || !patientEmail || !isSignedIn
+        }
+      >
+        Book Appointment
+      </motion.button>
+
+      {loadingAppointments && <motion.p>Loading your appointments...</motion.p>}
+
+      {appointments.length > 0 && (
+        <motion.div
+          className="mt-6"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.15 } },
           }}
         >
-          <motion.option value="">Select a Doctor</motion.option>
-          {doctors.map((doc) => (
-            <motion.option key={doc.id} value={doc.email}>
-              {doc.fullName}
-            </motion.option>
-          ))}
-        </motion.select>
-
-        {selectedDoctor && selectedDoctor.timeslots?.length > 0 && (
-          <motion.select
-            className="border p-2 w-full mb-2"
-            value={selectedTimeslot}
-            title="Select a Timeslot"
-            onChange={(e) => setSelectedTimeslot(e.target.value)}
+          <motion.h2
+            className="text-2xl font-semibold mb-4 border-b pb-2"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0, transition: { delay: 0.1 } }}
           >
-            <motion.option value="">Select a Timeslot</motion.option>
-            {selectedDoctor.timeslots
-              .filter((slot) => new Date(slot) > new Date())
-              .sort((a, b) => new Date(a) - new Date(b))
-              .map((slot) => (
-                <motion.option key={slot} value={slot}>
-                  {new Date(slot).toLocaleString('en-US', {
-                    weekday: 'long',
+            Your Appointments
+          </motion.h2>
+
+          <motion.ul className="space-y-4">
+            {appointments.map((appt) => (
+              <motion.li
+                key={appt.id}
+                className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg hover:bg-purple-50 transition-shadow duration-300"
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                <motion.div className="flex justify-between items-center mb-2">
+                  <motion.p className="font-semibold text-lg text-purple-700">
+                    {appt.doctorName}
+                  </motion.p>
+
+                  <div className="flex gap-2">
+                    <motion.button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReschedulingId(appt.id);
+                      }}
+                      className="rounded-lg text-orange-800 font-semibold px-4 py-2 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Reschedule
+                    </motion.button>
+
+                    <motion.button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelAppointment(appt);
+                      }}
+                      className="rounded-lg text-orange-800 font-semibold px-4 py-2 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Cancel
+                    </motion.button>
+                  </div>
+                </motion.div>
+
+                {reschedulingId === appt.id && (
+                  <motion.div className="flex flex-col gap-2 mb-3">
+                    <select
+                      value={reschedulingTimeslot}
+                      onChange={(e) => setReschedulingTimeslot(e.target.value)}
+                      className="px-3 py-2 rounded border border-gray-300"
+                    >
+                      <option value="">Select new timeslot</option>
+                      {doctors
+                        ?.find((doc) => doc.email === appt.doctorEmail)
+                        ?.timeslots.filter((slot) => slot !== appt.timeslot)
+                        .map((slot) => (
+                          <option key={slot} value={slot}>
+                            {new Date(slot).toLocaleString('en-US', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </option>
+                        ))}
+                    </select>
+
+                    <div className="flex justify-end gap-2">
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRescheduleAppointment(appt, reschedulingTimeslot);
+                        }}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                      >
+                        Confirm
+                      </motion.button>
+
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReschedulingId(null);
+                          setReschedulingTimeslot('');
+                        }}
+                        className="rounded-lg text-orange-800 font-semibold px-4 py-2 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Cancel
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                )}
+
+                <motion.p className="text-gray-700 mt-2">
+                  <motion.strong>Time: </motion.strong>
+                  {new Date(appt.timeslot).toLocaleString('en-US', {
+                    weekday: 'short',
                     year: 'numeric',
-                    month: 'long',
+                    month: 'short',
                     day: 'numeric',
                     hour: 'numeric',
                     minute: '2-digit',
                     hour12: true,
                   })}
-                </motion.option>
-              ))}
-          </motion.select>
-        )}
+                </motion.p>
 
-        <motion.input
-          type="text"
-          className="border p-2 w-full mb-2"
-          placeholder="Enter your name"
-          value={patientName}
-          onChange={(e) => setPatientName(e.target.value)}
-        />
-
-        <motion.button
-          onClick={handleBooking}
-          className={`p-2 rounded w-full text-white ${
-            selectedDoctor && selectedTimeslot && patientName && patientEmail && isSignedIn
-              ? 'bg-purple-500 hover:bg-purple-600'
-              : 'bg-gray-400 cursor-not-allowed'
-          }`}
-          disabled={
-            !selectedDoctor || !selectedTimeslot || !patientName || !patientEmail || !isSignedIn
-          }
-        >
-          Book Appointment
-        </motion.button>
-
-        {loadingAppointments && <motion.p>Loading your appointments...</motion.p>}
-
-        {appointments.length > 0 && (
-  <motion.div 
-    className="mt-6"
-    initial="hidden"
-    animate="visible"
-    variants={{
-      hidden: { opacity: 0, y: 20 },
-      visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.15 } },
-    }}
-  >
-    <motion.h2
-      className="text-2xl font-semibold mb-4 border-b pb-2"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0, transition: { delay: 0.1 } }}
-    >
-      Your Appointments
-    </motion.h2>
-
-    <motion.ul className="space-y-4">
-      {appointments.map((appt) => (
-        <motion.li
-          key={appt.id}
-          className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg hover:bg-purple-50 transition-shadow duration-300"
-          layout
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          whileHover={{ scale: 1.02 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          onClick={() => window.open(appt.meetLink, '_blank')}
-          title="Click to join meeting"
-        >
-          <motion.div className="flex justify-between items-center mb-2">
-            <motion.p className="font-semibold text-lg text-purple-700">{appt.doctorName}</motion.p>
-            <motion.button onClick={(e) => {
-              e.stopPropagation();
-              const newTimeslot = prompt("Enter new timeslot:", appt.timeslot);
-              if (newTimeslot) handleRescheduleAppointment(appt, newTimeslot);
-            }}
-            className=" rounded-lg text-orange-800 font-semibold text-lg py-2 px-4 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
-            whileHover={{ scale: 1.05 }}
-            >
-              Reschedule
-              </motion.button>
-            <motion.button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCancelAppointment(appt.id, appt.doctorEmail, appt.timeslot, appt);
-              }}
-              className="text-left rounded-lg text-orange-800 font-semibold text-lg py-2 px-4 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
-			  whileHover={{ scale: 1.05 }}
-            >
-              Cancel
-            </motion.button>
-          </motion.div>
-
-          <motion.p className="text-gray-700">
-            <motion.strong>Time: </motion.strong>
-            {new Date(appt.timeslot).toLocaleString('en-US', {
-              weekday: 'short',
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true,
-            })}
-          </motion.p>
-
-          <motion.p className="mt-1 text-purple-600 underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
-            <motion.a href={appt.meetLink} target="_blank" rel="noopener noreferrer">
-              Join Meeting
-            </motion.a>
-          </motion.p>
-        </motion.li>
-      ))}
-    </motion.ul>
-  </motion.div>
-)}
-      </motion.div>
+                <motion.p
+                  className="mt-1 text-purple-600 underline cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <motion.a href={appt.meetLink} target="_blank" rel="noopener noreferrer"
+                  onClick={() => window.open(appt.meetLink, '_blank')}
+                title="Click to join meeting">
+                    Join Meeting
+                  </motion.a>
+                </motion.p>
+              </motion.li>
+            ))}
+          </motion.ul>
+        </motion.div>
+      )}
     </motion.div>
-  );
+  </motion.div>
+);
+
 };
 
 export default AppointmentBooking;
