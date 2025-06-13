@@ -1,52 +1,103 @@
 import emailjs from 'emailjs-com';
+import { format } from 'path-browserify';
 
 const SERVICE_ID = 'theramind_service';
+const CANCELLATION_TEMPLATE = 'cancellation_template';
+const RESCHEDULE_TEMPLATE = 'rescheduling_template';
 const USER_ID = 'TA0YUZ8PvIadVetlu';
+const CANCEL_USER_ID = 'VsfE_hs5ETC-r3Qmc';
 
 export const sendCancelEmail = async ({
-  patient_name,
-  doctor_name,
-  doctor_email,
-  patient_email,
-  time,
-  cancelled_by,
+  patientName,
+  doctorName,
+  patientEmail,
+  timeslot,
+  cancelled_by
 }) => {
+   if (!patientEmail) {
+    console.log("Patient email: ", patientEmail);
+    throw new Error("Patient email is required to send cancellation email.");
+    
+  }
   try {
-    await emailjs.send(SERVICE_ID, 'cancel_email_template', {
-      patient_name,
-      doctor_name,
-      doctor_email,
-      patient_email,
-      time: new Date(time).toLocaleString(),
-      cancelled_by,
-    }, USER_ID);
+    const templateParams = {
+      patient_name: patientName,
+      doctor_name: doctorName,
+      email: patientEmail,
+      timeslot: new Date(timeslot).toLocaleString(),
+      cancelled_by: patientName || 'Unknown',
+    };
+
+    console.log("EmailJS cancellation payload:", templateParams);
+
+    const response = await emailjs.send(
+      SERVICE_ID,
+      CANCELLATION_TEMPLATE,
+      templateParams,
+      CANCEL_USER_ID
+    );
+
+    console.log('Appointment confirmation email sent:',patientEmail, response.status, response.text);
   } catch (error) {
-    console.error('Error sending cancel email:', error);
+    console.error('Error sending appointment confirmation email:', error);
+    throw error;
   }
 };
 
 export const sendRescheduleEmail = async ({
-  patient_name,
-  doctor_name,
-  doctor_email,
-  patient_email,
-  old_time,
-  new_time,
-  meet_link,
-  rescheduled_by,
+  patientName,
+  doctorName,
+  patientEmail,
+  doctorEmail,
+  oldTime,
+  newTime,
+  meetLink,
+  rescheduledBy,
 }) => {
+    const recipientEmail = patientEmail?.trim() || doctorEmail?.trim() || '';
+
+  if (!recipientEmail) {
+    console.error('❌ No valid recipient email found. Rescheduling email not sent.',  
+      patientEmail,
+      doctorEmail,
+  );
+    return;
+  }
   try {
-    await emailjs.send(SERVICE_ID, 'reschedule_email_template', {
-      patient_name,
-      doctor_name,
-      doctor_email,
-      patient_email,
-      old_time: new Date(old_time).toLocaleString(),
-      new_time: new Date(new_time).toLocaleString(),
-      meet_link,
-      rescheduled_by,
-    }, USER_ID);
+    const formatTime = (isoString) => {
+    const date = new Date(isoString);
+    return isNaN(date.getTime())
+      ? "Unavailable"
+      : date.toLocaleString("en-GB", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+      };
+    const templateParams = {
+      patient_name: patientName,
+      doctor_name: doctorName,
+      email: recipientEmail,
+      new_time: formatTime(newTime),
+      meet_link: meetLink,
+      rescheduled_by: rescheduledBy,
+    };
+
+    console.log('Template Params (Cancel):', templateParams);
+    const response = await emailjs.send(
+      SERVICE_ID,
+      RESCHEDULE_TEMPLATE,
+      templateParams,
+      USER_ID
+    );
+
+    console.log('Appointment reschedule email sent:', response.status, response.text);
   } catch (error) {
-    console.error('Error sending reschedule email:', error);
+    console.error('Error sending appointment reschedule email:', error);
+    throw error;
   }
 };

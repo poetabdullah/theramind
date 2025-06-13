@@ -71,17 +71,59 @@ export function requestAccessToken(prompt = 'consent') {
   });
 }
 
+export async function refreshAccessToken(refreshToken) {
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(`Failed to refresh access token: ${data.error}`);
+  }
+
+  return data.access_token;
+}
+
+export async function deleteEventWithToken(calendarId, eventId, accessToken) {
+  const res = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (res.status !== 204) {
+    const errorText = await res.text();
+    throw new Error(`Failed to delete event: ${res.status} ${errorText}`);
+  }
+}
+
 // Create a Google Calendar event with Meet link
-export async function createGoogleMeetEvent(summary, description, startISO, endISO, patientEmail) {
+export async function createGoogleMeetEvent(summary, description, startISO, endISO, patientEmail, doctorEmail) {
   const token = accessToken || localStorage.getItem("google_calendar_access_token");
   if (!token) throw new Error("No access token");
 
   const body = {
     summary,
     description,
-    start: { dateTime: startISO, timeZone: "Asia/Kolkata" },
-    end: { dateTime: endISO, timeZone: "Asia/Kolkata" },
-    attendees: [{ email: patientEmail }],
+    start: { dateTime: startISO, timeZone: "Asia/Karachi" },
+    end: { dateTime: endISO, timeZone: "Asia/Karachi" },
+    attendees: 
+    [
+      { email: patientEmail},
+      { email: doctorEmail }
+      ],
     conferenceData: {
       createRequest: {
         requestId: crypto.randomUUID(),
@@ -116,17 +158,41 @@ export async function createGoogleMeetEvent(summary, description, startISO, endI
 }
 
 // Delete a Google Calendar event
-export const deleteGoogleCalendarEvent = async (eventId, accessToken) => {
+export const deleteGoogleCalendarEvent = async (calendarId, eventId) => {
+  const token = accessToken || localStorage.getItem("google_calendar_access_token");
+  if (!token) throw new Error("No access token available");
+
   try {
     const response = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${eventId}`,
       {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
+
+    if (response.status === 401) {
+      // Try refreshing the token once
+      const newToken = await requestAccessToken("consent");
+      const retryResponse = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${newToken}`,
+          },
+        }
+      );
+
+      if (!retryResponse.ok) {
+        const retryError = await retryResponse.json();
+        throw new Error(`Retry failed: ${retryResponse.status} - ${JSON.stringify(retryError)}`);
+      }
+
+      return { success: true };
+    }
 
     if (response.status === 410) {
       console.warn("Event already deleted.");
