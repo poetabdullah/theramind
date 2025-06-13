@@ -49,12 +49,10 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
 
       // Send email notification
       await sendCancelEmail({
-        patient_name: appData.patientName,
-        doctor_name: appData.doctorName,
-        doctor_email: appData.doctorEmail,
-        patient_email: appData.patientEmail,
-        time: timeslot,
-        cancelled_by: userRole,
+        patientName: appData.patientName,
+        doctorName: appData.doctorName,
+        patientEmail: appData.patientEmail,
+        timeslot,
       });
 
       alert("Appointment cancelled successfully.");
@@ -81,16 +79,16 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
       });
 
       // Send email notification
-      await sendRescheduleEmail({
-        patient_name: appData.patientName,
-        doctor_name: appData.doctorName,
-        doctor_email: appData.doctorEmail,
-        patient_email: appData.patientEmail,
-        old_time: oldTimeslot,
-        new_time: newTimeslot,
-        meet_link: appData.meetLink,
-        rescheduled_by: userRole,
-      });
+     await sendRescheduleEmail({
+      patientName: appData.patientName,
+      doctorName: appData.doctorName,
+      doctorEmail: appData.doctorEmail,
+      patientEmail: appData.patientEmail,
+      oldTime: oldTimeslot,
+      newTime: newTimeslot,
+      meetLink: appData.meetLink,
+      rescheduledBy: userRole,
+    });
 
       alert("Appointment rescheduled successfully!");
     } catch (error) {
