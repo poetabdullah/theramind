@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { db } from "../firebaseConfig.js";
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import ListViewCard from './ListViewCard.js';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import ListViewCard from "./ListViewCard.js";
 import { useNavigate } from "react-router-dom";
 
 const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
@@ -29,24 +36,24 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
     "Symmetry OCD": "OCD",
     "Contamination OCD": "OCD",
     "Checking OCD": "OCD",
-  }
+  };
 
   //Fetch Healing Tips & Meditational Links From Firestore
   const fetchHealingData = async () => {
     try {
-      const docRef = doc(db, 'healingTips', diagnosedSubtype);
+      const docRef = doc(db, "healingTips", diagnosedSubtype);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
         setRecommendations(data.tips || []);
         setMeditations(data.meditation || []);
       } else {
-        console.warn('No healing tips found for subtype:', diagnosedSubtype);
+        console.warn("No healing tips found for subtype:", diagnosedSubtype);
         setRecommendations([]);
         setMeditations([]);
       }
     } catch (error) {
-      console.error('Error fetching healing tips:', error);
+      console.error("Error fetching healing tips:", error);
     }
   };
 
@@ -57,65 +64,73 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
       return;
     }
 
-      const q = query(
-        collection(db, "doctors"),
-        where("subtypeTags", "array-contains", subtype),
-        where("status", "==", "active")
-      );
-      const querySnapshot = await getDocs(q);
-      const doctors = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log("Matched doctors by subtype:", doctors);
-      setDoctorProfile(doctors);
-
-    };
-
-    //Fetching Articles Matching The Subtype
-  const fetchArticlesBySubtype = async (diagnosedSubtype) => {
-  const parentCondition = conditionMapping[diagnosedSubtype];
-  if (!parentCondition) {
-    console.warn("No parent condition found for:", diagnosedSubtype);
-    return;
-  }
-
-  try {
     const q = query(
-      collection(db, "articles"),
-      where("selectedTags", "array-contains", parentCondition)
+      collection(db, "doctors"),
+      where("subtypeTags", "array-contains", subtype),
+      where("status", "==", "active")
     );
     const querySnapshot = await getDocs(q);
+    const doctors = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    console.log("Matched doctors by subtype:", doctors);
+    setDoctorProfile(doctors);
+  };
 
-    const filteredArticles = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setSubtypeRelatedArticles(filteredArticles);
-    console.log("Fetching articles:", filteredArticles);
-  } catch (error) {
-    console.error("Error fetching articles:", error);
-    setSubtypeRelatedArticles([]);
-  }
-};
+  //Fetching Articles Matching The Subtype
+  const fetchArticlesBySubtype = async (diagnosedSubtype) => {
+    const parentCondition = conditionMapping[diagnosedSubtype];
+    if (!parentCondition) {
+      console.warn("No parent condition found for:", diagnosedSubtype);
+      return;
+    }
+
+    try {
+      const q = query(
+        collection(db, "articles"),
+        where("selectedTags", "array-contains", parentCondition)
+      );
+      const querySnapshot = await getDocs(q);
+
+      const filteredArticles = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setSubtypeRelatedArticles(filteredArticles);
+      console.log("Fetching articles:", filteredArticles);
+    } catch (error) {
+      console.error("Error fetching articles:", error);
+      setSubtypeRelatedArticles([]);
+    }
+  };
 
   //Fetching Patient Stories Matching The Subtype
   const fetchPatientStoriesBySubtype = async (diagnosedSubtype) => {
-  const parentCondition = conditionMapping[diagnosedSubtype];
-  if (!parentCondition) {
-    console.warn("No parent condition found for:", diagnosedSubtype);
-    return;
-  }
+    const parentCondition = conditionMapping[diagnosedSubtype];
+    if (!parentCondition) {
+      console.warn("No parent condition found for:", diagnosedSubtype);
+      return;
+    }
 
-  try {
-    const q = query(
-      collection(db, "patient_stories"),
-      where("selectedTags", "array-contains", parentCondition)
-    );
-    const querySnapshot = await getDocs(q);
+    try {
+      const q = query(
+        collection(db, "patient_stories"),
+        where("selectedTags", "array-contains", parentCondition)
+      );
+      const querySnapshot = await getDocs(q);
 
-    const filteredStories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setPatientStories(filteredStories);
-    console.log("Fetching patient stories:", filteredStories);
-  } catch (error) {
-    console.error("Error fetching patient stories:", error);
-    setPatientStories([]);
-  }
-};
+      const filteredStories = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPatientStories(filteredStories);
+      console.log("Fetching patient stories:", filteredStories);
+    } catch (error) {
+      console.error("Error fetching patient stories:", error);
+      setPatientStories([]);
+    }
+  };
 
   useEffect(() => {
     if (diagnosedSubtype) {
@@ -150,7 +165,8 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          Sorry, we couldn't find any doctor specializing in your condition at the moment.
+          Sorry, we couldn't find any doctor specializing in your condition at
+          the moment.
         </motion.p>
       ) : (
         <motion.div
@@ -197,7 +213,9 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
                 whileHover={{ scale: 1.02, color: "#f472b6" }}
                 transition={{ duration: 0.3, delay: 0.2 }}
               >
-                {doctor.specialties?.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}
+                {doctor.specialties
+                  ?.map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                  .join(", ")}
               </motion.p>
             </motion.div>
           ))}
@@ -224,7 +242,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
         <>
           <motion.h3
             className="text-3xl font-bold text-purple-800 mb-4 mt-2 text-center"
-            style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.1)' }}
+            style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)" }}
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -260,7 +278,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
           {/* Meditation Videos */}
           <motion.h3
             className="text-3xl font-bold text-purple-800 mb-6 mt-2 text-center"
-            style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.1)' }}
+            style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)" }}
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -280,13 +298,15 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
                 whileHover={{
                   scale: 1.03,
                   backgroundColor: "#ede9fe",
-                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)"
+                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
                 }}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 * index, duration: 0.5 }}
               >
-                <h4 className="text-xl font-semibold text-purple-800 mb-2">{video.title}</h4>
+                <h4 className="text-xl font-semibold text-purple-800 mb-2">
+                  {video.title}
+                </h4>
                 <a
                   href={video.url}
                   target="_blank"
@@ -300,7 +320,11 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
           </motion.div>
 
           {/* Subtype Related Articles */}
-          {subtypeRelatedArticles.length === 0 && <p className="text-bold text-2xl pt-4 text-center text-red-500">No articles found</p>}
+          {subtypeRelatedArticles.length === 0 && (
+            <p className="text-bold text-2xl pt-4 text-center text-red-500">
+              No articles found
+            </p>
+          )}
           {subtypeRelatedArticles.length > 0 && (
             <>
               <motion.h3
@@ -318,17 +342,24 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
               >
-                {subtypeRelatedArticles.map((articles) => (
+                {subtypeRelatedArticles.map((article) => (
                   <ListViewCard
-                    key={articles.id}
-                    id={articles.id}
-                    title={articles.title}
-                    author={articles.author_name || "Unknown"}
-                    date={articles.createdAt || articles.date}
-                    tags={articles.selectedTags}
-                    content={articles.content}
-                    link={articles.link}
-                    type="article"
+                    key={article.id}
+                    title={article.title}
+                    content={article.content || "No content available"}
+                    author={article.author_name || "Unknown"}
+                    date={
+                      article.date_time
+                        ? new Date(
+                            article.date_time.seconds * 1000
+                          ).toLocaleDateString()
+                        : "No date available"
+                    }
+                    tags={Object.values(article.selectedTags || {})}
+                    link={`/articles/${article.id}`}
+                    titleColor="text-orange-700"
+                    tagColor="bg-orange-200 text-orange-700"
+                    borderColor="border-orange-500"
                   />
                 ))}
               </motion.div>
@@ -336,7 +367,11 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
           )}
 
           {/* Subtype Related Patient Stories */}
-          {patientStories.length === 0 && <p className="text-bold text-2xl pt-3 text-center text-red-500">No patient stories found</p>}
+          {patientStories.length === 0 && (
+            <p className="text-bold text-2xl pt-3 text-center text-red-500">
+              No patient stories found
+            </p>
+          )}
           {patientStories.length > 0 && (
             <>
               <motion.h3
@@ -354,17 +389,30 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
               >
-                {patientStories.map((patient_stories) => (
+                {patientStories.map((story) => (
                   <ListViewCard
-                    key={patient_stories.id}
-                    id={patient_stories.id}
-                    title={patient_stories.title}
-                    author={patient_stories.author_name || "Unknown"}
-                    date={patient_stories.createdAt || patient_stories.date}
-                    tags={patient_stories.selectedTags}
-                    content={patient_stories.content}
-                    link={patient_stories.link}
+                    key={story.id}
+                    id={story.id}
+                    title={story.title}
+                    content={
+                      typeof story.content === "string"
+                        ? story.content.slice(0, 150) + "..."
+                        : "No content available"
+                    }
+                    author={story.author_name || "Unknown"}
+                    date={
+                      story.date_time
+                        ? new Date(
+                            story.date_time.seconds * 1000
+                          ).toLocaleDateString()
+                        : "No date available"
+                    }
+                    tags={Object.values(story.selectedTags || {})}
+                    link={`/stories/${story.id}`}
                     type="patient_story"
+                    titleColor="text-purple-700"
+                    tagColor="bg-purple-200 text-purple-700"
+                    borderColor="border-purple-500"
                   />
                 ))}
               </motion.div>
