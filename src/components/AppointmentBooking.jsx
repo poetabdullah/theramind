@@ -161,6 +161,15 @@ const AppointmentBooking = () => {
         return;
       }
 
+      const activeAppointment = query(collection(db, 'appointments'),
+        where('patientEmail', '==', patientEmail)
+      );
+
+      const existingAppointments = await getDocs(activeAppointment);
+      if (!existingAppointments.empty) {  
+        alert('You already have an appointment with a doctor. Cancel it before booking a new one.');
+        return; }
+
       // Check for duplicate appointment at this timeslot for this patient
       const q = query(
         collection(db, 'appointments'),
