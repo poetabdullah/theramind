@@ -18,9 +18,10 @@ import { sendAppointmentConfirmationEmail } from './AppointmentConfirmationEmail
 import { deleteGoogleCalendarEvent, refreshAccessToken, deleteEventWithToken } from '../utils/google_api';
 import { arrayUnion } from 'firebase/firestore';
 import { sendCancelEmail } from '../utils/sendEmail';
-import { set } from 'date-fns';
-import { send } from 'emailjs-com';
 import { sendRescheduleEmail } from '../utils/sendEmail';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { FaUserMd, FaChevronDown, FaChevronUp, FaStethoscope } from "react-icons/fa";
 
 export async function cancelAppointmentAsDoctor(appointmentId, currentDoctorEmail) {
   const appointmentRef = doc(db, "appointments", appointmentId);
@@ -62,6 +63,7 @@ const AppointmentBooking = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [reschedulingId, setReschedulingId] = useState(null);
   const [reschedulingTimeslot, setReschedulingTimeslot] = useState('');
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -157,9 +159,18 @@ const AppointmentBooking = () => {
       const updatedDoctor = updatedDoctorSnap.data();
 
       if (!updatedDoctor?.timeslots?.includes(selectedTimeslot)) {
-        alert('This timeslot is no longer available.');
+        toast.warning('This timeslot is no longer available.');
         return;
       }
+
+      const activeAppointment = query(collection(db, 'appointments'),
+        where('patientEmail', '==', patientEmail)
+      );
+
+      const existingAppointments = await getDocs(activeAppointment);
+      if (!existingAppointments.empty) {  
+        toast.info('You already have an appointment with a doctor. Cancel it before booking a new one.');
+        return; }
 
       // Check for duplicate appointment at this timeslot for this patient
       const q = query(
@@ -169,7 +180,7 @@ const AppointmentBooking = () => {
       );
       const existingSnapshot = await getDocs(q);
       if (!existingSnapshot.empty) {
-        alert('You already have an appointment at this time.');
+        toast.warning('You already have an appointment at this time.');
         return;
       }
 
@@ -226,12 +237,12 @@ const AppointmentBooking = () => {
 
       setAppointments((prev) => [...prev, { id: appointmentId, ...newAppointment }]);
 
-      alert('Appointment Booked Successfully!');
+      toast.success('Appointment Booked Successfully!');
       setSelectedDoctor(null);
       setSelectedTimeslot('');
     } catch (err) {
       console.error('Booking failed:', err);
-      alert('Booking failed: ' + (err?.message || JSON.stringify(err)));
+      toast.error('Booking failed: ' + (err?.message || JSON.stringify(err)));
     }
   };
 
@@ -277,10 +288,10 @@ const AppointmentBooking = () => {
     // Remove from UI
     setAppointments((prev) => prev.filter((appt) => appt.id !== appointmentId));
 
-    alert("Appointment cancelled successfully.");
+    toast.success("Appointment cancelled successfully.");
   } catch (error) {
     console.error("Cancellation failed:", error);
-    alert("Something went wrong while canceling. Please try again.");
+    toast.info("Something went wrong while canceling. Please try again.");
     console.log("Patient email: ", patientEmail);
   }
 };
@@ -306,7 +317,7 @@ const handleRescheduleAppointment = async (
     const newEnd = new Date(newStart.getTime() + 30 * 60000);
 
     if (isNaN(newStart.getTime())) {
-      alert("Invalid date format. Please use a valid date.");
+      toast.warning("Invalid date format. Please use a valid date.");
       return;
     }
 
@@ -315,7 +326,7 @@ const handleRescheduleAppointment = async (
     const doctorRef = doc(db, "doctors", doctorDoc.id);
 
     if (!doctorDoc.timeslots.includes(new_time)) {
-      alert("This timeslot is no longer available.");
+      toast.info("This timeslot is no longer available.");
       return;
     }
 
@@ -344,11 +355,13 @@ const handleRescheduleAppointment = async (
     const existingTimeslots = Array.isArray(doctorDoc.timeslots) ? doctorDoc.timeslots : [];
 
     const updatedTimeslots = Array.from(
-      new Set(
-        existingTimeslots
-          .filter((slot) => slot !== selectedTimeslot)
-      )
-    );
+      new Set([
+        //Rescheduled Timeslot Removed Because It Is Booked Now
+        ...doctorDoc.timeslots.filter((slot) => slot !== new_time), 
+        //Adding Back The Old Timeslot
+        appointment.timeslot 
+        ])
+       );
 
     console.log("existingTimeslots:", existingTimeslots);
     console.log("updatedTimeslots:", updatedTimeslots);
@@ -361,7 +374,7 @@ const handleRescheduleAppointment = async (
       patientEmail: appPatientEmail,
       doctorEmail: appDoctorEmail,
     });
-
+    
     await sendRescheduleEmail({
       patientName,
       doctorName,
@@ -378,33 +391,46 @@ const handleRescheduleAppointment = async (
       )
     );
 
-    alert("Appointment rescheduled successfully!");
+    toast.success("Appointment rescheduled successfully!");
   } catch (error) {
     console.error("Rescheduling failed:", error);
-    alert("Failed to reschedule appointment: " + (error?.message || JSON.stringify(error)));
+    toast.error("Failed to reschedule appointment: " + (error?.message || JSON.stringify(error)));
   }
 };
 
  return (
+  <>
+  <ToastContainer position="bottom-right" autoClose={3000} />
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.5 }}
   >
-    <motion.div className="container mx-auto p-4">
-      <motion.h1 className="text-2xl font-bold mb-4">Book an Appointment</motion.h1>
+    <motion.div className="container mx-auto p-4"
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, ease: 'easeOut' }}>
+      <motion.h1 
+      className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-700 to-indigo-800 text-transparent bg-clip-text"
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: 0.1, duration: 0.6 }}>
+        Book an Appointment</motion.h1>
 
-      {error && <p className="text-red-500 mb-2">{error}</p>}
+      {error && <motion.p className="text-red-500 mb-2">{error}</motion.p>}
 
       <motion.select
-        className="border p-2 w-full mb-2"
+        className="border rounded p-2 w-full mb-2 shadow-sm"
         value={selectedDoctor?.email || ''}
         onChange={(e) => {
           const selected = doctors.find((d) => d.email === e.target.value);
           setSelectedDoctor(selected || null);
           setSelectedTimeslot('');
         }}
+        whileFocus={{ scale: 1.02 }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ type: 'spring', stiffness: 200 }}
       >
         <motion.option value="">Select a Doctor</motion.option>
         {doctors.map((doc) => (
@@ -413,47 +439,116 @@ const handleRescheduleAppointment = async (
           </motion.option>
         ))}
       </motion.select>
+        {/* Showing Doctor's Details */}
+      {selectedDoctor && (
+        <motion.div
+        className="border rounded-2xl p-4 shadow-md bg-white mb-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <motion.h2 className="text-2xl font-semibold text-purple-700 flex items-center justify-between">
+          <motion.span className="flex items-center gap-2"><FaUserMd /> {selectedDoctor.fullName}</motion.span>
+          <motion.button onClick={() => setShowDetails(!showDetails)} className="text-purple-700">
+            {showDetails ? <FaChevronUp /> : <FaChevronDown />}
+          </motion.button>
+        </motion.h2>
+
+        <motion.p className="text-gray-700 flex items-center gap-2 mt-2">
+          <FaStethoscope /> <motion.strong className="font-medium">Specialty:</motion.strong> {selectedDoctor.specialties?.join(', ') || 'N/A'}
+        </motion.p>
+
+          {showDetails && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden mt-3 space-y-3"
+            >
+              {selectedDoctor.experiences?.length > 0 && (
+                <motion.div>
+                  <motion.h3 className="text-purple-600 font-semibold mb-1">Experience</motion.h3>
+                  <motion.ul className="text-sm list-disc ml-5">
+                    {selectedDoctor.experiences.map((exp, idx) => (
+                      <motion.li key={idx}>
+                        <motion.strong>{exp.role}</motion.strong> at {exp.org} ({exp.start} - {exp.end})
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </motion.div>
+              )}
+
+              {selectedDoctor.education?.length > 0 && (
+                <motion.div>
+                  <motion.h3 className="text-purple-600 font-semibold mb-1">Education</motion.h3>
+                  <motion.ul className="text-sm list-disc ml-5">
+                    {selectedDoctor.education.map((edu, idx) => (
+                      <motion.li key={idx}>
+                        {edu.degree}, {edu.institute} ({edu.gradDate})
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </motion.div>
+              )}
+
+              {selectedDoctor.bio && (
+                <motion.p className="text-gray-600 italic border-l-4 border-purple-400 pl-2">
+                  "{selectedDoctor.bio}"
+                </motion.p>
+              )}
+            </motion.div>
+            )}
+      </motion.div>
+       )}
 
       {selectedDoctor && selectedDoctor.timeslots?.length > 0 && (
         <motion.select
-          className="border p-2 w-full mb-2"
+          className="border rounded shadow-sm p-2 w-full mb-2"
           value={selectedTimeslot}
           title="Select a Timeslot"
           onChange={(e) => setSelectedTimeslot(e.target.value)}
+          whileFocus={{ scale: 1.02 }}
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: 'spring', stiffness: 200 }}
         >
-          <motion.option value="">Select a Timeslot</motion.option>
-          {selectedDoctor.timeslots
-            .filter((slot) => new Date(slot) > new Date())
-            .sort((a, b) => new Date(a) - new Date(b))
-            .map((slot) => (
-              <motion.option key={slot} value={slot}>
+          <option value="">Select a Timeslot</option>
+          {/* Filtering out past timeslots and sorting them */}
+          {[...selectedDoctor.timeslots]
+            .filter(slot => new Date(slot) > new Date()) 
+            .sort((a, b) => new Date(a) - new Date(b))  
+            .map(slot => (
+              <option key={slot} value={slot}>
                 {new Date(slot).toLocaleString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
-                  month: 'long',
+                  month: 'short',
                   day: 'numeric',
                   hour: 'numeric',
                   minute: '2-digit',
                   hour12: true,
                 })}
-              </motion.option>
+              </option>
             ))}
         </motion.select>
       )}
 
       <motion.input
         type="text"
-        className="border p-2 w-full mb-2"
+        className="border rounded shadow-sm p-2 w-full mb-2"
         placeholder="Enter your name"
         value={patientName}
         onChange={(e) => setPatientName(e.target.value)}
+        whileFocus={{ scale: 1.02 }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ type: 'spring', stiffness: 200 }}
       />
 
       <motion.button
         onClick={handleBooking}
-        className={`p-2 rounded w-full text-white ${
+        className={`p-2 rounded w-full text-white text-semibold text-xl ${
           selectedDoctor && selectedTimeslot && patientName && patientEmail && isSignedIn
-            ? 'bg-purple-500 hover:bg-purple-600'
+            ? 'bg-purple-500 hover:bg-gradient-to-r from-purple-500 to-purple-600 transition'
             : 'bg-gray-400 cursor-not-allowed'
         }`}
         disabled={
@@ -476,7 +571,7 @@ const handleRescheduleAppointment = async (
           }}
         >
           <motion.h2
-            className="text-2xl font-semibold mb-4 border-b pb-2"
+            className="text-3xl font-bold mb-4 border-b pb-2 bg-gradient-to-r from-purple-700 to-indigo-800 text-transparent bg-clip-text"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 0.1 } }}
           >
@@ -526,7 +621,10 @@ const handleRescheduleAppointment = async (
                 </motion.div>
 
                 {reschedulingId === appt.id && (
-                  <motion.div className="flex flex-col gap-2 mb-3">
+                  <motion.div className="flex flex-col gap-2 mb-3"
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ type: 'spring', stiffness: 200 }}>
                     <select
                       value={reschedulingTimeslot}
                       onChange={(e) => setReschedulingTimeslot(e.target.value)}
@@ -536,6 +634,7 @@ const handleRescheduleAppointment = async (
                       {doctors
                         ?.find((doc) => doc.email === appt.doctorEmail)
                         ?.timeslots.filter((slot) => slot !== appt.timeslot)
+                        .sort((a, b) => new Date(a) - new Date(b))
                         .map((slot) => (
                           <option key={slot} value={slot}>
                             {new Date(slot).toLocaleString('en-US', {
@@ -557,7 +656,7 @@ const handleRescheduleAppointment = async (
                           e.stopPropagation();
                           handleRescheduleAppointment(appt, reschedulingTimeslot);
                         }}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                        className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded hover:from-purple-600 hover:to-indigo-700 transition"
                       >
                         Confirm
                       </motion.button>
@@ -607,6 +706,7 @@ const handleRescheduleAppointment = async (
       )}
     </motion.div>
   </motion.div>
+  </>
 );
 
 };
