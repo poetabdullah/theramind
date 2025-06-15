@@ -15,6 +15,8 @@ import QuestionnaireResponses from "../components/QuestionnaireResponses";
 import TreatmentPlanView from "../components/TreatmentPlanView";
 import TerminatedTreatmentPlans from "../components/TerminatedTreatmentPlans";
 import axios from "axios";
+import PatientBookAppointment from "../components/PatientBookAppointment";
+import { motion } from "framer-motion";
 
 // Global variable for easier access to the backend:
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -611,22 +613,28 @@ const PatientDashboard = () => {
           </div>
 
           {/* Integrating QuestionnaireResponse Component */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
+          <motion.div className="mb-8">
+            <motion.div className="flex justify-between items-center mb-6">
+              <motion.h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
                 Questionnaire Assessment Response Summary
-              </h2>
-              <button
+              </motion.h2>
+              <motion.button
                 onClick={() => navigate("/start-screen")}
                 className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition"
               >
                 Take Questionnaire
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
             {/* Pass the email from the user state */}
             {user && <QuestionnaireResponses patientEmail={user.email} />}
-          </div>
+          </motion.div>
+
+          {/* Book Appointment Section */}
+          <motion.div
+            className="mb-8 p-6 bg-white rounded-2xl shadow border border-gray-200">
+              {user && <PatientBookAppointment patientEmail={user.email} />}
+            </motion.div>
 
           {/* === Treatment Plan Section === */}
           {planId && planMeta ? (
