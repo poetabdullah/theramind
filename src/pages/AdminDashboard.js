@@ -21,7 +21,9 @@ import {
 import { ref, listAll, getDownloadURL } from "firebase/storage";
 import AdminAnalytics from "../components/AdminAnalytics";
 import Footer from "../components/Footer";
-import { sendEmailNotification } from "../components/emailService";
+import { sendAccountStatusEmail } from "../components/emailService";
+import { toast } from 'react-toastify';
+import emailjs from '@emailjs/browser';
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -274,7 +276,7 @@ const AdminDashboard = () => {
       const doctorDoc = await getDoc(doctorRef);
       const doctorData = doctorDoc.data();
       
-      await sendEmailNotification({
+      await sendAccountStatusEmail({
         to: email,
         subject: `Doctor Application ${action === 'approve' ? 'Approved' : 'Rejected'}`,
         text: `Dear ${doctorData.name || 'Doctor'},\n\nYour application has been ${action === 'approve' ? 'approved' : 'rejected'} by the administrator.\n\n${action === 'approve' ? 'You can now log in to your account and start receiving patients.' : 'Please contact support if you have any questions.'}\n\nRegards,\nThe Admin Team`
@@ -297,92 +299,132 @@ const AdminDashboard = () => {
     }
   };
 
-  const handlePatientBlock = async (email, action) => {
+const handlePatientBlock = async (email, action) => {
+  try {
+    // 1. Initialize toast and loading state
+    toast.info('Processing request...', { autoClose: 1500 });
+    
+    // 2. Update patient status in Firebase
+    const patientRef = doc(db, "patients", email);
+    const newStatus = action === 'block' ? 'blocked' : 'active';
+    
+    await updateDoc(patientRef, { 
+      status: newStatus,
+      lastModified: new Date(),
+      modifiedBy: auth.currentUser.email
+    });
+
+    // 3. Terminate active sessions if blocking
+    if (action === 'block') {
+      // Delete from logged_in_users
+      const loggedInUserRef = doc(db, "logged_in_users", email);
+      await deleteDoc(loggedInUserRef).catch(() => {});
+      
+      // Delete all sessions
+      const sessionsQuery = query(
+        collection(db, "sessions"),
+        where("userId", "==", email)
+      );
+      const sessionsSnapshot = await getDocs(sessionsQuery);
+      await Promise.all(sessionsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
+    }
+
+    // 4. Get patient data for email
+    const patientDoc = await getDoc(patientRef);
+    const patientData = patientDoc.data();
+
+   await emailjs.send(
+  process.env.REACT_APP_EMAILJS_SERVICE_ID,
+  process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
+  {
+    to_email: email,  
+    recipient_name: patientData?.name || 'User',  
+    status: newStatus  
+  },
+  process.env.REACT_APP_EMAILJS_USER_ID
+);
+    // 6. Show success notification
+    toast.success(`Patient ${action === 'block' ? 'blocked' : 'activated'} successfully!`, {
+      autoClose: 3000
+    });
+
+  } catch (error) {
+    console.error('Error:', error);
+    toast.error(`Failed to ${action} patient: ${error.message}`, {
+      autoClose: 5000
+    });
+  }
+};
+const handleDeletePatient = async (email) => {
     try {
-      setLoading(true);
-      
-      const patientRef = doc(db, "patients", email);
-      const newStatus = action === 'block' ? 'blocked' : 'active';
-      
-      await updateDoc(patientRef, { 
-        status: newStatus,
-        lastModified: new Date(),
-        modifiedBy: auth.currentUser.email
-      });
-      
-      // Terminate all active sessions for blocked users
-      if (action === 'block') {
-        const sessionsQuery = query(
-          collection(db, "sessions"),
-          where("userId", "==", email)
+        setLoading(true);
+        
+        // 1. Get patient data before deletion
+        const patientRef = doc(db, "patients", email);
+        const patientDoc = await getDoc(patientRef);
+        const patientData = patientDoc.data();
+        
+        // 2. Log the action
+        await logAdminActivity(
+            auth.currentUser.email, 
+            'PATIENT_DELETION',
+            `Patient ${email} permanently deleted`,
+            { patientEmail: email }
         );
-        const sessionsSnapshot = await getDocs(sessionsQuery);
-        sessionsSnapshot.forEach(async (sessionDoc) => {
-          await deleteDoc(sessionDoc.ref);
+        
+        // 3. Send account deletion notification
+        await emailjs.send(
+            process.env.REACT_APP_EMAILJS_SERVICE_ID_STATUS,
+            process.env.REACT_APP_EMAILJS_TEMPLATE_STATUS,
+            {
+                recipient_name: patientData?.name || 'User',
+                user_type: 'patient',
+                status: 'deleted',
+                reason: 'Account permanently deleted by administrator',
+                action_date: new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }),
+                to_email: email
+            }
+        );
+        
+        // 4. Perform actual deletion
+        await deleteDoc(patientRef);
+        
+        // 5. Update UI
+        setSuccess({
+            title: 'Patient Deleted',
+            message: `Patient ${email} has been permanently deleted.`,
+            timestamp: new Date().toISOString()
         });
-      }
-      
-      // Send email notification
-      const patientDoc = await getDoc(patientRef);
-      const patientData = patientDoc.data();
-      
-      await sendEmailNotification({
-        to: email,
-        subject: `Account ${action === 'block' ? 'Blocked' : 'Activated'}`,
-        text: `Dear ${patientData.name || 'User'},\n\nYour account has been ${action === 'block' ? 'blocked by the administrator. You will no longer be able to access your account.' : 'activated. You can now log in and use the platform.'}\n\n${action === 'block' ? 'Please contact support if you believe this is an error.' : ''}\n\nRegards,\nThe Admin Team`
-      });
-      
-      // Log the action
-      await logAdminActivity(
-        auth.currentUser.email, 
-        action.toUpperCase(), 
-        `Patient ${email} ${action}ed`
-      );
-      
-      setSuccess(`Patient ${email} has been ${action}ed successfully.`);
-      setTimeout(() => setSuccess(null), 3000);
+        
+        setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
-      console.error(`Error ${action}ing patient:`, err);
-      setError(`Failed to ${action} patient. Please try again.`);
+        setLoading(false);
+        console.error("Error deleting patient:", err);
+        
+        setError({
+            title: 'Deletion Failed',
+            message: err.message || "Failed to delete patient. Please try again.",
+            details: `Failed to delete patient ${email}`,
+            timestamp: new Date().toISOString()
+        });
+
+        await logAdminActivity(
+            auth.currentUser.email,
+            'DELETE_FAILED',
+            `Failed to delete patient ${email}`,
+            { 
+                error: err.message,
+                patientEmail: email 
+            }
+        );
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
-
-  const handleDeletePatient = async (email) => {
-    if (!window.confirm(`Are you sure you want to permanently delete patient ${email}? This action cannot be undone.`)) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      await deleteDoc(doc(db, "patients", email));
-      
-      // Send email notification
-      await sendEmailNotification({
-        to: email,
-        subject: 'Account Deleted',
-        text: `Dear User,\n\nYour account has been permanently deleted by the administrator.\n\nRegards,\nThe Admin Team`
-      });
-      
-      // Log the action
-      await logAdminActivity(
-        auth.currentUser.email, 
-        'DELETE', 
-        `Patient ${email} permanently deleted`
-      );
-      
-      setSuccess(`Patient ${email} has been permanently deleted.`);
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      console.error("Error deleting patient:", err);
-      setError("Failed to delete patient. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+};
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -449,26 +491,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Welcome, {currentUser?.email}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Notifications */}
