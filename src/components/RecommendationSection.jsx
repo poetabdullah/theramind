@@ -320,13 +320,15 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
               >
                 {subtypeRelatedArticles.map((articles) => (
                   <ListViewCard
-                    key={articles.user_id}
+                    key={articles.id}
+                    id={articles.id}
                     title={articles.title}
                     author={articles.author_name || "Unknown"}
+                    date={articles.createdAt || articles.date}
                     tags={articles.selectedTags}
                     content={articles.content}
                     link={articles.link}
-                    type="articles"
+                    type="article"
                   />
                 ))}
               </motion.div>
@@ -354,13 +356,15 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
               >
                 {patientStories.map((patient_stories) => (
                   <ListViewCard
-                    key={patient_stories.user_id}
+                    key={patient_stories.id}
+                    id={patient_stories.id}
                     title={patient_stories.title}
                     author={patient_stories.author_name || "Unknown"}
+                    date={patient_stories.createdAt || patient_stories.date}
                     tags={patient_stories.selectedTags}
                     content={patient_stories.content}
                     link={patient_stories.link}
-                    type="patient_stories"
+                    type="patient_story"
                   />
                 ))}
               </motion.div>
