@@ -261,66 +261,49 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDoctorApproval = async (email, action) => {
-    try {
-      setLoading(true);
-      
-      const doctorRef = doc(db, "doctors", email);
-      await updateDoc(doctorRef, { 
-        status: action === 'approve' ? 'approved' : 'rejected',
-        reviewedAt: new Date(),
-        reviewedBy: auth.currentUser.email
-      });
-      
-      // Send email notification
-      const doctorDoc = await getDoc(doctorRef);
-      const doctorData = doctorDoc.data();
-      
-      await sendAccountStatusEmail({
-        to: email,
-        subject: `Doctor Application ${action === 'approve' ? 'Approved' : 'Rejected'}`,
-        text: `Dear ${doctorData.name || 'Doctor'},\n\nYour application has been ${action === 'approve' ? 'approved' : 'rejected'} by the administrator.\n\n${action === 'approve' ? 'You can now log in to your account and start receiving patients.' : 'Please contact support if you have any questions.'}\n\nRegards,\nThe Admin Team`
-      });
-      
-      // Log the action
-      await logAdminActivity(
-        auth.currentUser.email, 
-        action.toUpperCase(), 
-        `Doctor ${email} ${action}d`
-      );
-      
-      setSuccess(`Doctor ${email} has been ${action === 'approve' ? 'approved' : 'rejected'} successfully.`);
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      console.error(`Error ${action}ing doctor:`, err);
-      setError(`Failed to ${action} doctor. Please try again.`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-const handlePatientBlock = async (email, action) => {
+  // Doctor Approval Handler (keep original name)
+const handleDoctorApproval = async (email, action) => {
   try {
-    // 1. Initialize toast and loading state
-    toast.info('Processing request...', { autoClose: 1500 });
+    setLoading(true);
+    const status = action === 'approve' ? 'approved' : 'rejected';
+    const doctorRef = doc(db, "doctors", email);
     
-    // 2. Update patient status in Firebase
-    const patientRef = doc(db, "patients", email);
-    const newStatus = action === 'block' ? 'blocked' : 'active';
-    
-    await updateDoc(patientRef, { 
-      status: newStatus,
-      lastModified: new Date(),
-      modifiedBy: auth.currentUser.email
+    await updateDoc(doctorRef, { 
+      status: status,
+      reviewedAt: new Date(),
+      reviewedBy: auth.currentUser.email
     });
 
-    // 3. Terminate active sessions if blocking
+    const doctorDoc = await getDoc(doctorRef);
+    await sendAccountStatusEmail(
+      email,
+      doctorDoc.data().name,
+      status,
+      action === 'reject' ? 'Application did not meet requirements' : ''
+    );
+
+    toast.success(`Doctor ${status} successfully`);
+  } catch (error) {
+    toast.error(`Action failed: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Patient Block Handler (keep original name)
+const handlePatientBlock = async (email, action) => {
+  try {
+    setLoading(true);
+    const status = action === 'block' ? 'blocked' : 'active';
+    const patientRef = doc(db, "patients", email);
+    
+    await updateDoc(patientRef, { 
+      status: status,
+      lastModified: new Date()
+    });
+
     if (action === 'block') {
-      // Delete from logged_in_users
-      const loggedInUserRef = doc(db, "logged_in_users", email);
-      await deleteDoc(loggedInUserRef).catch(() => {});
-      
-      // Delete all sessions
+      // Terminate sessions
       const sessionsQuery = query(
         collection(db, "sessions"),
         where("userId", "==", email)
@@ -329,101 +312,43 @@ const handlePatientBlock = async (email, action) => {
       await Promise.all(sessionsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
     }
 
-    // 4. Get patient data for email
     const patientDoc = await getDoc(patientRef);
-    const patientData = patientDoc.data();
+    await sendAccountStatusEmail(
+      email,
+      patientDoc.data().name,
+      status,
+      action === 'block' ? 'Account suspended due to policy violation' : ''
+    );
 
-   await emailjs.send(
-  process.env.REACT_APP_EMAILJS_SERVICE_ID,
-  process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
-  {
-    to_email: email,  
-    recipient_name: patientData?.name || 'User',  
-    status: newStatus  
-  },
-  process.env.REACT_APP_EMAILJS_USER_ID
-);
-    // 6. Show success notification
-    toast.success(`Patient ${action === 'block' ? 'blocked' : 'activated'} successfully!`, {
-      autoClose: 3000
-    });
-
+    toast.success(`Patient ${status} successfully`);
   } catch (error) {
-    console.error('Error:', error);
-    toast.error(`Failed to ${action} patient: ${error.message}`, {
-      autoClose: 5000
-    });
+    toast.error(`Action failed: ${error.message}`);
+  } finally {
+    setLoading(false);
   }
 };
-const handleDeletePatient = async (email) => {
-    try {
-        setLoading(true);
-        
-        // 1. Get patient data before deletion
-        const patientRef = doc(db, "patients", email);
-        const patientDoc = await getDoc(patientRef);
-        const patientData = patientDoc.data();
-        
-        // 2. Log the action
-        await logAdminActivity(
-            auth.currentUser.email, 
-            'PATIENT_DELETION',
-            `Patient ${email} permanently deleted`,
-            { patientEmail: email }
-        );
-        
-        // 3. Send account deletion notification
-        await emailjs.send(
-            process.env.REACT_APP_EMAILJS_SERVICE_ID_STATUS,
-            process.env.REACT_APP_EMAILJS_TEMPLATE_STATUS,
-            {
-                recipient_name: patientData?.name || 'User',
-                user_type: 'patient',
-                status: 'deleted',
-                reason: 'Account permanently deleted by administrator',
-                action_date: new Date().toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }),
-                to_email: email
-            }
-        );
-        
-        // 4. Perform actual deletion
-        await deleteDoc(patientRef);
-        
-        // 5. Update UI
-        setSuccess({
-            title: 'Patient Deleted',
-            message: `Patient ${email} has been permanently deleted.`,
-            timestamp: new Date().toISOString()
-        });
-        
-        setTimeout(() => setSuccess(null), 5000);
-    } catch (err) {
-        setLoading(false);
-        console.error("Error deleting patient:", err);
-        
-        setError({
-            title: 'Deletion Failed',
-            message: err.message || "Failed to delete patient. Please try again.",
-            details: `Failed to delete patient ${email}`,
-            timestamp: new Date().toISOString()
-        });
 
-        await logAdminActivity(
-            auth.currentUser.email,
-            'DELETE_FAILED',
-            `Failed to delete patient ${email}`,
-            { 
-                error: err.message,
-                patientEmail: email 
-            }
-        );
-    } finally {
-        setLoading(false);
-    }
+// Patient Delete Handler (keep original name)
+const handleDeletePatient = async (email) => {
+  try {
+    setLoading(true);
+    const patientRef = doc(db, "patients", email);
+    const patientDoc = await getDoc(patientRef);
+    
+    await sendAccountStatusEmail(
+      email,
+      patientDoc.data().name,
+      'deleted',
+      'Account permanently removed by administrator'
+    );
+
+    await deleteDoc(patientRef);
+    toast.success("Patient deleted successfully");
+  } catch (error) {
+    toast.error(`Deletion failed: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
 };
   const handleLogout = async () => {
     try {
