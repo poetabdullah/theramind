@@ -1,11 +1,4 @@
 import emailjs from 'emailjs-com';
-import { format } from 'path-browserify';
-
-const SERVICE_ID = 'theramind_service';
-const CANCELLATION_TEMPLATE = 'cancellation_template';
-const RESCHEDULE_TEMPLATE = 'rescheduling_template';
-const USER_ID = 'TA0YUZ8PvIadVetlu';
-const CANCEL_USER_ID = 'VsfE_hs5ETC-r3Qmc';
 
 export const sendCancelEmail = async ({
   patientName,
@@ -31,10 +24,10 @@ export const sendCancelEmail = async ({
     console.log("EmailJS cancellation payload:", templateParams);
 
     const response = await emailjs.send(
-      SERVICE_ID,
-      CANCELLATION_TEMPLATE,
+      process.env.REACT_APP_EMAILJS_SERVICE_ID,
+      process.env.REACT_APP_EMAILJS_CANCELLATION_TEMPLATE,
       templateParams,
-      CANCEL_USER_ID
+      process.env.REACT_APP_EMAILJS_CANCEL_USER_ID
     );
 
     console.log('Appointment confirmation email sent:',patientEmail, response.status, response.text);
@@ -89,10 +82,10 @@ export const sendRescheduleEmail = async ({
 
     console.log('Template Params (Cancel):', templateParams);
     const response = await emailjs.send(
-      SERVICE_ID,
-      RESCHEDULE_TEMPLATE,
+      process.env.REACT_APP_EMAILJS_SERVICE_ID,
+      process.env.REACT_APP_EMAILJS_RESCHEDULE_TEMPLATE,
       templateParams,
-      USER_ID
+      process.env.REACT_APP_EMAILJS_USER_ID
     );
 
     console.log('Appointment reschedule email sent:', response.status, response.text);

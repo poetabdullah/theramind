@@ -1,9 +1,5 @@
 import emailjs from 'emailjs-com';
 
-const SERVICE_ID = 'theramind_service';
-const CONFIRMATION_TEMPLATE = 'confirmation_template';
-const USER_ID = 'TA0YUZ8PvIadVetlu';
-
 export const sendAppointmentConfirmationEmail = async ({
   patientName,
   doctorName,
@@ -21,10 +17,10 @@ export const sendAppointmentConfirmationEmail = async ({
     };
 
     const response = await emailjs.send(
-      SERVICE_ID,
-      CONFIRMATION_TEMPLATE,
+      process.env.REACT_APP_EMAILJS_SERVICE_ID,
+      process.env.REACT_APP_EMAILJS_CONFIRMATION_TEMPLATE,
       templateParams,
-      USER_ID
+      process.env.REACT_APP_EMAILJS_USER_ID
     );
 
     console.log('Appointment confirmation email sent:', response.status, response.text);
