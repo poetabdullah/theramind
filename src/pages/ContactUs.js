@@ -59,7 +59,7 @@ const Contact = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-purple-150 via-voilet-200 to-orange-150">
-      <header className="meditation-header relative bg-gradient-to-r from-purple-600 to-orange-500 py-20">
+      <motion.header className="meditation-header relative bg-gradient-to-r from-purple-600 to-orange-500 py-20">
         {/* Animated Heading */}
         <motion.h1
           initial={{ opacity: 0, y: -30, scale: 0.9 }}
@@ -81,8 +81,8 @@ const Contact = () => {
         >
           Your mental well-being matters, and we’re here to support you every step of the way!
         </motion.p>
-      </header>
-      <main className="flex-grow flex items-center justify-center mt-5 mb-5">
+      </motion.header>
+      <motion.main className="flex-grow flex items-center justify-center mt-5 mb-5">
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -91,7 +91,7 @@ const Contact = () => {
           className="w-full max-w-xl p-6 shadow-lg rounded-xl"
         >
           {success && (
-            <div
+            <motion.div
               className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4"
               role="alert"
               initial={{ opacity: 0 }}
@@ -100,7 +100,7 @@ const Contact = () => {
             >
               <motion.p className="font-bold">Your response is invaluable to us!</motion.p>
               <motion.p>Thanks for contacting us, we will get back to you shortly.</motion.p>
-            </div>
+            </motion.div>
           )}
           <motion.form onSubmit={handleSubmit} className="space-y-4">
             {Object.entries({ name: "Name", email: "Email", subject: "Subject" }).map(([key, label]) => (
@@ -143,7 +143,7 @@ const Contact = () => {
           </motion.form>
 
         </motion.div>
-      </main>
+      </motion.main>
       <Footer />
     </div>
   );
