@@ -374,7 +374,7 @@ const handleRescheduleAppointment = async (
       patientEmail: appPatientEmail,
       doctorEmail: appDoctorEmail,
     });
-
+    
     await sendRescheduleEmail({
       patientName,
       doctorName,
