@@ -133,7 +133,7 @@ export async function createGoogleMeetEvent(summary, description, startISO, endI
   };
 
   const res = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1",
+    "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all",
     {
       method: "POST",
       headers: {
@@ -164,7 +164,7 @@ export const deleteGoogleCalendarEvent = async (calendarId, eventId) => {
 
   try {
     const response = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${eventId}`,
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${eventId}?sendUpdates=all`,
       {
         method: "DELETE",
         headers: {
