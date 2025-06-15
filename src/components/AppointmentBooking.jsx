@@ -21,7 +21,7 @@ import { sendCancelEmail } from '../utils/sendEmail';
 import { sendRescheduleEmail } from '../utils/sendEmail';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaUserMd, FaGraduationCap, FaChevronDown, FaChevronUp, FaStethoscope } from "react-icons/fa";
+import { FaUserMd, FaChevronDown, FaChevronUp, FaStethoscope } from "react-icons/fa";
 
 export async function cancelAppointmentAsDoctor(appointmentId, currentDoctorEmail) {
   const appointmentRef = doc(db, "appointments", appointmentId);
@@ -512,22 +512,23 @@ const handleRescheduleAppointment = async (
           whileHover={{ scale: 1.02 }}
           transition={{ type: 'spring', stiffness: 200 }}
         >
-          <motion.option value="">Select a Timeslot</motion.option>
-          {selectedDoctor.timeslots
-            .filter((slot) => new Date(slot) > new Date())
-            .sort((a, b) => new Date(a) - new Date(b))
-            .map((slot) => (
-              <motion.option key={slot} value={slot}>
+          <option value="">Select a Timeslot</option>
+          {/* Filtering out past timeslots and sorting them */}
+          {[...selectedDoctor.timeslots]
+            .filter(slot => new Date(slot) > new Date()) 
+            .sort((a, b) => new Date(a) - new Date(b))  
+            .map(slot => (
+              <option key={slot} value={slot}>
                 {new Date(slot).toLocaleString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
-                  month: 'long',
+                  month: 'short',
                   day: 'numeric',
                   hour: 'numeric',
                   minute: '2-digit',
                   hour12: true,
                 })}
-              </motion.option>
+              </option>
             ))}
         </motion.select>
       )}
@@ -633,6 +634,7 @@ const handleRescheduleAppointment = async (
                       {doctors
                         ?.find((doc) => doc.email === appt.doctorEmail)
                         ?.timeslots.filter((slot) => slot !== appt.timeslot)
+                        .sort((a, b) => new Date(a) - new Date(b))
                         .map((slot) => (
                           <option key={slot} value={slot}>
                             {new Date(slot).toLocaleString('en-US', {

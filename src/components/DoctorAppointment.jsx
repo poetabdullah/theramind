@@ -14,12 +14,15 @@ const DoctorAppointment = ({ doctorEmail }) => {
 				const appointmentsRef = collection(db, 'appointments');
 				const q = query(appointmentsRef, where('doctorEmail', '==', doctorEmail));
 				const snapshot = await getDocs(q);
-				setAppointments(
-					snapshot.docs.map(doc => ({
-						id: doc.id,
-						...doc.data(),
-					}))
-				);
+				const sortedAppointments = snapshot.docs
+				.map(doc => ({
+					id: doc.id,
+					...doc.data(),
+				}))
+				.sort((a, b) => new Date(a.timeslot) - new Date(b.timeslot)); 
+
+				setAppointments(sortedAppointments);
+
 			} catch (error) {
 				console.error('Error fetching appointments:', error);
 			}
