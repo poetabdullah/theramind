@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { db } from "../firebaseConfig.js";
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import ListViewCard from './ListViewCard.js';
+import { useNavigate } from "react-router-dom";
 
 const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
   const [recommendations, setRecommendations] = useState([]);
@@ -10,6 +11,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
   const [doctorProfile, setDoctorProfile] = useState([]);
   const [subtypeRelatedArticles, setSubtypeRelatedArticles] = useState([]);
   const [patientStories, setPatientStories] = useState([]);
+  const navigate = useNavigate();
 
   const conditionMapping = {
     "Acute Stress": "Stress",
@@ -58,7 +60,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
       const q = query(
         collection(db, "doctors"),
         where("subtypeTags", "array-contains", subtype),
-        where("status", "==", "approved")
+        where("status", "==", "active")
       );
       const querySnapshot = await getDocs(q);
       const doctors = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -199,6 +201,21 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
               </motion.p>
             </motion.div>
           ))}
+          <motion.div
+            className="md:col-span-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
+            <motion.button
+              onClick={() => navigate("/appointment-booking")}
+              className="w-full bg-gradient-to-r from-purple-400 to-indigo-500 text-white font-semibold px-5 py-3 
+              rounded-lg shadow hover:from-purple-500 hover:to-indigo-600 transition duration-200 text-2xl text-semibold"
+              whileHover={{ scale: 1.02 }}
+            >
+              Book Appointment
+            </motion.button>
+          </motion.div>
         </motion.div>
       )}
 
