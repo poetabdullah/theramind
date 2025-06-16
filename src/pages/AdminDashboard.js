@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import { ref, listAll, getDownloadURL } from "firebase/storage";
 import AdminAnalytics from "../components/AdminAnalytics";
+import ViewDoctorDetails from "../components/ViewDoctorDetails";
 import Footer from "../components/Footer";
 import { sendAccountStatusEmail } from "../components/emailService";
 import { toast } from 'react-toastify';
@@ -365,21 +366,7 @@ const handleDeletePatient = async (email) => {
     if (type === 'success') setSuccess(null);
   };
 
-  const viewDoctorDetails = async (doctorEmail) => {
-    try {
-      setLoading(true);
-      const doctorDoc = await getDoc(doc(db, "doctors", doctorEmail));
-      setSelectedDoctor(doctorDoc.data());
-      await fetchDoctorDocuments(doctorEmail);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching doctor details:", err);
-      setError("Failed to load doctor details");
-      setLoading(false);
-    }
-  };
-
-  const viewPatientDetails = async (patientEmail) => {
+ const viewPatientDetails = async (patientEmail) => {
     try {
       setLoading(true);
       const patientDoc = await getDoc(doc(db, "patients", patientEmail));
@@ -392,11 +379,13 @@ const handleDeletePatient = async (email) => {
     }
   };
 
-  const closeModal = () => {
-    setSelectedDoctor(null);
-    setSelectedPatient(null);
-    setDoctorDocuments([]);
-  };
+
+
+  // const closeModal = () => {
+  //   setSelectedDoctor(null);
+  //   setSelectedPatient(null);
+  //   setDoctorDocuments([]);
+  // };
 
   if (loading || !isAuthorized) {
     return (
@@ -564,86 +553,83 @@ const handleDeletePatient = async (email) => {
           </>
         )}
 
-        {activeTab === 'doctors' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-purple-700">Doctor Management</h2>
-              <div className="text-gray-600">
-                <span className="font-medium">Total:</span> {adminData.totalDoctors}
-              </div>
-            </div>
-            
-            {/* Enhanced Pending Doctors Section */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Pending Approvals ({adminData.pendingDoctors})
-              </h3>
-              
-              {adminData.pendingDoctors === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-gray-600 mt-2">No pending doctor applications</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Info</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {pendingDoctorsList.map((doctor) => (
-                        <tr key={doctor.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{doctor.name}</p>
-                              <p className="text-sm text-gray-500">{doctor.email}</p>
-                              <p className="text-sm text-gray-500">{doctor.phone}</p>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.specialty}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.experience}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.appliedAt}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => viewDoctorDetails(doctor.email)}
-                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
-                              >
-                                View
-                              </button>
-                              <button
-                                onClick={() => handleDoctorApproval(doctor.email, 'approve')}
-                                className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
-                                disabled={loading}
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleDoctorApproval(doctor.email, 'reject')}
-                                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200"
-                                disabled={loading}
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+      {/* Enhanced Pending Doctors Section */}
+<div className="mb-8">
+  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+    Pending Approvals ({adminData.pendingDoctors})
+  </h3>
+  
+  {adminData.pendingDoctors === 0 ? (
+    <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p className="text-gray-600 mt-2">No pending doctor applications</p>
+    </div>
+  ) : (
+    <>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Info</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {pendingDoctorsList.map((doctor) => (
+              <tr key={doctor.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{doctor.name}</p>
+                    <p className="text-sm text-gray-500">{doctor.email}</p>
+                    <p className="text-sm text-gray-500">{doctor.phone}</p>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.specialty}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.experience}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.appliedAt}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex space-x-2">
+                    <button
+  onClick={() => setSelectedDoctor(doctor.email)} // NEW VERSION
+  className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+>
+  View
+</button>
+                    <button
+                      onClick={() => handleDoctorApproval(doctor.email, 'approve')}
+                      className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
+                      disabled={loading}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleDoctorApproval(doctor.email, 'reject')}
+                      className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200"
+                      disabled={loading}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Add the ViewDoctorDetails component at the bottom */}
+      <ViewDoctorDetails 
+        doctorEmail={selectedDoctor} 
+        onClose={() => setSelectedDoctor(null)} 
+      />
+    </>
+  )}
+</div>
 
         {activeTab === 'patients' && (
           <div className="bg-white rounded-xl shadow-lg p-8">

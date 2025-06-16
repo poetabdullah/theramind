@@ -55,6 +55,34 @@ const AdminAnalytics = ({ adminData }) => {
     quaternary: '#EF4444'
   };
 
+  // Helper function to safely convert Firestore timestamp to Date
+  const toDate = (timestamp) => {
+    if (!timestamp) return null;
+    if (typeof timestamp.toDate === 'function') {
+      return timestamp.toDate();
+    }
+    if (timestamp instanceof Date) {
+      return timestamp;
+    }
+    if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+      return new Date(timestamp);
+    }
+    return null;
+  };
+
+  // Helper function to safely format date to ISO string
+  const toISODateString = (date) => {
+    if (!date) return '';
+    try {
+      const dateObj = toDate(date);
+      if (!dateObj) return '';
+      return dateObj.toISOString().split('T')[0];
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return '';
+    }
+  };
+
   useEffect(() => {
     const setupAnalyticsListeners = () => {
       const listeners = [];
@@ -64,7 +92,7 @@ const AdminAnalytics = ({ adminData }) => {
         const patients = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate()
+          createdAt: toDate(doc.data().createdAt)
         }));
         
         updateUserGrowthData(patients, 'patients');
@@ -75,7 +103,7 @@ const AdminAnalytics = ({ adminData }) => {
         const doctors = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          appliedAt: doc.data().appliedAt?.toDate()
+          appliedAt: toDate(doc.data().appliedAt)
         }));
         
         updateDoctorAnalytics(doctors);
@@ -87,7 +115,7 @@ const AdminAnalytics = ({ adminData }) => {
         const appointments = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate()
+          createdAt: toDate(doc.data().createdAt)
         }));
         
         updateAppointmentTrends(appointments);
@@ -124,7 +152,8 @@ const AdminAnalytics = ({ adminData }) => {
       
       const dayUsers = users.filter(user => {
         const userDate = user.createdAt || user.appliedAt;
-        return userDate && userDate.toISOString().split('T')[0] === dateStr;
+        const userDateStr = toISODateString(userDate);
+        return userDateStr === dateStr;
       });
 
       const existingDay = growthData.find(d => d.date === dateStr);
@@ -179,7 +208,8 @@ const AdminAnalytics = ({ adminData }) => {
       
       const dayAppointments = appointments.filter(apt => {
         const aptDate = apt.createdAt;
-        return aptDate && aptDate.toISOString().split('T')[0] === dateStr;
+        const aptDateStr = toISODateString(aptDate);
+        return aptDateStr === dateStr;
       });
 
       const statusCounts = dayAppointments.reduce((acc, apt) => {
@@ -471,7 +501,7 @@ const AdminAnalytics = ({ adminData }) => {
           <div className="text-center">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-16 0 9 9 0 0118 0z"/>
               </svg>
             </div>
             <h4 className="font-semibold text-gray-800">Growing</h4>
