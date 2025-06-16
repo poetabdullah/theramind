@@ -114,7 +114,7 @@ const DoctorAppointment = ({ doctorEmail }) => {
 					<motion.div key={date} className="border rounded-2xl shadow-lg mb-4 overflow-hidden">
 						<motion.button
 							onClick={() => toggleDateSection(date)}
-							className="w-full text-left text-gray-800 font-semibold text-lg py-3 px-5 bg-gradient-to-r from-orange-200 to-orange-300 hover:from-orange-300 hover:to-orange-400 transition"
+							className="w-full text-left text-gray-800 font-semibold text-lg py-3 px-5 bg-gradient-to-r from-orange-300 via-orange-400 to-orange-500 hover:from-orange-300 hover:to-orange-400 transition"
 						>
 							{date} {openDates[date] ? '▲' : '▼'}
 						</motion.button>

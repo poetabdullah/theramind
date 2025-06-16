@@ -13,6 +13,8 @@ import {
 } from "firebase/firestore";
 import { motion } from "framer-motion";
 import { sendCancelEmail, sendRescheduleEmail } from "../utils/sendEmail.js";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
   const [appointments, setAppointments] = useState([]);
@@ -55,16 +57,16 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
         timeslot,
       });
 
-      alert("Appointment cancelled successfully.");
+      toast.success("Appointment cancelled successfully.");
     } catch (error) {
       console.error("Cancellation failed:", error);
-      alert("Something went wrong while canceling. Please try again.");
+      toast.error("Something went wrong while canceling. Please try again.");
     }
   };
 
   const handleReschedule = async (appointmentId, doctorEmail, oldTimeslot, appData) => {
     const newTimeslot = newTimes[appointmentId];
-    if (!newTimeslot) return alert("Please select a new time.");
+    if (!newTimeslot) return toast.warning("Please select a new time.");
 
     try {
       const appointmentRef = doc(db, "appointments", appointmentId);
@@ -90,14 +92,16 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
       rescheduledBy: userRole,
     });
 
-      alert("Appointment rescheduled successfully!");
+      toast.success("Appointment rescheduled successfully!");
     } catch (error) {
       console.error("Rescheduling failed:", error);
-      alert("Something went wrong while rescheduling. Please try again.");
+      toast.error("Something went wrong while rescheduling. Please try again.");
     }
   };
 
   return (
+    <>
+    <ToastContainer position="bottom-right" autoClose={3000} />
     <motion.div className="p-4">
       <motion.h2 className="text-xl font-bold mb-4">Your Appointments</motion.h2>
       <motion.ul className="space-y-6">
@@ -145,6 +149,7 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
         ))}
       </motion.ul>
     </motion.div>
+      </>
   );
 };
 

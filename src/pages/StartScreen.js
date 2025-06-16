@@ -65,13 +65,27 @@ const WelcomeScreen = () => {
   return () => unsubscribe();
 }, []);
 
+useEffect(() => {
+  const started = sessionStorage.getItem("questionnaireStarted");
+  if (!started) {
+    navigate("/start-screen"); 
+  }
+}, []);
+
+useEffect(() => {
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function () {
+    navigate("/start-screen");
+  };
+}, []);
+
 
 const handleStart = () => {
   if (eligible) {
+    sessionStorage.setItem("questionnaireStarted", "true"); 
     navigate("/questionnaire");
   }
 };
-
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">

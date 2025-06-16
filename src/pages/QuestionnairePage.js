@@ -80,6 +80,12 @@ const Questionnaire = () => {
   return () => unsubscribe();
 }, [auth, navigate]);
 
+useEffect(() => {
+  const started = sessionStorage.getItem("questionnaireStarted");
+  if (!started) {
+    navigate("/start-screen"); 
+  }
+}, []);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -306,6 +312,7 @@ const Questionnaire = () => {
   }
 
   if (isQuestionnaireComplete) {
+    sessionStorage.removeItem("questionnaireStarted");
     return (
       <motion.div className="flex flex-col min-h-screen bg-gray-50"
         initial={{ opacity: 0 }}

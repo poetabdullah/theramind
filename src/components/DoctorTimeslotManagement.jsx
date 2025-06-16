@@ -4,6 +4,8 @@ import { db } from '../firebaseConfig.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactDatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	const [doctorData, setDoctorData] = useState(null);
@@ -80,16 +82,18 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 				const dateKey = formatDate(slot);
 				if (!groups[dateKey]) groups[dateKey] = [];
 				groups[dateKey].push(slot);
+				//Sorting the timeslots for each date
+				groups[dateKey].sort((a, b) => new Date(a) - new Date(b));
 				return groups;
 			}, {});
 	};
 
 	const handleAddTimeslot = async () => {
 		const baseDate = combineDateAndTime(selectedDate, selectedTime);
-		if (!baseDate) return alert('Please select both date and time.');
+		if (!baseDate) return toast.error('Please select both date and time.');
 
 		if (new Date(baseDate) <= new Date()){
-			return alert ('You cannot add a timeslot in the past!');
+			return toast.info ('You cannot add a timeslot in the past!');
 		}
 
 		const repeatedSlots = [];
@@ -113,10 +117,10 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 			setDoctorData(prev => ({ ...prev, timeslots: updatedTimeslots }));
 			setSelectedDate(null);
 			setSelectedTime(null);
-			alert(`Added ${repeatedSlots.length} timeslot(s) successfully!`);
+			toast.success(`Added ${repeatedSlots.length} timeslot(s) successfully!`);
 		} catch (error) {
 			console.error('Failed to add timeslot:', error);
-			alert('Failed to add timeslot.');
+			toast.error('Failed to add timeslot.');
 		}
 	};
 
@@ -129,7 +133,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 			setDoctorData(prev => ({ ...prev, timeslots: filtered }));
 		} catch (error) {
 			console.error('Failed to remove timeslot:', error);
-			alert('Failed to remove timeslot.');
+			toast.error('Failed to remove timeslot.');
 		}
 	};
 
@@ -146,6 +150,8 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	const groupedSlots = groupSlotsByDate(doctorData.timeslots);
 
 	return (
+		<>
+		<ToastContainer position="bottom-right" autoClose={3000} />
 		<motion.div className="mx-auto py-8">
 			{/* Form Card */}
 			<motion.div
@@ -221,15 +227,15 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 
 			{/* Collapsible Sections For Grouped Slots For A Particular Date */}
 			{Object.entries(groupedSlots).length > 0 ? (
-				<div className="space-y-4">
-					{Object.entries(groupedSlots).map(([date, slots]) => (
-						<div key={date} className="border rounded-lg shadow">
-							<button
+				<motion.div className="space-y-4">
+					{Object.entries(groupedSlots).sort((a, b) => new Date(a[1][0]) - new Date(b[1][0])).map(([date, slots]) => (
+						<motion.div key={date} className="border rounded-lg shadow">
+							<motion.button
 								onClick={() => toggleDateSection(date)}
-								className="w-full text-left text-gray-700 font-semibold text-lg py-2 px-4 rounded-t-lg bg-gradient-to-r from-orange-250 to-orange-350 hover:from-orange-300 hover:to-orange-400 transition-all"
+								className="w-full text-left text-gray-700 font-semibold text-lg py-2 px-4 rounded-t-lg bg-white hover:from-orange-300 hover:via-orange-400 hover:to-orange-500 transition-all"
 							>
 								{date} {openDates[date] ? '▲' : '▼'}
-							</button>
+							</motion.button>
 							<AnimatePresence initial={false}>
 								{openDates[date] && (
 									<motion.div
@@ -239,38 +245,39 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 										transition={{ duration: 0.3 }}
 										className="overflow-hidden bg-white rounded-b-lg"
 									>
-										<div className="p-3 space-y-2">
+										<motion.div className="p-3 space-y-2">
 											{slots.map((slot, idx) => (
-												<div
+												<motion.div
 													key={idx}
-													className="bg-gray-100 px-4 py-2 rounded flex justify-between items-center"
+													className="bg-gradient-to-r from-orange-200 to-orange-300 px-4 py-2 rounded flex justify-between items-center"
 												>
-													<span className="text-gray-800">
+													<motion.span className="text-gray-800">
 														{new Date(slot).toLocaleTimeString(undefined, {
 															hour: 'numeric',
 															minute: 'numeric',
 															hour12: true,
 														})}
-													</span>
-													<button
+													</motion.span>
+													<motion.button
 														onClick={() => handleRemoveTimeslot(slot)}
-														className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+														className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm"
 													>
 														Remove
-													</button>
-												</div>
+													</motion.button>
+												</motion.div>
 											))}
-										</div>
+										</motion.div>
 									</motion.div>
 								)}
 							</AnimatePresence>
-						</div>
+						</motion.div>
 					))}
-				</div>
+				</motion.div>
 			) : (
 				<p className="text-gray-500 text-center">No timeslots available yet.</p>
 			)}
 		</motion.div>
+		</>
 	);
 };
 
