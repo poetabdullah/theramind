@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db, storage } from "../firebaseConfig";
-
 import { 
   collection, 
   getDocs, 
@@ -22,17 +21,16 @@ import { ref, listAll, getDownloadURL } from "firebase/storage";
 import AdminAnalytics from "../components/AdminAnalytics";
 import DashboardContentManager from '../components/DashboardContentManager';
 import DashboardAppointmentsManager from '../components/DashboardAppointmentsManager';
-import TreatmentPlansComponent from '../components/TreatmentPlansComponent';
+import AprrovedDoctorsList from '../components/ApprovedDoctorsList';
 import AllLogsComponent from '../components/AllLogsComponent';
+import TreatmentPlansComponent from '../components/TreatmentPlansComponent';
 import Footer from "../components/Footer";
 import { sendAccountStatusEmail } from "../components/emailService";
 import { toast } from 'react-toastify';
-import emailjs from '@emailjs/browser';
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [adminData, setAdminData] = useState({
     totalPatients: 0,
@@ -47,7 +45,7 @@ const AdminDashboard = () => {
     todayAppointments: 0
   });
   const [pendingDoctorsList, setPendingDoctorsList] = useState([]);
-  const [activeDoctorsList, setActiveDoctorsList] = useState([]);
+  const [allDoctorsList, setAllDoctorsList] = useState([]);
   const [patientsList, setPatientsList] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -57,6 +55,7 @@ const AdminDashboard = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [doctorDocuments, setDoctorDocuments] = useState([]);
   const [doctorDetails, setDoctorDetails] = useState(null);
+  const [treatmentPlans, setTreatmentPlans] = useState([]);
   
   const navigate = useNavigate();
   const auth = getAuth();
@@ -108,38 +107,42 @@ const AdminDashboard = () => {
     const listeners = [];
 
     // Doctors listener
-    // In your AdminDashboard.js, update the doctors listener:
+    const doctorsListener = onSnapshot(
+      query(collection(db, "doctors"), where("status", "==", "approved"), limit(4)),
+      (snapshot) => {
+        const doctorsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          appliedAt: doc.data().appliedAt?.toDate(),
+          reviewedAt: doc.data().reviewedAt?.toDate()
+        }));
+        setAllDoctorsList(doctorsData);
+      },
+      (error) => {
+        console.error("Error fetching doctors:", error);
+        toast.error("Failed to load doctors data");
+      }
+    );
+    listeners.push(doctorsListener);
 
-const doctorsListener = onSnapshot(collection(db, "doctors"), (snapshot) => {
-  const doctorsData = [];
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    doctorsData.push({
-      id: doc.id,
-      ...data,
-      appliedAt: data.appliedAt?.toDate(),
-      reviewedAt: data.reviewedAt?.toDate()
-    });
-  });
-  
-  const pending = doctorsData.filter(doc => doc.status === "pending");
-  const approved = doctorsData.filter(doc => doc.status === "approved");
-  const rejected = doctorsData.filter(doc => doc.status === "rejected");
-  
-  setPendingDoctorsList(pending);
-  setActiveDoctorsList(approved);
-  
-  setAdminData(prev => ({
-    ...prev,
-    totalDoctors: doctorsData.length,
-    pendingDoctors: pending.length,
-    approvedDoctors: approved.length,
-    rejectedDoctors: rejected.length
-  }));
-}, (error) => {
-  console.error("Error fetching doctors:", error);
-  toast.error("Failed to load doctors data");
-});
+    // Pending doctors listener
+    const pendingDoctorsListener = onSnapshot(
+      query(collection(db, "doctors"), where("status", "==", "pending")),
+      (snapshot) => {
+        const pendingDoctors = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          appliedAt: doc.data().appliedAt?.toDate()
+        }));
+        setPendingDoctorsList(pendingDoctors);
+        setAdminData(prev => ({
+          ...prev,
+          pendingDoctors: pendingDoctors.length
+        }));
+      }
+    );
+    listeners.push(pendingDoctorsListener);
+
     // Patients listener
     const patientsListener = onSnapshot(collection(db, "patients"), (snapshot) => {
       const patientsData = snapshot.docs.map(doc => ({
@@ -157,6 +160,7 @@ const doctorsListener = onSnapshot(collection(db, "doctors"), (snapshot) => {
         blockedPatients: blockedCount
       }));
     });
+    listeners.push(patientsListener);
 
     // Appointments listener
     const appointmentsListener = onSnapshot(collection(db, "appointments"), (snapshot) => {
@@ -174,29 +178,41 @@ const doctorsListener = onSnapshot(collection(db, "doctors"), (snapshot) => {
         todayAppointments
       }));
     });
+    listeners.push(appointmentsListener);
 
-    // System logs listener (all users)
-    // In your setupRealTimeListeners function, update the logs listener:
+    // Treatment plans listener
+    const treatmentPlansListener = onSnapshot(
+      collection(db, "treatment_plans"),
+      (snapshot) => {
+        const plans = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate()
+        }));
+        setTreatmentPlans(plans);
+      }
+    );
+    listeners.push(treatmentPlansListener);
 
-const logsListener = onSnapshot(
-  query(collection(db, "system_logs"), orderBy("timestamp", "desc"), limit(50)), 
-  (snapshot) => {
-    const activities = [];
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      activities.push({
-        id: doc.id,
-        ...data,
-        timestamp: data.timestamp?.toDate()
-      });
-    });
-    setRecentActivities(activities);
-  },
-  (error) => {
-    console.error("Error loading recent activities:", error);
-    toast.error("Failed to load recent activities");
-  }
-);
+    // System logs listener
+    const logsListener = onSnapshot(
+      query(collection(db, "system_logs"), orderBy("timestamp", "desc"), limit(50)), 
+      (snapshot) => {
+        const activities = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().timestamp?.toDate()
+        }));
+        setRecentActivities(activities);
+      },
+      (error) => {
+        console.error("Error loading recent activities:", error);
+        toast.error("Failed to load recent activities");
+      }
+    );
+    listeners.push(logsListener);
+
+    setRealTimeListeners(listeners);
   };
 
   const fetchDashboardData = async () => {
@@ -229,7 +245,8 @@ const logsListener = onSnapshot(
       setAdminData(prev => ({
         ...prev,
         recentSignups: recentPatientsSnapshot.size + recentDoctorsSnapshot.size,
-        activeSessions: activeSessionsSnapshot.size
+        activeSessions: activeSessionsSnapshot.size,
+        totalDoctors: allDoctorsList.length
       }));
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
@@ -374,9 +391,8 @@ const logsListener = onSnapshot(
     }
   };
 
-  const dismissNotification = (type) => {
-    if (type === 'error') setError(null);
-    if (type === 'success') setSuccess(null);
+  const dismissNotification = () => {
+    setError(null);
   };
 
   const viewPatientDetails = (patientEmail) => {
@@ -436,27 +452,8 @@ const logsListener = onSnapshot(
                 <p className="text-sm">{error}</p>
               </div>
               <button
-                onClick={() => dismissNotification('error')}
+                onClick={dismissNotification}
                 className="text-red-500 hover:text-red-700 ml-2"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
-            <div className="flex items-start">
-              <div className="flex-grow">
-                <p className="font-medium">Success</p>
-                <p className="text-sm">{success}</p>
-              </div>
-              <button
-                onClick={() => dismissNotification('success')}
-                className="text-green-500 hover:text-green-700 ml-2"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -546,32 +543,48 @@ const logsListener = onSnapshot(
               </div>
             </div>
 
-            {/* Recent Activities */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent System Activities</h3>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{activity.description}</p>
-                      <p className="text-xs text-gray-500">
-                        {activity.adminEmail || activity.userEmail} • {activity.timestamp?.toLocaleString()}
-                      </p>
-                    </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      activity.action === 'APPROVE' ? 'bg-green-100 text-green-800' :
-                      activity.action === 'REJECT' ? 'bg-red-100 text-red-800' :
-                      activity.action === 'BLOCK' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {activity.action}
-                    </span>
-                  </div>
-                ))}
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Manage Doctors</h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setActiveTab('doctors')}
+                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200"
+                  >
+                    View All Doctors
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('doctors')}
+                    className="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-200"
+                  >
+                    Review Pending Approvals ({adminData.pendingDoctors})
+                  </button>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Manage Patients</h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setActiveTab('patients')}
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-200"
+                  >
+                    View All Patients
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('patients')}
+                    className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200"
+                  >
+                    Manage Blocked Patients ({adminData.blockedPatients})
+                  </button>
+                </div>
               </div>
             </div>
-               <DashboardAppointmentsManager />
-                   <DashboardContentManager />
+
+            
+            
+            <DashboardAppointmentsManager />
+            <DashboardContentManager />
           </>
         )}
 
@@ -613,7 +626,9 @@ const logsListener = onSnapshot(
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.specialty}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.experience}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.appliedAt}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {doctor.appliedAt?.toLocaleDateString() || 'N/A'}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex space-x-2">
                               <button
@@ -646,185 +661,170 @@ const logsListener = onSnapshot(
               )}
             </div>
 
-            {/* Active Doctors Section */}
-             <div className="bg-white rounded-xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-purple-700 mb-4">Active Doctors ({adminData.approvedDoctors})</h3>
-      
-      {adminData.approvedDoctors === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-gray-600 mt-2">No active doctors found</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            {/* Table headers */}
-            <tbody className="bg-white divide-y divide-gray-200">
-              {activeDoctorsList.map((doctor) => (
-                <tr key={doctor.id} className="hover:bg-gray-50">
-                  {/* Existing cells */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => setSelectedDoctor(doctor.email)}
-                      className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
-                    >
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-    
-    {/* Doctor Treatment Plans Section */}
-    {selectedDoctor && (
-      <TreatmentPlansComponent doctorEmail={selectedDoctor} />
-    )}
-  </div>
-)}
-        
+            {/* All Doctors Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-purple-700 mb-4">All Approved Doctors ({allDoctorsList.length})</h3>
+              
+              {allDoctorsList.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-gray-600 mt-2">No approved doctors found</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Info</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {allDoctorsList.map((doctor) => (
+                        <tr key={doctor.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{doctor.name}</p>
+                              <p className="text-sm text-gray-500">{doctor.email}</p>
+                              <p className="text-sm text-gray-500">{doctor.phone}</p>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.specialty}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                              {doctor.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => fetchDoctorDetails(doctor.email)}
+                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+                              >
+                                View Details
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {activeTab === 'patients' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-purple-700">Patient Management</h2>
-              <div className="text-gray-600">
-                <span className="font-medium">Total:</span> {adminData.totalPatients} | 
-                <span className="font-medium ml-2">Blocked:</span> {adminData.blockedPatients}
+          <div className="space-y-8">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-purple-700">Patient Management</h2>
+                <div className="text-gray-600">
+                  <span className="font-medium">Total:</span> {adminData.totalPatients} | 
+                  <span className="font-medium ml-2">Blocked:</span> {adminData.blockedPatients}
+                </div>
+              </div>
+              
+              {/* Patients Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Info</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {patientsList.map((patient) => (
+                      <tr key={patient.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{patient.name || 'No name'}</p>
+                            <p className="text-sm text-gray-500">{patient.email}</p>
+                            <p className="text-sm text-gray-500">{patient.phone || 'No phone'}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            patient.status === 'blocked' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                          }`}>
+                            {patient.status || 'Active'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {patient.createdAt ? new Date(patient.createdAt.toDate()).toLocaleDateString() : 'Unknown'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => viewPatientDetails(patient.email)}
+                              className="bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700 transition duration-200"
+                            >
+                              View
+                            </button>
+                            {patient.status !== 'blocked' ? (
+                              <button
+                                onClick={() => handlePatientBlock(patient.email, 'block')}
+                                className="bg-yellow-600 text-white py-1 px-3 rounded-lg hover:bg-yellow-700 transition duration-200"
+                                disabled={loading}
+                              >
+                                Block
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handlePatientBlock(patient.email, 'unblock')}
+                                className="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700 transition duration-200"
+                                disabled={loading}
+                              >
+                                Unblock
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeletePatient(patient.email)}
+                              className="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700 transition duration-200"
+                              disabled={loading}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-            
-            {/* Patients Table */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Info</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {patientsList.map((patient) => (
-                    <tr key={patient.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{patient.name || 'No name'}</p>
-                          <p className="text-sm text-gray-500">{patient.email}</p>
-                          <p className="text-sm text-gray-500">{patient.phone || 'No phone'}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          patient.status === 'blocked' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {patient.status || 'Active'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {patient.createdAt ? new Date(patient.createdAt.toDate()).toLocaleDateString() : 'Unknown'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => viewPatientDetails(patient.email)}
-                            className="bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700 transition duration-200"
-                          >
-                            View
-                          </button>
-                          {patient.status !== 'blocked' ? (
-                            <button
-                              onClick={() => handlePatientBlock(patient.email, 'block')}
-                              className="bg-yellow-600 text-white py-1 px-3 rounded-lg hover:bg-yellow-700 transition duration-200"
-                              disabled={loading}
-                            >
-                              Block
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handlePatientBlock(patient.email, 'unblock')}
-                              className="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700 transition duration-200"
-                              disabled={loading}
-                            >
-                              Unblock
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeletePatient(patient.email)}
-                            className="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700 transition duration-200"
-                            disabled={loading}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+
+            {/* Treatment Plans Section */}
+            <TreatmentPlansComponent/>
           </div>
         )}
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <AdminAnalytics adminData={adminData} />
+            <AdminAnalytics 
+              adminData={adminData} 
+              patients={patientsList}
+              doctors={allDoctorsList}
+              appointments={adminData.totalAppointments}
+            />
           </div>
         )}
 
         {activeTab === 'logs' && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-700 mb-6">System Logs</h2>
-            
-            {/* Enhanced Logs Display */}
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <span className={`px-3 py-1 text-xs rounded-full font-medium ${
-                          activity.action === 'APPROVE' ? 'bg-green-100 text-green-800' :
-                          activity.action === 'REJECT' ? 'bg-red-100 text-red-800' :
-                          activity.action === 'BLOCK' ? 'bg-yellow-100 text-yellow-800' :
-                          activity.action === 'LOGIN' ? 'bg-blue-100 text-blue-800' :
-                          activity.action === 'LOGOUT' ? 'bg-gray-100 text-gray-800' :
-                          'bg-purple-100 text-purple-800'
-                        }`}>
-                          {activity.action}
-                        </span>
-                        <h3 className="font-medium text-gray-900">{activity.description}</h3>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-600">
-                        <p>User: {activity.adminEmail || activity.userEmail}</p>
-                        <p>Time: {activity.timestamp?.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {recentActivities.length === 0 && (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              <div> 
-                <AllLogsComponent/>
-              </div>
-              </div>
-            )}
+            <AllLogsComponent />
           </div>
-          
         )}
-    
+
         {/* Doctor Details Modal */}
         {doctorDetails && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
