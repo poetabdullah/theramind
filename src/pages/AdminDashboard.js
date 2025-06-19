@@ -20,7 +20,10 @@ import {
 } from "firebase/firestore";
 import { ref, listAll, getDownloadURL } from "firebase/storage";
 import AdminAnalytics from "../components/AdminAnalytics";
-import ViewDoctorDetails from "../components/ViewDoctorDetails";
+import DashboardContentManager from '../components/DashboardContentManager';
+import DashboardAppointmentsManager from '../components/DashboardAppointmentsManager';
+import TreatmentPlansComponent from '../components/TreatmentPlansComponent';
+import AllLogsComponent from '../components/AllLogsComponent';
 import Footer from "../components/Footer";
 import { sendAccountStatusEmail } from "../components/emailService";
 import { toast } from 'react-toastify';
@@ -44,6 +47,7 @@ const AdminDashboard = () => {
     todayAppointments: 0
   });
   const [pendingDoctorsList, setPendingDoctorsList] = useState([]);
+  const [activeDoctorsList, setActiveDoctorsList] = useState([]);
   const [patientsList, setPatientsList] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -52,6 +56,7 @@ const AdminDashboard = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [doctorDocuments, setDoctorDocuments] = useState([]);
+  const [doctorDetails, setDoctorDetails] = useState(null);
   
   const navigate = useNavigate();
   const auth = getAuth();
@@ -103,35 +108,38 @@ const AdminDashboard = () => {
     const listeners = [];
 
     // Doctors listener
-    const doctorsListener = onSnapshot(collection(db, "doctors"), (snapshot) => {
-      const doctorsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      const pending = doctorsData.filter(doc => doc.status === "pending");
-      const approved = doctorsData.filter(doc => doc.status === "approved");
-      const rejected = doctorsData.filter(doc => doc.status === "rejected");
-      
-      setPendingDoctorsList(pending.map(doc => ({
-        id: doc.id,
-        email: doc.id,
-        name: doc.name || "No name provided",
-        specialty: doc.specialty || "Not specified",
-        appliedAt: doc.appliedAt ? new Date(doc.appliedAt.toDate()).toLocaleDateString() : "Unknown",
-        phone: doc.phone || "Not provided",
-        experience: doc.experience || "Not specified"
-      })));
+    // In your AdminDashboard.js, update the doctors listener:
 
-      setAdminData(prev => ({
-        ...prev,
-        totalDoctors: doctorsData.length,
-        pendingDoctors: pending.length,
-        approvedDoctors: approved.length,
-        rejectedDoctors: rejected.length
-      }));
+const doctorsListener = onSnapshot(collection(db, "doctors"), (snapshot) => {
+  const doctorsData = [];
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    doctorsData.push({
+      id: doc.id,
+      ...data,
+      appliedAt: data.appliedAt?.toDate(),
+      reviewedAt: data.reviewedAt?.toDate()
     });
-
+  });
+  
+  const pending = doctorsData.filter(doc => doc.status === "pending");
+  const approved = doctorsData.filter(doc => doc.status === "approved");
+  const rejected = doctorsData.filter(doc => doc.status === "rejected");
+  
+  setPendingDoctorsList(pending);
+  setActiveDoctorsList(approved);
+  
+  setAdminData(prev => ({
+    ...prev,
+    totalDoctors: doctorsData.length,
+    pendingDoctors: pending.length,
+    approvedDoctors: approved.length,
+    rejectedDoctors: rejected.length
+  }));
+}, (error) => {
+  console.error("Error fetching doctors:", error);
+  toast.error("Failed to load doctors data");
+});
     // Patients listener
     const patientsListener = onSnapshot(collection(db, "patients"), (snapshot) => {
       const patientsData = snapshot.docs.map(doc => ({
@@ -168,20 +176,27 @@ const AdminDashboard = () => {
     });
 
     // System logs listener (all users)
-    const logsListener = onSnapshot(
-      query(collection(db, "admin_logs"), orderBy("timestamp", "desc"), limit(50)), 
-      (snapshot) => {
-        const activities = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate()
-        }));
-        setRecentActivities(activities);
-      }
-    );
+    // In your setupRealTimeListeners function, update the logs listener:
 
-    listeners.push(doctorsListener, patientsListener, appointmentsListener, logsListener);
-    setRealTimeListeners(listeners);
+const logsListener = onSnapshot(
+  query(collection(db, "system_logs"), orderBy("timestamp", "desc"), limit(50)), 
+  (snapshot) => {
+    const activities = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      activities.push({
+        id: doc.id,
+        ...data,
+        timestamp: data.timestamp?.toDate()
+      });
+    });
+    setRecentActivities(activities);
+  },
+  (error) => {
+    console.error("Error loading recent activities:", error);
+    toast.error("Failed to load recent activities");
+  }
+);
   };
 
   const fetchDashboardData = async () => {
@@ -262,95 +277,93 @@ const AdminDashboard = () => {
     }
   };
 
-  // Doctor Approval Handler (keep original name)
-const handleDoctorApproval = async (email, action) => {
-  try {
-    setLoading(true);
-    const status = action === 'approve' ? 'approved' : 'rejected';
-    const doctorRef = doc(db, "doctors", email);
-    
-    await updateDoc(doctorRef, { 
-      status: status,
-      reviewedAt: new Date(),
-      reviewedBy: auth.currentUser.email
-    });
+  const handleDoctorApproval = async (email, action) => {
+    try {
+      setLoading(true);
+      const status = action === 'approve' ? 'approved' : 'rejected';
+      const doctorRef = doc(db, "doctors", email);
+      
+      await updateDoc(doctorRef, { 
+        status: status,
+        reviewedAt: new Date(),
+        reviewedBy: auth.currentUser.email
+      });
 
-    const doctorDoc = await getDoc(doctorRef);
-    await sendAccountStatusEmail(
-      email,
-      doctorDoc.data().name,
-      status,
-      action === 'reject' ? 'Application did not meet requirements' : ''
-    );
-
-    toast.success(`Doctor ${status} successfully`);
-  } catch (error) {
-    toast.error(`Action failed: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Patient Block Handler (keep original name)
-const handlePatientBlock = async (email, action) => {
-  try {
-    setLoading(true);
-    const status = action === 'block' ? 'blocked' : 'active';
-    const patientRef = doc(db, "patients", email);
-    
-    await updateDoc(patientRef, { 
-      status: status,
-      lastModified: new Date()
-    });
-
-    if (action === 'block') {
-      // Terminate sessions
-      const sessionsQuery = query(
-        collection(db, "sessions"),
-        where("userId", "==", email)
+      const doctorDoc = await getDoc(doctorRef);
+      await sendAccountStatusEmail(
+        email,
+        doctorDoc.data().name,
+        status,
+        action === 'reject' ? 'Application did not meet requirements' : ''
       );
-      const sessionsSnapshot = await getDocs(sessionsQuery);
-      await Promise.all(sessionsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
+
+      toast.success(`Doctor ${status} successfully`);
+    } catch (error) {
+      toast.error(`Action failed: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const patientDoc = await getDoc(patientRef);
-    await sendAccountStatusEmail(
-      email,
-      patientDoc.data().name,
-      status,
-      action === 'block' ? 'Account suspended due to policy violation' : ''
-    );
+  const handlePatientBlock = async (email, action) => {
+    try {
+      setLoading(true);
+      const status = action === 'block' ? 'blocked' : 'active';
+      const patientRef = doc(db, "patients", email);
+      
+      await updateDoc(patientRef, { 
+        status: status,
+        lastModified: new Date()
+      });
 
-    toast.success(`Patient ${status} successfully`);
-  } catch (error) {
-    toast.error(`Action failed: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
+      if (action === 'block') {
+        // Terminate sessions
+        const sessionsQuery = query(
+          collection(db, "sessions"),
+          where("userId", "==", email)
+        );
+        const sessionsSnapshot = await getDocs(sessionsQuery);
+        await Promise.all(sessionsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
+      }
 
-// Patient Delete Handler (keep original name)
-const handleDeletePatient = async (email) => {
-  try {
-    setLoading(true);
-    const patientRef = doc(db, "patients", email);
-    const patientDoc = await getDoc(patientRef);
-    
-    await sendAccountStatusEmail(
-      email,
-      patientDoc.data().name,
-      'deleted',
-      'Account permanently removed by administrator'
-    );
+      const patientDoc = await getDoc(patientRef);
+      await sendAccountStatusEmail(
+        email,
+        patientDoc.data().name,
+        status,
+        action === 'block' ? 'Account suspended due to policy violation' : ''
+      );
 
-    await deleteDoc(patientRef);
-    toast.success("Patient deleted successfully");
-  } catch (error) {
-    toast.error(`Deletion failed: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success(`Patient ${status} successfully`);
+    } catch (error) {
+      toast.error(`Action failed: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePatient = async (email) => {
+    try {
+      setLoading(true);
+      const patientRef = doc(db, "patients", email);
+      const patientDoc = await getDoc(patientRef);
+      
+      await sendAccountStatusEmail(
+        email,
+        patientDoc.data().name,
+        'deleted',
+        'Account permanently removed by administrator'
+      );
+
+      await deleteDoc(patientRef);
+      toast.success("Patient deleted successfully");
+    } catch (error) {
+      toast.error(`Deletion failed: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -366,26 +379,33 @@ const handleDeletePatient = async (email) => {
     if (type === 'success') setSuccess(null);
   };
 
- const viewPatientDetails = async (patientEmail) => {
+  const viewPatientDetails = (patientEmail) => {
+    navigate(`/patient-dashboard/${patientEmail}`);
+  };
+
+  const fetchDoctorDetails = async (doctorEmail) => {
     try {
       setLoading(true);
-      const patientDoc = await getDoc(doc(db, "patients", patientEmail));
-      setSelectedPatient(patientDoc.data());
+      const doctorDoc = await getDoc(doc(db, "doctors", doctorEmail));
+      if (doctorDoc.exists()) {
+        setDoctorDetails({
+          ...doctorDoc.data(),
+          email: doctorEmail
+        });
+        await fetchDoctorDocuments(doctorEmail);
+      }
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching patient details:", err);
-      setError("Failed to load patient details");
+      console.error("Error fetching doctor details:", err);
+      setError("Failed to load doctor details");
       setLoading(false);
     }
   };
 
-
-
-  // const closeModal = () => {
-  //   setSelectedDoctor(null);
-  //   setSelectedPatient(null);
-  //   setDoctorDocuments([]);
-  // };
+  const closeDoctorModal = () => {
+    setDoctorDetails(null);
+    setDoctorDocuments([]);
+  };
 
   if (loading || !isAuthorized) {
     return (
@@ -535,7 +555,7 @@ const handleDeletePatient = async (email) => {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{activity.description}</p>
                       <p className="text-xs text-gray-500">
-                        {activity.adminEmail} • {activity.timestamp?.toLocaleString()}
+                        {activity.adminEmail || activity.userEmail} • {activity.timestamp?.toLocaleString()}
                       </p>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${
@@ -550,86 +570,124 @@ const handleDeletePatient = async (email) => {
                 ))}
               </div>
             </div>
+               <DashboardAppointmentsManager />
+                   <DashboardContentManager />
           </>
         )}
 
-      {/* Enhanced Pending Doctors Section */}
-<div className="mb-8">
-  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-    Pending Approvals ({adminData.pendingDoctors})
-  </h3>
-  
-  {adminData.pendingDoctors === 0 ? (
-    <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <p className="text-gray-600 mt-2">No pending doctor applications</p>
-    </div>
-  ) : (
-    <>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Info</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {pendingDoctorsList.map((doctor) => (
-              <tr key={doctor.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{doctor.name}</p>
-                    <p className="text-sm text-gray-500">{doctor.email}</p>
-                    <p className="text-sm text-gray-500">{doctor.phone}</p>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.specialty}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.experience}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.appliedAt}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
-                    <button
-  onClick={() => setSelectedDoctor(doctor.email)} // NEW VERSION
-  className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
->
-  View
-</button>
-                    <button
-                      onClick={() => handleDoctorApproval(doctor.email, 'approve')}
-                      className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
-                      disabled={loading}
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleDoctorApproval(doctor.email, 'reject')}
-                      className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200"
-                      disabled={loading}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        {/* Doctors Tab Content */}
+        {activeTab === 'doctors' && (
+          <div className="space-y-8">
+            {/* Pending Doctors Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-purple-700 mb-4">Pending Doctor Approvals ({adminData.pendingDoctors})</h3>
+              
+              {adminData.pendingDoctors === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-gray-600 mt-2">No pending doctor applications</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Info</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {pendingDoctorsList.map((doctor) => (
+                        <tr key={doctor.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{doctor.name}</p>
+                              <p className="text-sm text-gray-500">{doctor.email}</p>
+                              <p className="text-sm text-gray-500">{doctor.phone}</p>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.specialty}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.experience}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.appliedAt}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => fetchDoctorDetails(doctor.email)}
+                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+                              >
+                                View
+                              </button>
+                              <button
+                                onClick={() => handleDoctorApproval(doctor.email, 'approve')}
+                                className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
+                                disabled={loading}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleDoctorApproval(doctor.email, 'reject')}
+                                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200"
+                                disabled={loading}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Active Doctors Section */}
+             <div className="bg-white rounded-xl shadow-lg p-6">
+      <h3 className="text-xl font-bold text-purple-700 mb-4">Active Doctors ({adminData.approvedDoctors})</h3>
       
-      {/* Add the ViewDoctorDetails component at the bottom */}
-      <ViewDoctorDetails 
-        doctorEmail={selectedDoctor} 
-        onClose={() => setSelectedDoctor(null)} 
-      />
-    </>
-  )}
-</div>
+      {adminData.approvedDoctors === 0 ? (
+        <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-gray-600 mt-2">No active doctors found</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            {/* Table headers */}
+            <tbody className="bg-white divide-y divide-gray-200">
+              {activeDoctorsList.map((doctor) => (
+                <tr key={doctor.id} className="hover:bg-gray-50">
+                  {/* Existing cells */}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={() => setSelectedDoctor(doctor.email)}
+                      className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+    
+    {/* Doctor Treatment Plans Section */}
+    {selectedDoctor && (
+      <TreatmentPlansComponent doctorEmail={selectedDoctor} />
+    )}
+  </div>
+)}
+        
 
         {activeTab === 'patients' && (
           <div className="bg-white rounded-xl shadow-lg p-8">
@@ -744,7 +802,7 @@ const handleDeletePatient = async (email) => {
                         <h3 className="font-medium text-gray-900">{activity.description}</h3>
                       </div>
                       <div className="mt-2 text-sm text-gray-600">
-                        <p>Admin: {activity.adminEmail}</p>
+                        <p>User: {activity.adminEmail || activity.userEmail}</p>
                         <p>Time: {activity.timestamp?.toLocaleString()}</p>
                       </div>
                     </div>
@@ -758,14 +816,92 @@ const handleDeletePatient = async (email) => {
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <p className="text-gray-600 mt-2">No recent activities found</p>
+              <div> 
+                <AllLogsComponent/>
+              </div>
               </div>
             )}
+          </div>
+          
+        )}
+    
+        {/* Doctor Details Modal */}
+        {doctorDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-2xl font-bold text-purple-700">Doctor Details</h3>
+                  <button 
+                    onClick={closeDoctorModal}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Personal Information</h4>
+                    <div className="space-y-2">
+                      <p><span className="font-medium">Name:</span> {doctorDetails.name}</p>
+                      <p><span className="font-medium">Email:</span> {doctorDetails.email}</p>
+                      <p><span className="font-medium">Phone:</span> {doctorDetails.phone || 'Not provided'}</p>
+                      <p><span className="font-medium">Specialty:</span> {doctorDetails.specialty || 'Not specified'}</p>
+                      <p><span className="font-medium">Experience:</span> {doctorDetails.experience || 'Not specified'}</p>
+                      <p><span className="font-medium">Status:</span> {doctorDetails.status || 'Unknown'}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Professional Details</h4>
+                    <div className="space-y-2">
+                      <p><span className="font-medium">License Number:</span> {doctorDetails.licenseNumber || 'Not provided'}</p>
+                      <p><span className="font-medium">Qualifications:</span> {doctorDetails.qualifications || 'Not provided'}</p>
+                      <p><span className="font-medium">Hospital:</span> {doctorDetails.hospital || 'Not specified'}</p>
+                      <p><span className="font-medium">Address:</span> {doctorDetails.address || 'Not provided'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {doctorDocuments.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Documents</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {doctorDocuments.map((doc, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-3">
+                          <p className="font-medium">{doc.name}</p>
+                          <a 
+                            href={doc.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    onClick={closeDoctorModal}
+                    className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-        <Footer />
+      <Footer />
     </div>
   );
 };
