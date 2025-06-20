@@ -6,8 +6,8 @@ import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
 import { getAnalytics } from 'firebase/analytics';
 import {  httpsCallable } from 'firebase/functions';
+import { getPerformance } from "firebase/performance";
 
-// TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
@@ -32,6 +32,7 @@ export const provider = new GoogleAuthProvider(); // Create and export Google Au
 export const db = getFirestore(app); // Export Firestore instance
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
-export const Analytics = getAnalytics(app);
 export const logUserAction = httpsCallable(functions, 'logUserAction');
+export const analytics = getAnalytics(app);
+export const performance = getPerformance(app);
 export default app; // Export the app instance

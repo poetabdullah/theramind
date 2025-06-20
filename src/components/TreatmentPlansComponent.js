@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 
@@ -7,7 +6,6 @@ const TreatmentPlansComponent = () => {
   const [treatmentPlans, setTreatmentPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTreatmentPlans = async () => {
@@ -20,8 +18,7 @@ const TreatmentPlansComponent = () => {
         
         const plansData = querySnapshot.docs.map(doc => {
           const data = doc.data();
-          return {
-            id: doc.id,
+          return { id: doc.id,
             patientName: data.patient_name || 'N/A',
             patientEmail: data.patient_email || 'N/A',
             doctorName: data.doctor_name || 'N/A',
@@ -90,8 +87,8 @@ const TreatmentPlansComponent = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -108,16 +105,17 @@ const TreatmentPlansComponent = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {plan.diagnosis}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      plan.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                      plan.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {plan.status}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {plan.createdAt?.toLocaleDateString() || 'Unknown'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      className="bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700 transition duration-200"
-                      onClick={() => navigate(`/treatment-plan/${plan.id}`)}
-                    >
-                      View Details
-                    </button>
                   </td>
                 </tr>
               ))}

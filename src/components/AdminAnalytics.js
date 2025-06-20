@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebaseConfig';
+import { db, analytics, performance } from '../firebaseConfig'; 
 import { 
   collection, 
-  onSnapshot, 
-  getDocs
+  onSnapshot,
+  query,
+  where,
+  getCountFromServer
 } from 'firebase/firestore';
 import { 
   LineChart, 
@@ -18,504 +20,268 @@ import {
   Bar,
   PieChart,
   Pie,
-  Cell,
-  AreaChart,
-  Area
+  Cell
 } from 'recharts';
 
-const AdminAnalytics = ({ adminData }) => {
-  const [analytics, setAnalytics] = useState({
-    userGrowthData: [],
-    appointmentTrends: [],
-    doctorStatusData: [],
-    platformMetrics: {
-      avgDailySignups: 0,
-      avgWeeklyAppointments: 0,
-      conversionRate: 0,
-      activeUsersToday: 0,
-      systemUptime: 99.8
-    },
+const AdminAnalytics = () => {
+  const [metrics, setMetrics] = useState({
+    userGrowth: [],
+    activeUsers: 0,
+    sessionDuration: 0,
+    pageViews: [],
+    performanceMetrics: {},
     realtimeStats: {
       onlineUsers: 0,
-      todaySignups: 0,
-      todayAppointments: 0,
-      pendingActions: 0
+      activeSessions: 0,
+      todaySignups: 0
     }
   });
-  
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('7days');
 
-  // Color schemes for charts
-  const COLORS = ['#8B5CF6', '#06D6A0', '#F59E0B', '#EF4444', '#3B82F6'];
-  const CHART_COLORS = {
-    primary: '#8B5CF6',
-    secondary: '#06D6A0',
-    tertiary: '#F59E0B',
-    quaternary: '#EF4444'
-  };
-
-  // Helper function to safely convert Firestore timestamp to Date
-  const toDate = (timestamp) => {
-    if (!timestamp) return null;
-    if (typeof timestamp.toDate === 'function') {
-      return timestamp.toDate();
-    }
-    if (timestamp instanceof Date) {
-      return timestamp;
-    }
-    if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-      return new Date(timestamp);
-    }
-    return null;
-  };
-
-  // Helper function to safely format date to ISO string
-  const toISODateString = (date) => {
-    if (!date) return '';
-    try {
-      const dateObj = toDate(date);
-      if (!dateObj) return '';
-      return dateObj.toISOString().split('T')[0];
-    } catch (e) {
-      console.error('Error formatting date:', e);
-      return '';
-    }
-  };
-
+  // Initialize Firebase Analytics and Performance
   useEffect(() => {
-    const setupAnalyticsListeners = () => {
-      const listeners = [];
-
-      // Real-time user growth tracking
-      const patientsListener = onSnapshot(collection(db, "patients"), (snapshot) => {
-        const patients = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: toDate(doc.data().createdAt)
-        }));
+    const initFirebaseAnalytics = async () => {
+      try {
+        // Log that analytics page was viewed
+        Analytics.logEvent('admin_analytics_viewed');
         
-        updateUserGrowthData(patients, 'patients');
-      });
-
-      // Real-time doctor analytics
-      const doctorsListener = onSnapshot(collection(db, "doctors"), (snapshot) => {
-        const doctors = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          appliedAt: toDate(doc.data().appliedAt)
-        }));
+        // Start performance trace
+        const trace = perf.trace('admin_analytics_load');
+        trace.start();
         
-        updateDoctorAnalytics(doctors);
-        updateUserGrowthData(doctors, 'doctors');
-      });
-
-      // Real-time appointment tracking
-      const appointmentsListener = onSnapshot(collection(db, "appointments"), (snapshot) => {
-        const appointments = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: toDate(doc.data().createdAt)
-        }));
+        // Fetch initial data
+        await fetchRealtimeData();
         
-        updateAppointmentTrends(appointments);
-      });
-
-      listeners.push(patientsListener, doctorsListener, appointmentsListener);
-      
-      // Update platform metrics every minute
-      const metricsInterval = setInterval(() => {
-        updatePlatformMetrics();
-      }, 60000);
-
-      return () => {
-        listeners.forEach(unsubscribe => unsubscribe());
-        clearInterval(metricsInterval);
-      };
+        trace.stop();
+        setLoading(false);
+      } catch (error) {
+        console.error("Error initializing analytics:", error);
+        setLoading(false);
+      }
     };
 
-    const cleanup = setupAnalyticsListeners();
-    updatePlatformMetrics();
-    setLoading(false);
+    initFirebaseAnalytics();
+  }, []);
 
-    return cleanup;
-  }, [timeRange]);
+  // Set up real-time listeners
+  useEffect(() => {
+    const unsubscribeFunctions = [];
 
-  const updateUserGrowthData = (users, type) => {
-    const days = getTimeRangeDays();
-    const growthData = [];
+    // Real-time user count
+    const usersQuery = query(collection(db, 'users'), where('lastActive', '>', new Date(Date.now() - 30 * 60 * 1000)));
+    const usersUnsubscribe = onSnapshot(usersQuery, (snapshot) => {
+      setMetrics(prev => ({
+        ...prev,
+        realtimeStats: {
+          ...prev.realtimeStats,
+          onlineUsers: snapshot.size
+        }
+      }));
+    });
+    unsubscribeFunctions.push(usersUnsubscribe);
+
+    // Real-time sessions
+    const sessionsQuery = query(collection(db, 'sessions'), where('expiresAt', '>', new Date()));
+    const sessionsUnsubscribe = onSnapshot(sessionsQuery, (snapshot) => {
+      setMetrics(prev => ({
+        ...prev,
+        realtimeStats: {
+          ...prev.realtimeStats,
+          activeSessions: snapshot.size
+        }
+      }));
+    });
+    unsubscribeFunctions.push(sessionsUnsubscribe);
+
+    // Daily signups
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const signupsQuery = query(collection(db, 'users'), where('createdAt', '>=', today));
+    const signupsUnsubscribe = onSnapshot(signupsQuery, (snapshot) => {
+      setMetrics(prev => ({
+        ...prev,
+        realtimeStats: {
+          ...prev.realtimeStats,
+          todaySignups: snapshot.size
+        }
+      }));
+    });
+    unsubscribeFunctions.push(signupsUnsubscribe);
+
+    // Performance metrics collection
+    const loadPerformanceMetrics = async () => {
+      try {
+        // Get custom metrics from your implementation
+        const customMetrics = {
+          pageLoadTime: Math.random() * 1000 + 500, // Example value
+          apiResponseTime: Math.random() * 300 + 100, // Example value
+          renderTime: Math.random() * 200 + 50 // Example value
+        };
+        
+        setMetrics(prev => ({
+          ...prev,
+          performanceMetrics: customMetrics
+        }));
+      } catch (error) {
+        console.error("Error loading performance metrics:", error);
+      }
+    };
+
+    const perfInterval = setInterval(loadPerformanceMetrics, 30000);
+    loadPerformanceMetrics();
+
+    return () => {
+      unsubscribeFunctions.forEach(unsub => unsub());
+      clearInterval(perfInterval);
+    };
+  }, []);
+
+  const fetchRealtimeData = async () => {
+    try {
+      // Get user growth data (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const usersQuery = query(
+        collection(db, 'users'),
+        where('createdAt', '>=', sevenDaysAgo)
+      );
+      const usersSnapshot = await getCountFromServer(usersQuery);
+      
+      // Get active users in last 24 hours
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const activeUsersQuery = query(
+        collection(db, 'users'),
+        where('lastActive', '>=', twentyFourHoursAgo)
+      );
+      const activeUsersSnapshot = await getCountFromServer(activeUsersQuery);
+
+      setMetrics(prev => ({
+        ...prev,
+        activeUsers: activeUsersSnapshot.data().count,
+        sessionDuration: 5.2 // Example value
+      }));
+    } catch (error) {
+      console.error("Error fetching realtime data:", error);
+    }
+  };
+
+  // Sample data generation for demonstration
+  const generateSampleData = () => {
+    const days = 7;
+    const userGrowth = [];
+    const pageViews = [];
     
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
       
-      const dayUsers = users.filter(user => {
-        const userDate = user.createdAt || user.appliedAt;
-        const userDateStr = toISODateString(userDate);
-        return userDateStr === dateStr;
+      userGrowth.push({
+        date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        users: Math.floor(Math.random() * 50) + 20,
+        newUsers: Math.floor(Math.random() * 10) + 5
       });
-
-      const existingDay = growthData.find(d => d.date === dateStr);
-      if (existingDay) {
-        existingDay[type] = dayUsers.length;
-      } else {
-        growthData.push({
-          date: dateStr,
-          displayDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          [type]: dayUsers.length,
-          total: 0
-        });
-      }
-    }
-
-    setAnalytics(prev => ({
-      ...prev,
-      userGrowthData: growthData.map(day => ({
-        ...day,
-        total: (day.patients || 0) + (day.doctors || 0)
-      }))
-    }));
-  };
-
-  const updateDoctorAnalytics = (doctors) => {
-    const statusCounts = doctors.reduce((acc, doctor) => {
-      const status = doctor.status || 'pending';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    const doctorStatusData = Object.entries(statusCounts).map(([status, count]) => ({
-      name: status.charAt(0).toUpperCase() + status.slice(1),
-      value: count,
-      percentage: ((count / doctors.length) * 100).toFixed(1)
-    }));
-
-    setAnalytics(prev => ({
-      ...prev,
-      doctorStatusData
-    }));
-  };
-
-  const updateAppointmentTrends = (appointments) => {
-    const days = getTimeRangeDays();
-    const trendsData = [];
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
       
-      const dayAppointments = appointments.filter(apt => {
-        const aptDate = apt.createdAt;
-        const aptDateStr = toISODateString(aptDate);
-        return aptDateStr === dateStr;
-      });
-
-      const statusCounts = dayAppointments.reduce((acc, apt) => {
-        const status = apt.status || 'scheduled';
-        acc[status] = (acc[status] || 0) + 1;
-        return acc;
-      }, {});
-
-      trendsData.push({
-        date: dateStr,
-        displayDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        total: dayAppointments.length,
-        scheduled: statusCounts.scheduled || 0,
-        completed: statusCounts.completed || 0,
-        cancelled: statusCounts.cancelled || 0
+      pageViews.push({
+        date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        views: Math.floor(Math.random() * 200) + 100,
+        unique: Math.floor(Math.random() * 150) + 50
       });
     }
-
-    setAnalytics(prev => ({
-      ...prev,
-      appointmentTrends: trendsData
-    }));
-  };
-
-  const updatePlatformMetrics = () => {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
-    // Simulate real-time metrics (replace with actual Firebase queries)
-    setAnalytics(prev => ({
-      ...prev,
-      platformMetrics: {
-        ...prev.platformMetrics,
-        avgDailySignups: Math.round(adminData.recentSignups / 7),
-        avgWeeklyAppointments: Math.round(adminData.totalAppointments / 4),
-        conversionRate: ((adminData.approvedDoctors / adminData.totalDoctors) * 100).toFixed(1),
-        activeUsersToday: Math.floor(Math.random() * 50) + 20, // Simulate active users
-        systemUptime: 99.8 + (Math.random() * 0.2)
-      },
-      realtimeStats: {
-        onlineUsers: Math.floor(Math.random() * 15) + 5,
-        todaySignups: Math.floor(Math.random() * 10) + 2,
-        todayAppointments: Math.floor(Math.random() * 25) + 5,
-        pendingActions: adminData.pendingDoctors
-      }
-    }));
+    return { userGrowth, pageViews };
   };
 
-  const getTimeRangeDays = () => {
-    switch (timeRange) {
-      case '24hours': return 1;
-      case '7days': return 7;
-      case '30days': return 30;
-      case '90days': return 90;
-      default: return 7;
-    }
-  };
+  const { userGrowth, pageViews } = generateSampleData();
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Real-time Stats Header */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-purple-700">Real-time Analytics</h2>
-          <select 
-            value={timeRange} 
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500"
-          >
-            <option value="24hours">Last 24 Hours</option>
-            <option value="7days">Last 7 Days</option>
-            <option value="30days">Last 30 Days</option>
-            <option value="90days">Last 90 Days</option>
-          </select>
+      {/* Real-time Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Active Users</h3>
+          <p className="text-3xl font-bold text-purple-600">{metrics.realtimeStats.onlineUsers}</p>
+          <p className="text-sm text-gray-500">Currently online</p>
         </div>
         
-        {/* Real-time Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Online Users</p>
-                <p className="text-2xl font-bold">{analytics.realtimeStats.onlineUsers}</p>
-              </div>
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Today's Signups</p>
-                <p className="text-2xl font-bold">{analytics.realtimeStats.todaySignups}</p>
-              </div>
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z"/>
-              </svg>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Today's Appointments</p>
-                <p className="text-2xl font-bold">{analytics.realtimeStats.todayAppointments}</p>
-              </div>
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z"/>
-              </svg>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Pending Actions</p>
-                <p className="text-2xl font-bold">{analytics.realtimeStats.pendingActions}</p>
-              </div>
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/>
-              </svg>
-            </div>
-          </div>
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Active Sessions</h3>
+          <p className="text-3xl font-bold text-blue-600">{metrics.realtimeStats.activeSessions}</p>
+          <p className="text-sm text-gray-500">In progress</p>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Today's Signups</h3>
+          <p className="text-3xl font-bold text-green-600">{metrics.realtimeStats.todaySignups}</p>
+          <p className="text-sm text-gray-500">New users</p>
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* User Growth Chart */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">User Growth Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={analytics.userGrowthData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="displayDate" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Area 
-                type="monotone" 
-                dataKey="patients" 
-                stackId="1" 
-                stroke={CHART_COLORS.primary} 
-                fill={CHART_COLORS.primary}
-                fillOpacity={0.6}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="doctors" 
-                stackId="1" 
-                stroke={CHART_COLORS.secondary} 
-                fill={CHART_COLORS.secondary}
-                fillOpacity={0.6}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Doctor Status Distribution */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Doctor Applications Status</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={analytics.doctorStatusData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label={({name, percentage}) => `${name}: ${percentage}%`}
-              >
-                {analytics.doctorStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Appointment Trends */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Appointment Trends</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={analytics.appointmentTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="displayDate" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="total" 
-                stroke={CHART_COLORS.primary} 
-                strokeWidth={3}
-                dot={{ fill: CHART_COLORS.primary, r: 4 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="completed" 
-                stroke={CHART_COLORS.secondary} 
-                strokeWidth={2}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="cancelled" 
-                stroke={CHART_COLORS.quaternary} 
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Platform Performance Metrics */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Platform Performance</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">System Uptime</span>
-              <div className="flex items-center">
-                <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                  <div 
-                    className="bg-green-500 h-2 rounded-full" 
-                    style={{ width: `${analytics.platformMetrics.systemUptime}%` }}
-                  ></div>
-                </div>
-                <span className="text-sm font-medium">{analytics.platformMetrics.systemUptime.toFixed(1)}%</span>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Doctor Approval Rate</span>
-              <div className="flex items-center">
-                <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full" 
-                    style={{ width: `${analytics.platformMetrics.conversionRate}%` }}
-                  ></div>
-                </div>
-                <span className="text-sm font-medium">{analytics.platformMetrics.conversionRate}%</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 mt-6">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">{analytics.platformMetrics.avgDailySignups}</p>
-                <p className="text-sm text-gray-600">Avg Daily Signups</p>
-              </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{analytics.platformMetrics.avgWeeklyAppointments}</p>
-                <p className="text-sm text-gray-600">Avg Weekly Appointments</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Summary */}
+      {/* User Growth Chart */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Performance Summary</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">User Growth (Last 7 Days)</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={userGrowth}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="users" fill="#8884d8" name="Total Users" />
+            <Bar dataKey="newUsers" fill="#82ca9d" name="New Users" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Performance Metrics</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-              </svg>
+          <div>
+            <h4 className="text-md font-medium text-gray-700 mb-2">Page Load Time</h4>
+            <div className="h-2 bg-gray-200 rounded-full">
+              <div 
+                className="h-2 bg-blue-500 rounded-full" 
+                style={{ width: `${Math.min(100, metrics.performanceMetrics.pageLoadTime || 0)}%` }}
+              ></div>
             </div>
-            <h4 className="font-semibold text-gray-800">Excellent</h4>
-            <p className="text-sm text-gray-600">System Performance</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {metrics.performanceMetrics.pageLoadTime?.toFixed(2) || '0'} ms
+            </p>
           </div>
           
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-16 0 9 9 0 0118 0z"/>
-              </svg>
+          <div>
+            <h4 className="text-md font-medium text-gray-700 mb-2">API Response Time</h4>
+            <div className="h-2 bg-gray-200 rounded-full">
+              <div 
+                className="h-2 bg-green-500 rounded-full" 
+                style={{ width: `${Math.min(100, metrics.performanceMetrics.apiResponseTime || 0)}%` }}
+              ></div>
             </div>
-            <h4 className="font-semibold text-gray-800">Growing</h4>
-            <p className="text-sm text-gray-600">User Base</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {metrics.performanceMetrics.apiResponseTime?.toFixed(2) || '0'} ms
+            </p>
           </div>
           
-          <div className="text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-              </svg>
+          <div>
+            <h4 className="text-md font-medium text-gray-700 mb-2">Render Time</h4>
+            <div className="h-2 bg-gray-200 rounded-full">
+              <div 
+                className="h-2 bg-purple-500 rounded-full" 
+                style={{ width: `${Math.min(100, metrics.performanceMetrics.renderTime || 0)}%` }}
+              ></div>
             </div>
-            <h4 className="font-semibold text-gray-800">Optimized</h4>
-            <p className="text-sm text-gray-600">Platform Usage</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {metrics.performanceMetrics.renderTime?.toFixed(2) || '0'} ms
+            </p>
           </div>
         </div>
       </div>
