@@ -21,8 +21,7 @@ import { ref, listAll, getDownloadURL } from "firebase/storage";
 import AdminAnalytics from "../components/AdminAnalytics";
 import DashboardContentManager from '../components/DashboardContentManager';
 import DashboardAppointmentsManager from '../components/DashboardAppointmentsManager';
-import AprrovedDoctorsList from '../components/ApprovedDoctorsList';
-import AllLogsComponent from '../components/AllLogsComponent';
+import ApprovedDoctorsList from '../components/ApprovedDoctorsList';
 import TreatmentPlansComponent from '../components/TreatmentPlansComponent';
 import Footer from "../components/Footer";
 import { sendAccountStatusEmail } from "../components/emailService";
@@ -47,7 +46,6 @@ const AdminDashboard = () => {
   const [pendingDoctorsList, setPendingDoctorsList] = useState([]);
   const [allDoctorsList, setAllDoctorsList] = useState([]);
   const [patientsList, setPatientsList] = useState([]);
-  const [recentActivities, setRecentActivities] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [currentUser, setCurrentUser] = useState(null);
   const [realTimeListeners, setRealTimeListeners] = useState([]);
@@ -106,9 +104,9 @@ const AdminDashboard = () => {
   const setupRealTimeListeners = () => {
     const listeners = [];
 
-    // Doctors listener
+    // Doctors listener - updated query to fetch all approved doctors
     const doctorsListener = onSnapshot(
-      query(collection(db, "doctors"), where("status", "==", "approved"), limit(4)),
+      query(collection(db, "doctors"), where("status", "==", "approved")),
       (snapshot) => {
         const doctorsData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -117,6 +115,11 @@ const AdminDashboard = () => {
           reviewedAt: doc.data().reviewedAt?.toDate()
         }));
         setAllDoctorsList(doctorsData);
+        setAdminData(prev => ({
+          ...prev,
+          totalDoctors: doctorsData.length,
+          approvedDoctors: doctorsData.length
+        }));
       },
       (error) => {
         console.error("Error fetching doctors:", error);
@@ -194,24 +197,6 @@ const AdminDashboard = () => {
     );
     listeners.push(treatmentPlansListener);
 
-    // System logs listener
-    const logsListener = onSnapshot(
-      query(collection(db, "system_logs"), orderBy("timestamp", "desc"), limit(50)), 
-      (snapshot) => {
-        const activities = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate()
-        }));
-        setRecentActivities(activities);
-      },
-      (error) => {
-        console.error("Error loading recent activities:", error);
-        toast.error("Failed to load recent activities");
-      }
-    );
-    listeners.push(logsListener);
-
     setRealTimeListeners(listeners);
   };
 
@@ -245,8 +230,7 @@ const AdminDashboard = () => {
       setAdminData(prev => ({
         ...prev,
         recentSignups: recentPatientsSnapshot.size + recentDoctorsSnapshot.size,
-        activeSessions: activeSessionsSnapshot.size,
-        totalDoctors: allDoctorsList.length
+        activeSessions: activeSessionsSnapshot.size
       }));
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
@@ -395,10 +379,6 @@ const AdminDashboard = () => {
     setError(null);
   };
 
-  const viewPatientDetails = (patientEmail) => {
-    navigate(`/patient-dashboard/${patientEmail}`);
-  };
-
   const fetchDoctorDetails = async (doctorEmail) => {
     try {
       setLoading(true);
@@ -463,10 +443,10 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs - Removed 'logs' tab */}
         <div className="bg-white rounded-xl shadow-lg mb-6 p-1">
           <div className="flex flex-wrap">
-            {['dashboard', 'doctors', 'patients', 'analytics', 'logs'].map((tab) => (
+            {['dashboard', 'doctors', 'patients', 'analytics'].map((tab) => (
               <button 
                 key={tab}
                 onClick={() => setActiveTab(tab)} 
@@ -581,8 +561,6 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            
-            
             <DashboardAppointmentsManager />
             <DashboardContentManager />
           </>
@@ -661,61 +639,8 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            {/* All Doctors Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-xl font-bold text-purple-700 mb-4">All Approved Doctors ({allDoctorsList.length})</h3>
-              
-              {allDoctorsList.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-gray-600 mt-2">No approved doctors found</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Info</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {allDoctorsList.map((doctor) => (
-                        <tr key={doctor.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{doctor.name}</p>
-                              <p className="text-sm text-gray-500">{doctor.email}</p>
-                              <p className="text-sm text-gray-500">{doctor.phone}</p>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doctor.specialty}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                              {doctor.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => fetchDoctorDetails(doctor.email)}
-                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
-                              >
-                                View Details
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            {/* All Doctors Section - Fixed to show all approved doctors */}
+            <ApprovedDoctorsList/>
           </div>
         )}
 
@@ -730,7 +655,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
               
-              {/* Patients Table */}
+              {/* Patients Table - Removed View button */}
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -763,12 +688,6 @@ const AdminDashboard = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button
-                              onClick={() => viewPatientDetails(patient.email)}
-                              className="bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700 transition duration-200"
-                            >
-                              View
-                            </button>
                             {patient.status !== 'blocked' ? (
                               <button
                                 onClick={() => handlePatientBlock(patient.email, 'block')}
@@ -802,8 +721,8 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Treatment Plans Section */}
-            <TreatmentPlansComponent/>
+            {/* Treatment Plans Section - Simplified without view details */}
+           <TreatmentPlansComponent/>
           </div>
         )}
 
@@ -815,88 +734,6 @@ const AdminDashboard = () => {
               doctors={allDoctorsList}
               appointments={adminData.totalAppointments}
             />
-          </div>
-        )}
-
-        {activeTab === 'logs' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-purple-700 mb-6">System Logs</h2>
-            <AllLogsComponent />
-          </div>
-        )}
-
-        {/* Doctor Details Modal */}
-        {doctorDetails && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-2xl font-bold text-purple-700">Doctor Details</h3>
-                  <button 
-                    onClick={closeDoctorModal}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Personal Information</h4>
-                    <div className="space-y-2">
-                      <p><span className="font-medium">Name:</span> {doctorDetails.name}</p>
-                      <p><span className="font-medium">Email:</span> {doctorDetails.email}</p>
-                      <p><span className="font-medium">Phone:</span> {doctorDetails.phone || 'Not provided'}</p>
-                      <p><span className="font-medium">Specialty:</span> {doctorDetails.specialty || 'Not specified'}</p>
-                      <p><span className="font-medium">Experience:</span> {doctorDetails.experience || 'Not specified'}</p>
-                      <p><span className="font-medium">Status:</span> {doctorDetails.status || 'Unknown'}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Professional Details</h4>
-                    <div className="space-y-2">
-                      <p><span className="font-medium">License Number:</span> {doctorDetails.licenseNumber || 'Not provided'}</p>
-                      <p><span className="font-medium">Qualifications:</span> {doctorDetails.qualifications || 'Not provided'}</p>
-                      <p><span className="font-medium">Hospital:</span> {doctorDetails.hospital || 'Not specified'}</p>
-                      <p><span className="font-medium">Address:</span> {doctorDetails.address || 'Not provided'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {doctorDocuments.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Documents</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {doctorDocuments.map((doc, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-3">
-                          <p className="font-medium">{doc.name}</p>
-                          <a 
-                            href={doc.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline text-sm"
-                          >
-                            View Document
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-6 flex justify-end space-x-3">
-                  <button
-                    onClick={closeDoctorModal}
-                    className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>

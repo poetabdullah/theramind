@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, doc, deleteDoc } from 'firebase/firestore';
-import { db, storage } from '../firebaseConfig';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, doc, deleteDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import { toast } from 'react-toastify';
 
 const DashboardContentManager = () => {
   const [activeContentTab, setActiveContentTab] = useState('articles');
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [expandedContent, setExpandedContent] = useState(null);
+  const [editingContent, setEditingContent] = useState(null);
+  const [editForm, setEditForm] = useState({
     title: '',
     content: '',
-    image: null,
-    author: 'Admin',
-    publishedAt: new Date().toISOString().split('T')[0]
+    publishedAt: ''
   });
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const contentTypes = {
     articles: { collection: 'articles', title: 'Articles' },
@@ -22,209 +22,269 @@ const DashboardContentManager = () => {
   };
 
   useEffect(() => {
-    fetchContents();
-  }, [activeContentTab]);
-
-  const fetchContents = async () => {
-    setLoading(true);
-    try {
-      const querySnapshot = await getDocs(collection(db, contentTypes[activeContentTab].collection));
-      const contentsData = [];
-      querySnapshot.forEach((doc) => {
-        contentsData.push({
+    const unsubscribe = onSnapshot(
+      collection(db, contentTypes[activeContentTab].collection),
+      (snapshot) => {
+        const contentsData = snapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data()
-        });
-      });
-      setContents(contentsData);
-    } catch (error) {
-      toast.error(`Failed to fetch ${contentTypes[activeContentTab].title}: ${error.message}`);
-    }
-    setLoading(false);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      setFormData(prev => ({ ...prev, image: e.target.files[0] }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      let imageUrl = '';
-      if (formData.image) {
-        const storageRef = ref(storage, `content/${activeContentTab}/${Date.now()}_${formData.image.name}`);
-        await uploadBytes(storageRef, formData.image);
-        imageUrl = await getDownloadURL(storageRef);
+          ...doc.data(),
+          publishedAt: doc.data().publishedAt?.toDate() || null
+        }));
+        setContents(contentsData);
+        setLoading(false);
+      },
+      (error) => {
+        toast.error(`Failed to fetch ${contentTypes[activeContentTab].title}: ${error.message}`);
+        setLoading(false);
       }
+    );
 
-      const contentData = {
-        title: formData.title,
-        content: formData.content,
-        author: formData.author,
-        publishedAt: formData.publishedAt,
-        imageUrl,
-        createdAt: new Date()
-      };
-
-      await addDoc(collection(db, contentTypes[activeContentTab].collection), contentData);
-      toast.success(`${contentTypes[activeContentTab].title} added successfully!`);
-      setFormData({
-        title: '',
-        content: '',
-        image: null,
-        author: 'Admin',
-        publishedAt: new Date().toISOString().split('T')[0]
-      });
-      fetchContents();
-    } catch (error) {
-      toast.error(`Failed to add content: ${error.message}`);
-    }
-    setLoading(false);
-  };
+    return () => unsubscribe();
+  }, [activeContentTab]);
 
   const handleDelete = async (id) => {
     if (window.confirm(`Are you sure you want to delete this ${contentTypes[activeContentTab].title.toLowerCase()}?`)) {
       try {
         await deleteDoc(doc(db, contentTypes[activeContentTab].collection, id));
         toast.success("Content deleted successfully!");
-        fetchContents();
       } catch (error) {
         toast.error("Failed to delete content: " + error.message);
       }
     }
   };
 
+  const handleEdit = (content) => {
+    setEditingContent(content.id);
+    setEditForm({
+      title: content.title,
+      content: content.content,
+      publishedAt: content.publishedAt?.toISOString().split('T')[0] || ''
+    });
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await updateDoc(
+        doc(db, contentTypes[activeContentTab].collection, editingContent),
+        {
+          title: editForm.title,
+          content: editForm.content,
+          publishedAt: new Date(editForm.publishedAt)
+        }
+      );
+      toast.success("Content updated successfully!");
+      setEditingContent(null);
+    } catch (error) {
+      toast.error("Failed to update content: " + error.message);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingContent(null);
+  };
+
+  const nextItem = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === contents.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevItem = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? contents.length - 1 : prevIndex - 1
+    );
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-      <h3 className="text-xl font-bold text-purple-700 mb-4">Educational Content Management</h3>
+      <h3 className="text-xl font-bold text-purple-700 mb-4">Content Management</h3>
       
       <div className="flex space-x-2 mb-6">
         {Object.keys(contentTypes).map(tab => (
           <button
             key={tab}
-            onClick={() => setActiveContentTab(tab)}
-            className={`px-4 py-2 rounded-lg ${activeContentTab === tab ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+            onClick={() => {
+              setActiveContentTab(tab);
+              setExpandedContent(null);
+              setEditingContent(null);
+              setCurrentIndex(0);
+            }}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeContentTab === tab 
+                ? 'bg-purple-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
           >
             {contentTypes[tab].title}
           </button>
         ))}
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Add Content Form */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <h4 className="text-lg font-semibold mb-4">Add New {contentTypes[activeContentTab].title}</h4>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Title *</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg"
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Content *</label>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows="4"
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Published Date *</label>
-              <input
-                type="date"
-                name="publishedAt"
-                value={formData.publishedAt}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg"
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Image (Optional)</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {formData.image && (
-                <p className="text-sm text-gray-600 mt-1">{formData.image.name}</p>
-              )}
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition duration-200"
-            >
-              {loading ? 'Adding...' : `Add ${contentTypes[activeContentTab].title}`}
-            </button>
-          </form>
-        </div>
+      <div>
+        <h4 className="text-lg font-semibold mb-4">Existing {contentTypes[activeContentTab].title}</h4>
         
-        {/* Content List */}
-        <div>
-          <h4 className="text-lg font-semibold mb-4">Existing {contentTypes[activeContentTab].title}</h4>
-          {loading && contents.length === 0 ? (
-            <div className="text-center py-8">Loading content...</div>
-          ) : contents.length === 0 ? (
-            <div className="text-center py-8 bg-gray-100 rounded-lg">
-              <p>No {contentTypes[activeContentTab].title.toLowerCase()} found</p>
-            </div>
-          ) : (
-            <div className="space-y-4 max-h-[500px] overflow-y-auto">
-              {contents.map(content => (
-                <div key={content.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h5 className="font-medium">{content.title}</h5>
-                      <p className="text-sm text-gray-600">
-                        Published: {new Date(content.publishedAt).toLocaleDateString()}
-                      </p>
-                    </div>
+        {loading && contents.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="text-gray-600 mt-2">Loading content...</p>
+          </div>
+        ) : contents.length === 0 ? (
+          <div className="text-center py-8 bg-gray-100 rounded-lg">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-gray-600 mt-2">No {contentTypes[activeContentTab].title.toLowerCase()} found</p>
+          </div>
+        ) : (
+          <div className="relative">
+            {/* Navigation controls */}
+            {contents.length > 1 && (
+              <div className="flex justify-between mb-4">
+                <button 
+                  onClick={prevItem}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                  Previous
+                </button>
+                <button 
+                  onClick={nextItem}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+            
+            {/* Current content display */}
+            <div className="border border-gray-200 rounded-lg p-6">
+              {editingContent === contents[currentIndex]?.id ? (
+                <form onSubmit={handleEditSubmit}>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 mb-2">Title</label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={editForm.title}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 border rounded-lg"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-gray-700 mb-2">Content</label>
+                    <textarea
+                      name="content"
+                      value={editForm.content}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 border rounded-lg"
+                      rows="6"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-gray-700 mb-2">Published Date</label>
+                    <input
+                      type="date"
+                      name="publishedAt"
+                      value={editForm.publishedAt}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 border rounded-lg"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end space-x-3">
                     <button
-                      onClick={() => handleDelete(content.id)}
-                      className="text-red-600 hover:text-red-800"
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                     >
-                      Delete
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      Save Changes
                     </button>
                   </div>
-                  {content.imageUrl && (
-                    <div className="mt-2">
+                </form>
+              ) : (
+                <>
+                  {contents[currentIndex]?.imageUrl && (
+                    <div className="mb-4">
                       <img 
-                        src={content.imageUrl} 
-                        alt={content.title} 
-                        className="h-40 w-full object-cover rounded-lg"
+                        src={contents[currentIndex].imageUrl} 
+                        alt={contents[currentIndex].title} 
+                        className="w-full h-48 object-cover rounded-lg"
                       />
                     </div>
                   )}
-                  <p className="mt-2 text-gray-700 line-clamp-3">{content.content}</p>
-                </div>
-              ))}
+                  <h5 className="font-medium text-lg mb-2">{contents[currentIndex]?.title}</h5>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Published: {contents[currentIndex]?.publishedAt?.toLocaleDateString() || 'Not specified'}
+                  </p>
+                  <div className="text-gray-700 mb-4">
+                    {expandedContent === contents[currentIndex]?.id ? (
+                      <p>{contents[currentIndex]?.content}</p>
+                    ) : (
+                      <p className="line-clamp-3">{contents[currentIndex]?.content}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => setExpandedContent(expandedContent === contents[currentIndex]?.id ? null : contents[currentIndex]?.id)}
+                        className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                      >
+                        {expandedContent === contents[currentIndex]?.id ? 'Show Less' : 'Read More'}
+                      </button>
+                      <button
+                        onClick={() => handleEdit(contents[currentIndex])}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(contents[currentIndex]?.id)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Delete"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Dots indicator */}
+            {contents.length > 1 && (
+              <div className="flex justify-center mt-4 space-x-2">
+                {contents.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`w-3 h-3 rounded-full ${
+                      index === currentIndex ? 'bg-purple-600' : 'bg-gray-300'
+                    }`}
+                    aria-label={`Go to item ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
