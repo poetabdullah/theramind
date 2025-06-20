@@ -42,10 +42,10 @@ const AdminAnalytics = () => {
     const initFirebaseAnalytics = async () => {
       try {
         // Log that analytics page was viewed
-        Analytics.logEvent('admin_analytics_viewed');
+        analytics.logEvent('admin_analytics_viewed');
         
         // Start performance trace
-        const trace = perf.trace('admin_analytics_load');
+        const trace = performance.trace('admin_analytics_load');
         trace.start();
         
         // Fetch initial data
