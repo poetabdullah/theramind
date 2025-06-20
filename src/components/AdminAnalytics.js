@@ -19,7 +19,6 @@ import {
   BarChart,
   Bar,
   PieChart,
-  Pie,
   Cell
 } from 'recharts';
 
