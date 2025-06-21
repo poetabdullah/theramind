@@ -22,7 +22,7 @@ const ApprovedDoctorsList = () => {
           name: doc.data().fullName || doc.data().name || 'N/A',
           email: doc.data().email || 'N/A',
           phone: doc.data().contact || doc.data().phone || 'N/A',
-          Specialty: doc.data().Speciality || 'Not specified',
+          expertise: doc.data().expertise || 'Not specified',
           location: doc.data().location || 'N/A'
         }));
 
@@ -102,7 +102,7 @@ const ApprovedDoctorsList = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">expertise</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -118,7 +118,7 @@ const ApprovedDoctorsList = () => {
                     {doctor.phone}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {doctor.specialty}
+                    {doctor.expertise}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {doctor.location}

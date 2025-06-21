@@ -570,7 +570,7 @@ const AdminDashboard = () => {
         {activeTab === 'doctors' && (
           <div className="space-y-8">
             {/* Pending Doctors Section */}
-           <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
   <h3 className="text-xl font-bold text-purple-700 mb-4">Pending Doctor Approvals ({adminData.pendingDoctors})</h3>
   
   {adminData.pendingDoctors === 0 ? (
@@ -585,12 +585,11 @@ const AdminDashboard = () => {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Info</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Degree & Specialty</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOCTOR INFO</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DEGREE</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOCATION</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EXPERTISE</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACTIONS</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -598,39 +597,34 @@ const AdminDashboard = () => {
             <tr key={doctor.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{doctor.fullName || doctor.name}</p>
+                  <p className="text-sm font-bold text-gray-900">{doctor.fullName || doctor.name}</p>
                   <p className="text-sm text-gray-500">{doctor.email}</p>
                   <p className="text-sm text-gray-500">{doctor.contact}</p>
                 </div>
               </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+  <p className="text-sm text-gray-900">
+    {doctor.degree || doctor.education?.degree || 'N/A'}
+  </p>
+</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{doctor.degree}</p>
-                  <p className="text-sm text-gray-500">{doctor.specialty}</p>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <p className="text-sm text-gray-900">{doctor.location?.location || 'N/A'}</p>
-                <p className="text-sm text-gray-500">{doctor.location?.country || ''}</p>
+                <p className="text-sm text-gray-900">{doctor.location || 'N/A'}</p>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {doctor.experience} {doctor.experience === 1 ? 'year' : 'years'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {doctor.appliedAt?.toLocaleDateString() || 'N/A'}
+                {doctor.expertise || 'N/A'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleDoctorApproval(doctor.email, 'approve')}
-                    className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
+                    className="bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700 transition duration-200 text-sm"
                     disabled={loading}
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => handleDoctorApproval(doctor.email, 'reject')}
-                    className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200"
+                    className="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 transition duration-200 text-sm"
                     disabled={loading}
                   >
                     Reject
@@ -644,7 +638,6 @@ const AdminDashboard = () => {
     </div>
   )}
 </div>
-
             {/* All Doctors Section - Fixed to show all approved doctors */}
             <ApprovedDoctorsList/>
           </div>
