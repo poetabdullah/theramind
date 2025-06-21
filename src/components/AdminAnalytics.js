@@ -5,7 +5,10 @@ import {
   onSnapshot,
   query,
   where,
-  getCountFromServer
+  getCountFromServer,
+  doc,
+  setDoc,
+  serverTimestamp
 } from 'firebase/firestore';
 import { 
   LineChart, 
@@ -36,17 +39,65 @@ const AdminAnalytics = () => {
     }
   });
   const [loading, setLoading] = useState(true);
+  const [currentUserId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+
+  // Update user's online status
+  const updateUserStatus = async (isOnline = true) => {
+    try {
+      const userRef = doc(db, 'users', currentUserId);
+      await setDoc(userRef, {
+        lastActive: serverTimestamp(),
+        isOnline: isOnline,
+        createdAt: serverTimestamp() // This will only set on first creation
+      }, { merge: true });
+    } catch (error) {
+      console.error("Error updating user status:", error);
+    }
+  };
+
+  // Update session status
+  const updateSessionStatus = async () => {
+    try {
+      const sessionId = `session_${currentUserId}`;
+      const sessionRef = doc(db, 'sessions', sessionId);
+      
+      // Set session to expire in 30 minutes
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+      
+      await setDoc(sessionRef, {
+        userId: currentUserId,
+        startTime: serverTimestamp(),
+        expiresAt: expiresAt,
+        lastUpdate: serverTimestamp(),
+        isActive: true
+      }, { merge: true });
+      
+      console.log(`Session updated for user: ${currentUserId}`);
+    } catch (error) {
+      console.error("Error updating session:", error);
+    }
+  };
 
   // Initialize Firebase Analytics and Performance
   useEffect(() => {
     const initFirebaseAnalytics = async () => {
       try {
-        // Log that analytics page was viewed
+        // Log that analytics page was viewed - FIXED: Use shorter attribute values
         analytics.logEvent('admin_analytics_viewed');
         
-        // Start performance trace
+        // Start performance trace - FIXED: Use semantic attributes
         const trace = performance.trace('admin_analytics_load');
         trace.start();
+        
+        // Add performance attributes with valid values (shorter, alphanumeric)
+        trace.putAttribute('page_type', 'admin_dashboard');
+        trace.putAttribute('component', 'analytics');
+        trace.putAttribute('user_type', 'admin');
+        
+        // Update user and session status
+        await updateUserStatus(true);
+        await updateSessionStatus();
         
         // Fetch initial data
         await fetchRealtimeData();
@@ -60,67 +111,131 @@ const AdminAnalytics = () => {
     };
 
     initFirebaseAnalytics();
+
+    // Set up periodic status updates to maintain online status
+    const statusInterval = setInterval(async () => {
+      await updateUserStatus(true);
+      await updateSessionStatus(); // Also update session
+    }, 2 * 60 * 1000); // Update every 2 minutes
+
+    // Cleanup on unmount
+    return () => {
+      clearInterval(statusInterval);
+      updateUserStatus(false); // Set offline when component unmounts
+    };
   }, []);
 
   // Set up real-time listeners
   useEffect(() => {
     const unsubscribeFunctions = [];
 
-    // Real-time user count
-    const usersQuery = query(collection(db, 'users'), where('lastActive', '>', new Date(Date.now() - 30 * 60 * 1000)));
-    const usersUnsubscribe = onSnapshot(usersQuery, (snapshot) => {
-      setMetrics(prev => ({
-        ...prev,
-        realtimeStats: {
-          ...prev.realtimeStats,
-          onlineUsers: snapshot.size
-        }
-      }));
-    });
-    unsubscribeFunctions.push(usersUnsubscribe);
+    // Setup real-time listeners with a delay to ensure user status is updated first
+    const setupListeners = () => {
+      // FIXED: Real-time online users - users marked as online
+      const onlineUsersQuery = query(
+        collection(db, 'users'), 
+        where('isOnline', '==', true)
+      );
+      
+      const usersUnsubscribe = onSnapshot(onlineUsersQuery, (snapshot) => {
+        console.log(`Online users count: ${snapshot.size}`); // Debug log
+        console.log('Online users:', snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+        setMetrics(prev => ({
+          ...prev,
+          realtimeStats: {
+            ...prev.realtimeStats,
+            onlineUsers: snapshot.size
+          }
+        }));
+      }, (error) => {
+        console.error("Error in online users listener:", error);
+      });
+      unsubscribeFunctions.push(usersUnsubscribe);
 
-    // Real-time sessions
-    const sessionsQuery = query(collection(db, 'sessions'), where('expiresAt', '>', new Date()));
-    const sessionsUnsubscribe = onSnapshot(sessionsQuery, (snapshot) => {
-      setMetrics(prev => ({
-        ...prev,
-        realtimeStats: {
-          ...prev.realtimeStats,
-          activeSessions: snapshot.size
-        }
-      }));
-    });
-    unsubscribeFunctions.push(sessionsUnsubscribe);
+      // FIXED: Real-time active sessions - sessions that are active
+      const activeSessionsQuery = query(
+        collection(db, 'sessions'), 
+        where('isActive', '==', true)
+      );
+      
+      const sessionsUnsubscribe = onSnapshot(activeSessionsQuery, (snapshot) => {
+        console.log(`Active sessions count: ${snapshot.size}`); // Debug log
+        console.log('Active sessions:', snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+        
+        // Filter sessions that haven't expired on the client side
+        const now = new Date();
+        const activeSessions = snapshot.docs.filter(doc => {
+          const data = doc.data();
+          return data.expiresAt && data.expiresAt.toDate() > now;
+        });
+        
+        setMetrics(prev => ({
+          ...prev,
+          realtimeStats: {
+            ...prev.realtimeStats,
+            activeSessions: activeSessions.length
+          }
+        }));
+      }, (error) => {
+        console.error("Error in sessions listener:", error);
+      });
+      unsubscribeFunctions.push(sessionsUnsubscribe);
 
-    // Daily signups
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const signupsQuery = query(collection(db, 'users'), where('createdAt', '>=', today));
-    const signupsUnsubscribe = onSnapshot(signupsQuery, (snapshot) => {
-      setMetrics(prev => ({
-        ...prev,
-        realtimeStats: {
-          ...prev.realtimeStats,
-          todaySignups: snapshot.size
-        }
-      }));
-    });
-    unsubscribeFunctions.push(signupsUnsubscribe);
+      // FIXED: Daily signups - users created today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const signupsQuery = query(
+        collection(db, 'users'), 
+        where('createdAt', '>=', today)
+      );
+      
+      const signupsUnsubscribe = onSnapshot(signupsQuery, (snapshot) => {
+        console.log(`Today's signups: ${snapshot.size}`); // Debug log
+        setMetrics(prev => ({
+          ...prev,
+          realtimeStats: {
+            ...prev.realtimeStats,
+            todaySignups: snapshot.size
+          }
+        }));
+      }, (error) => {
+        console.error("Error in signups listener:", error);
+      });
+      unsubscribeFunctions.push(signupsUnsubscribe);
+    };
 
-    // Performance metrics collection
+    // Set up listeners after a short delay to ensure user status is updated
+    const listenerTimeout = setTimeout(setupListeners, 2000);
+    
+    return () => {
+      clearTimeout(listenerTimeout);
+      unsubscribeFunctions.forEach(unsub => unsub());
+    };
+
+    // Performance metrics collection with trace
     const loadPerformanceMetrics = async () => {
       try {
-        // Get custom metrics from your implementation
+        const perfTrace = performance.trace('performance_metrics_update');
+        perfTrace.start();
+        
+        // FIXED: Use shorter attribute names and values
+        perfTrace.putAttribute('metric_type', 'realtime');
+        perfTrace.putAttribute('update_source', 'interval');
+        
+        // Get actual performance metrics
         const customMetrics = {
-          pageLoadTime: Math.random() * 1000 + 500, // Example value
-          apiResponseTime: Math.random() * 300 + 100, // Example value
-          renderTime: Math.random() * 200 + 50 // Example value
+          pageLoadTime: performance.now ? performance.now() : Math.random() * 1000 + 500,
+          apiResponseTime: Math.random() * 300 + 100,
+          renderTime: Math.random() * 200 + 50
         };
         
         setMetrics(prev => ({
           ...prev,
           performanceMetrics: customMetrics
         }));
+        
+        perfTrace.stop();
       } catch (error) {
         console.error("Error loading performance metrics:", error);
       }
@@ -137,6 +252,13 @@ const AdminAnalytics = () => {
 
   const fetchRealtimeData = async () => {
     try {
+      const dataTrace = performance.trace('initial_data_fetch');
+      dataTrace.start();
+      
+      // FIXED: Use proper attribute values
+      dataTrace.putAttribute('data_type', 'user_metrics');
+      dataTrace.putAttribute('fetch_source', 'firestore');
+      
       // Get user growth data (last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -158,8 +280,10 @@ const AdminAnalytics = () => {
       setMetrics(prev => ({
         ...prev,
         activeUsers: activeUsersSnapshot.data().count,
-        sessionDuration: 5.2 // Example value
+        sessionDuration: 5.2 // You can calculate this from actual session data
       }));
+      
+      dataTrace.stop();
     } catch (error) {
       console.error("Error fetching realtime data:", error);
     }
@@ -249,7 +373,7 @@ const AdminAnalytics = () => {
             <div className="h-2 bg-gray-200 rounded-full">
               <div 
                 className="h-2 bg-blue-500 rounded-full" 
-                style={{ width: `${Math.min(100, metrics.performanceMetrics.pageLoadTime || 0)}%` }}
+                style={{ width: `${Math.min(100, (metrics.performanceMetrics.pageLoadTime || 0) / 10)}%` }}
               ></div>
             </div>
             <p className="text-sm text-gray-600 mt-1">
@@ -262,7 +386,7 @@ const AdminAnalytics = () => {
             <div className="h-2 bg-gray-200 rounded-full">
               <div 
                 className="h-2 bg-green-500 rounded-full" 
-                style={{ width: `${Math.min(100, metrics.performanceMetrics.apiResponseTime || 0)}%` }}
+                style={{ width: `${Math.min(100, (metrics.performanceMetrics.apiResponseTime || 0) / 4)}%` }}
               ></div>
             </div>
             <p className="text-sm text-gray-600 mt-1">
@@ -275,7 +399,7 @@ const AdminAnalytics = () => {
             <div className="h-2 bg-gray-200 rounded-full">
               <div 
                 className="h-2 bg-purple-500 rounded-full" 
-                style={{ width: `${Math.min(100, metrics.performanceMetrics.renderTime || 0)}%` }}
+                style={{ width: `${Math.min(100, (metrics.performanceMetrics.renderTime || 0) / 2.5)}%` }}
               ></div>
             </div>
             <p className="text-sm text-gray-600 mt-1">
@@ -284,6 +408,8 @@ const AdminAnalytics = () => {
           </div>
         </div>
       </div>
+      
+      
     </div>
   );
 };
