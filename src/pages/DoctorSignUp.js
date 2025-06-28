@@ -76,193 +76,125 @@ export default function DoctorSignUp() {
         location: "",
         contact: "",
         profilePic: null,
-        education: Array.from({ length: 2 }, () => ({
-            degree: "",
-            institute: "",
-            gradDate: "",
-            proof: null,
-        })),
-        experiences: Array.from({ length: 2 }, () => ({
-            org: "",
-            role: "",
-            start: "",
-            end: "",
-            resume: null,
-        })),
+        education: Array.from({ length: 2 }, () => ({ degree: "", institute: "", gradDate: "", proof: null })),
+        experiences: Array.from({ length: 2 }, () => ({ org: "", role: "", start: "", end: "", resume: null })),
         bio: "",
         verified: false,
-        status: "pending",
+        STATUS: "pending",
     });
     const [error, setError] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
-
-    // Memoize auth instance
     const authInstance = useMemo(() => auth, []);
 
-    // Prepare a single GoogleAuthProvider with scopes & parameters
+    // prepare provider once
     const googleProvider = useMemo(() => {
-        const provider = new GoogleAuthProvider();
-        // Force fresh account prompt
-        provider.setCustomParameters({ prompt: "select_account" });
-        // Add scopes once
-        DOCTOR_OAUTH_SCOPES.forEach((scope) => provider.addScope(scope));
-        return provider;
+        const p = new GoogleAuthProvider();
+        p.setCustomParameters({ prompt: "select_account consent" });
+        DOCTOR_OAUTH_SCOPES.forEach((s) => p.addScope(s));
+        return p;
     }, []);
 
-    // Always sign out before starting signup flow
-    useEffect(() => {
-        (async () => {
-            try {
-                await signOut(authInstance);
-            } catch { }
-        })();
-    }, [authInstance]);
+    // ensure logged out
+    useEffect(() => { signOut(authInstance).catch(() => { }); }, [authInstance]);
 
-    // Step 1: Google Sign-Up for doctors (same logic, but provider memoized)
+    // Step 1: OAuth + parallel role/status check
     const handleGoogleSignUp = useCallback(async () => {
         setError("");
         try {
             await signOut(authInstance);
-            const result = await signInWithPopup(authInstance, googleProvider);
-            const user = result.user;
+            const { user } = await signInWithPopup(authInstance, googleProvider);
             const email = user.email;
-            // References
-            const doctorRef = doc(db, "doctors", email);
-            const patientRef = doc(db, "patients", email);
-            const [doctorSnap, patientSnap] = await Promise.all([
-                getDoc(doctorRef),
-                getDoc(patientRef),
+            const [docSnap, patSnap, adminSnap] = await Promise.all([
+                getDoc(doc(db, "doctors", email)),
+                getDoc(doc(db, "patients", email)),
+                getDoc(doc(db, "admin", email)),
             ]);
-            if (doctorSnap.exists()) {
-                const doctorData = doctorSnap.data();
-                const status = doctorData.status;
-                if (!status) {
-                    setDoctor((d) => ({
-                        ...d,
-                        uid: user.uid,
-                        email,
-                        fullName: user.displayName || "",
-                    }));
-                    setStep(2);
-                    return;
+
+            // doctor check
+            if (docSnap.exists()) {
+                const { STATUS } = docSnap.data();
+                if (STATUS === "approved") {
+                    await setDoc(doc(db, "doctors", email), { lastLogin: new Date() }, { merge: true });
+                    return navigate("/doctor-dashboard");
                 }
-                switch (status) {
-                    case "approved":
-                        navigate("/doctor-dashboard");
-                        return;
-                    case "pending":
-                        setError("Your application is still pending approval.");
-                        await signOut(authInstance);
-                        return;
-                    case "rejected":
-                        setError(
-                            "Your application has been rejected. Contact TheraMind for more information."
-                        );
-                        await signOut(authInstance);
-                        navigate("/");
-                        return;
-                    default:
-                        setError("Unknown application status. Please contact support.");
-                        await signOut(authInstance);
-                        return;
-                }
-            } else if (patientSnap.exists()) {
-                navigate("/patient-dashboard");
+                const msg = STATUS === "pending"
+                    ? "Your doctor application is pending approval."
+                    : STATUS === "rejected"
+                        ? "Your doctor application was rejected."
+                        : "Your doctor account is blocked.";
+                setError(msg);
+                setTimeout(() => { signOut(authInstance); navigate("/"); }, 3000);
                 return;
-            } else {
-                setDoctor((d) => ({
-                    ...d,
-                    uid: user.uid,
-                    email,
-                    fullName: user.displayName || "",
-                }));
-                setStep(2);
             }
+
+            // admin override
+            if (adminSnap.exists()) {
+                await setDoc(doc(db, "admin", email), { lastLogin: new Date() }, { merge: true });
+                return navigate("/admin-dashboard");
+            }
+
+            // patient override
+            if (patSnap.exists()) {
+                const { status } = patSnap.data();
+                if (status === "active") {
+                    await setDoc(doc(db, "patients", email), { lastLogin: new Date() }, { merge: true });
+                    return navigate("/patient-dashboard");
+                }
+                setError("Your patient account is blocked.");
+                setTimeout(() => { signOut(authInstance); navigate("/"); }, 3000);
+                return;
+            }
+
+            // new doctor: proceed to step 2
+            setDoctor((d) => ({ ...d, uid: user.uid, email, fullName: user.displayName || "" }));
+            setStep(2);
         } catch (err) {
-            console.error("OAuth Error:", err);
-            setError(err.message || "Google sign-in failed. Please try again.");
+            console.error(err);
+            setError(err.message || "Google sign-in failed.");
         }
     }, [authInstance, googleProvider, navigate]);
 
-    // Utility to update simple fields
-    const updateField = useCallback((field, value) => {
-        setDoctor((d) => ({ ...d, [field]: value }));
-    }, []);
-
-    // Utility to update arrays (education/experiences)
-    const updateArray = useCallback((arr, idx, key, value) => {
+    // update helpers
+    const updateField = useCallback((k, v) => setDoctor((d) => ({ ...d, [k]: v })), []);
+    const updateArray = useCallback((arr, i, k, v) => {
         setDoctor((d) => {
             const copy = [...d[arr]];
-            copy[idx] = { ...copy[idx], [key]: value };
+            copy[i] = { ...copy[i], [k]: v };
             return { ...d, [arr]: copy };
         });
     }, []);
 
-    // Step 5: Submit final doctor data (upload files, same logic)
+    // final submit (step 5)
     const handleSubmit = useCallback(async () => {
         setError("");
         try {
-            if (!doctor.email) throw new Error("Missing user credentials.");
             const user = authInstance.currentUser;
-            if (!user)
-                throw new Error("User is not authenticated. Please sign in first.");
-            // Upload education proofs
-            const education = await Promise.all(
-                doctor.education.map(async (edu, i) => {
-                    let proofUrl = null;
-                    if (edu.proof) {
-                        proofUrl = await uploadFile(
-                            `doctors/${doctor.email}/education${i}`,
-                            edu.proof
-                        );
-                    }
-                    return { ...edu, proof: proofUrl };
-                })
-            );
-            // Upload experience resumes
-            const experiences = await Promise.all(
-                doctor.experiences.map(async (exp, i) => {
-                    let resumeUrl = null;
-                    if (exp.resume) {
-                        resumeUrl = await uploadFile(
-                            `doctors/${doctor.email}/experience${i}`,
-                            exp.resume
-                        );
-                    }
-                    return { ...exp, resume: resumeUrl };
-                })
-            );
-            const dataToSave = {
-                ...doctor,
-                profilePic: doctor.profilePic || null,
-                education,
-                experiences,
-                createdAt: new Date(),
-            };
-            await setDoc(doc(db, "doctors", doctor.email), dataToSave);
+            if (!user) throw new Error("Not authenticated.");
+            const education = await Promise.all(doctor.education.map(async (e, idx) => ({
+                ...e,
+                proof: e.proof ? await uploadFile(`doctors/${doctor.email}/edu${idx}`, e.proof) : null
+            })));
+            const experiences = await Promise.all(doctor.experiences.map(async (ex, idx) => ({
+                ...ex,
+                resume: ex.resume ? await uploadFile(`doctors/${doctor.email}/exp${idx}`, ex.resume) : null
+            })));
+            const payload = { ...doctor, education, experiences, createdAt: new Date() };
+            await setDoc(doc(db, "doctors", doctor.email), payload);
             setSubmitted(true);
         } catch (err) {
-            console.error("Submission Error:", err);
-            setError(err.message || "Failed to submit application. Please try again.");
+            console.error(err);
+            setError(err.message || "Submission failed.");
         }
     }, [doctor, authInstance]);
 
     if (submitted) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-                <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+                <div className="bg-white p-8 rounded-lg shadow text-center">
                     <h2 className="text-2xl font-bold mb-4">Application Submitted</h2>
-                    <p className="text-gray-700">
-                        Your application has been submitted and is pending review. We will
-                        contact you via email once a decision is made.
-                    </p>
-                    <button
-                        onClick={() => navigate("/")}
-                        className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                    >
-                        Return to Home
-                    </button>
+                    <p>Your application is pending review. We’ll be in touch soon.</p>
+                    <button onClick={() => navigate("/")} className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Home</button>
                 </div>
             </div>
         );
