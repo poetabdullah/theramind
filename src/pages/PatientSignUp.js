@@ -1,5 +1,3 @@
-// PatientSignUp.js (Optimized OAuth, same logic)
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   GoogleAuthProvider,
@@ -70,123 +68,130 @@ const PatientSignUp = () => {
   const [error, setError] = useState({});
 
   const navigate = useNavigate();
-
-  // Memoize auth instance
   const authInstance = useMemo(() => auth, []);
-  // Prepare a single GoogleAuthProvider instance with scopes & parameters
+
+  // Pre-configure Google provider once
   const googleProvider = useMemo(() => {
-    const provider = new GoogleAuthProvider();
-    // Force account selector & consent
-    provider.setCustomParameters({ prompt: "select_account" });
-    provider.setCustomParameters({ prompt: "consent" });
-    // Add scopes once
-    OAUTH_SCOPES.forEach((scope) => provider.addScope(scope));
-    return provider;
+    const p = new GoogleAuthProvider();
+    p.setCustomParameters({ prompt: "select_account consent" });
+    OAUTH_SCOPES.forEach((s) => p.addScope(s));
+    return p;
   }, []);
 
-  // Ensure any existing Firebase auth session is signed out before signup starts
+  // Ensure clean auth
   useEffect(() => {
-    (async () => {
-      try {
-        await signOut(authInstance);
-      } catch {
-        // ignore if no active user
-      }
-    })();
+    signOut(authInstance).catch(() => { });
   }, [authInstance]);
 
-  // Generate a new CAPTCHA when step === 3
+  // CAPTCHA generator
   const generateCaptcha = useCallback(() => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let captcha = "";
-    for (let i = 0; i < 6; i++) {
-      captcha += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setCaptchaCode(captcha);
+    let code = "";
+    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    setCaptchaCode(code);
     setUserInput("");
   }, []);
+  useEffect(() => { if (step === 3) generateCaptcha(); }, [step, generateCaptcha]);
 
-  useEffect(() => {
-    if (step === 3) {
-      generateCaptcha();
-    }
-  }, [step, generateCaptcha]);
-
-  // === Step 1: Google Sign-Up handler ===
+  // === Step 1: OAuth & parallel collection check ===
   const handleGoogleSignUp = useCallback(async () => {
     setError({});
     try {
-      // Always sign out cached user so prompt appears
       await signOut(authInstance);
-      // Sign in with pre-configured provider
       const result = await signInWithPopup(authInstance, googleProvider);
-      const user = result.user;
-      // Check if patient exists
-      const userDoc = await getDoc(doc(db, "patients", user.email));
-      if (userDoc.exists()) {
-        navigate("/patient-dashboard");
-      } else {
-        setUserData((prev) => ({
-          ...prev,
-          name: user.displayName || "",
-          email: user.email || "",
-        }));
-        setStep(2);
+      const { user } = result;
+      const email = user.email;
+
+      // parallel existence check
+      const [patSnap, docSnap, adminSnap] = await Promise.all([
+        getDoc(doc(db, "patients", email)),
+        getDoc(doc(db, "doctors", email)),
+        getDoc(doc(db, "admin", email)),
+      ]);
+
+      const isPatient = patSnap.exists();
+      const isDoctor = docSnap.exists();
+      const isAdmin = adminSnap.exists();
+
+      // patient blocked or active or cascade
+      if (isPatient) {
+        const { status } = patSnap.data();
+        if (status === "active") {
+          navigate("/patient-dashboard");
+          return;
+        } else {
+          setError({ general: "Your patient account is blocked." });
+          setTimeout(() => { signOut(authInstance); navigate("/"); }, 3000);
+          return;
+        }
       }
-    } catch (authErr) {
-      console.error("Google Sign-In Error:", authErr);
+
+      // admin override
+      if (isAdmin) {
+        navigate("/admin-dashboard");
+        return;
+      }
+
+      // doctor override
+      if (isDoctor) {
+        const { STATUS } = docSnap.data();
+        if (STATUS === "approved") {
+          navigate("/doctor-dashboard");
+          return;
+        } else {
+          const msg = STATUS === "pending"
+            ? "Your doctor account is pending approval."
+            : STATUS === "rejected"
+              ? "Your doctor application was rejected."
+              : "Your doctor account is blocked.";
+          setError({ general: msg });
+          setTimeout(() => { signOut(authInstance); navigate("/"); }, 3000);
+          return;
+        }
+      }
+
+      // new patient → proceed signup flow
+      setUserData((u) => ({ ...u, name: user.displayName || "", email }));
+      setStep(2);
+
+    } catch (err) {
+      console.error("OAuth error:", err);
       setError({ general: "Google sign-in failed. Please try again." });
     }
   }, [authInstance, googleProvider, navigate]);
 
-  // === Step 3: Verify CAPTCHA ===
+  // === Step 3: CAPTCHA ===
   const handleVerifyCaptcha = useCallback(() => {
-    if (userInput.trim().toUpperCase() === captchaCode.toUpperCase()) {
+    if (userInput.trim().toUpperCase() === captchaCode) {
       setStep(4);
       setError({});
     } else {
-      setError({ general: "Invalid CAPTCHA. Please try again." });
+      setError({ general: "Invalid CAPTCHA." });
       generateCaptcha();
     }
   }, [userInput, captchaCode, generateCaptcha]);
 
-  // === Step 4: Patient details submit ===
-  const handlePatientDetailsSubmit = useCallback(
-    (data) => {
-      if (data.dob && data.location) {
-        setUserData((prev) => ({ ...prev, ...data }));
-        setStep(5);
-        setError({});
-      } else {
-        setError({ general: "Please fill in all required fields." });
-      }
-    },
-    []
-  );
+  // Step 4 and 5 remain unchanged...
 
-  // === Step 5: Health history submit ===
-  const handleHealthHistorySubmit = useCallback(
-    async (historyData) => {
-      try {
-        const finalData = {
-          ...userData,
-          ...historyData,
-          createdAt: new Date(),
-          userId: authInstance.currentUser
-            ? authInstance.currentUser.uid
-            : Date.now().toString(),
-        };
-        await setDoc(doc(db, "patients", finalData.email), finalData);
-        navigate("/patient-dashboard");
-      } catch (err) {
-        console.error("Error saving user data:", err);
-        setError({
-          general: "Failed to save your health history. Please try again.",
-        });
-      }
-    },
-    [userData, authInstance, navigate]
-  );
+  const handlePatientDetailsSubmit = useCallback((data) => {
+    if (data.dob && data.location) {
+      setUserData((u) => ({ ...u, ...data }));
+      setStep(5);
+      setError({});
+    } else setError({ general: "Please fill in all required fields." });
+  }, []);
+
+  const handleHealthHistorySubmit = useCallback(async (historyData) => {
+    try {
+      const final = { ...userData, ...historyData, createdAt: new Date(), userId: authInstance.currentUser?.uid || Date.now().toString() };
+      await setDoc(doc(db, "patients", final.email), final);
+      navigate("/patient-dashboard");
+    } catch (err) {
+      console.error(err);
+      setError({ general: "Failed to save data. Please try again." });
+    }
+  }, [userData, authInstance, navigate]);
+
 
   return (
     <div>
