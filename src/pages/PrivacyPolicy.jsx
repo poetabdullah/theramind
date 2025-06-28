@@ -524,6 +524,7 @@ export default function PrivacyPolicy() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
