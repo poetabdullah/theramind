@@ -185,7 +185,9 @@ const PatientSignUp = () => {
     try {
       const final = { ...userData, ...historyData, createdAt: new Date(), userId: authInstance.currentUser?.uid || Date.now().toString() };
       await setDoc(doc(db, "patients", final.email), final);
+      // force a full reload so <Navbar> re-fetches the new patient doc:
       navigate("/patient-dashboard");
+      window.location.reload();
     } catch (err) {
       console.error(err);
       setError({ general: "Failed to save data. Please try again." });
