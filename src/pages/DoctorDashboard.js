@@ -128,9 +128,9 @@ const DoctorDashboard = () => {
                     updateObj = {
                         location: updatedData.location,
                         contact: updatedData.contact,
-                        // if expertise present, include it
-                        ...(Array.isArray(updatedData.expertise)
-                            ? { expertise: updatedData.expertise }
+                        // if specialties present, include it
+                        ...(Array.isArray(updatedData.specialties)
+                            ? { specialties: updatedData.specialties }
                             : {}),
                     };
                     break;
