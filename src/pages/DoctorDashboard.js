@@ -22,6 +22,7 @@ const DoctorDashboard = () => {
     const [articles, setArticles] = useState([]);
     const [loadingArticles, setLoadingArticles] = useState(true);
     const [articlesError, setArticlesError] = useState(null);
+    const [doctorsList, setDoctorsList] = useState([]);
     const navigate = useNavigate();
 
     // Handle logout - Modified to redirect immediately
@@ -66,6 +67,21 @@ const DoctorDashboard = () => {
 
         fetchDoctorData();
     }, [navigate]);
+
+    // Fetch Doctor's List
+    useEffect(() => {
+    const fetchDoctorsList = async () => {
+        try {
+            const snapshot = await getDocs(collection(db, 'doctors'));
+            const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setDoctorsList(list);
+        } catch (error) {
+            console.error('Error fetching doctors list:', error);
+        }
+    };
+
+    fetchDoctorsList();
+}, []);
 
     // Fetch doctor's articles
     const fetchArticles = async () => {
@@ -128,9 +144,9 @@ const DoctorDashboard = () => {
                     updateObj = {
                         location: updatedData.location,
                         contact: updatedData.contact,
-                        // if expertise present, include it
-                        ...(Array.isArray(updatedData.expertise)
-                            ? { expertise: updatedData.expertise }
+                        // if specialties present, include it
+                        ...(Array.isArray(updatedData.specialties)
+                            ? { specialties: updatedData.specialties }
                             : {}),
                     };
                     break;
@@ -237,7 +253,15 @@ const DoctorDashboard = () => {
                             </div>
                             {/* Doctor's Appointment Section */}
                             <div className="mt-10">
-                                <DoctorAppointment doctorEmail={doctorData.email} />
+                                {
+                                    auth.currentUser && doctorsList.length > 0 && (
+                                        <DoctorAppointment
+                                        doctorEmail={auth.currentUser.email}
+                                        currentUser={auth.currentUser}
+                                        doctors={doctorsList}
+                                        />
+                                    )
+                                    }
                             </div>
 
                             {/* Manage Patients Section */}
