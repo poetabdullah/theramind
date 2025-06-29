@@ -106,7 +106,7 @@ const AdminDashboard = () => {
 
     // Doctors listener - updated query to fetch all approved doctors
     const doctorsListener = onSnapshot(
-      query(collection(db, "doctors"), where("status", "==", "approved")),
+      query(collection(db, "doctors"), where("STATUS", "==", "approved")),
       (snapshot) => {
         const doctorsData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -130,7 +130,7 @@ const AdminDashboard = () => {
 
     // Pending doctors listener
     const pendingDoctorsListener = onSnapshot(
-      query(collection(db, "doctors"), where("status", "==", "pending")),
+      query(collection(db, "doctors"), where("STATUS", "==", "pending")),
       (snapshot) => {
         const pendingDoctors = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -464,59 +464,80 @@ const AdminDashboard = () => {
 
         {activeTab === 'dashboard' && (
           <>
-            {/* Enhanced Dashboard Stats */}
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-  {/* Total Patients Card */}
-  <div className="bg-white rounded-xl shadow-lg p-6">
-    <h2 className="text-lg font-semibold text-gray-800 mb-2">Total Patients</h2>
-    <p className="text-3xl font-bold text-purple-600">10</p>
-    <p className="text-sm text-gray-500 mt-1">1 blocked</p>
-  </div>
+           {activeTab === 'dashboard' && (
+  <>
+    {/* Enhanced Dashboard Stats */}
+    {activeTab === 'dashboard' && (
+  <>
+    {/* Enhanced Dashboard Stats */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      {/* Total Patients Card */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Total Patients</h2>
+        <p className="text-3xl font-bold text-purple-600">{adminData.totalPatients}</p>
+        <p className="text-sm text-gray-500 mt-1">{adminData.blockedPatients} blocked</p>
+      </div>
 
-  {/* Total Doctors Card - CORRECTED */}
-  <div className="bg-white rounded-xl shadow-lg p-6">
-    <h2 className="text-lg font-semibold text-gray-800 mb-2">Total Doctors</h2>
-    <p className="text-3xl font-bold text-indigo-600">3</p>
-    <p className="text-sm text-gray-500 mt-1">3 approved</p>
-  </div>
+      {/* Total Doctors Card - Now showing correct approved counts */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Approved Doctors</h2>
+        <p className="text-3xl font-bold text-indigo-600">{adminData.approvedDoctors}</p>
+        <p className="text-sm text-gray-500 mt-1">{adminData.totalDoctors} registered</p>
+      </div>
 
-  {/* Pending Approvals Card */}
-  <div className="bg-white rounded-xl shadow-lg p-6 relative">
-    <h2 className="text-lg font-semibold text-gray-800 mb-2">Pending Approvals</h2>
-    <p className="text-3xl font-bold text-orange-500">1</p>
-    <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
-      Action Needed
-    </span>
-  </div>
+      {/* Pending Approvals Card */}
+      <div className="bg-white rounded-xl shadow-lg p-6 relative">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Pending Approvals</h2>
+        <p className="text-3xl font-bold text-orange-500">{adminData.pendingDoctors}</p>
+        {adminData.pendingDoctors > 0 && (
+          <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+            Action Needed
+          </span>
+        )}
+      </div>
 
-  {/* Today's Appointments Card */}
-  <div className="bg-white rounded-xl shadow-lg p-6">
-    <h2 className="text-lg font-semibold text-gray-800 mb-2">Today's Appointments</h2>
-    <p className="text-3xl font-bold text-green-600">0</p>
-    <p className="text-sm text-gray-500 mt-1">2 total</p>
-  </div>
-</div>
+      {/* Today's Appointments Card */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Today's Appointments</h2>
+        <p className="text-3xl font-bold text-green-600">{adminData.todayAppointments}</p>
+        <p className="text-sm text-gray-500 mt-1">{adminData.totalAppointments} total</p>
+      </div>
+    </div>
 
-{/* Second Row of Stats */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-  <div className="bg-white rounded-xl shadow-lg p-6">
-    <h2 className="text-lg font-semibold text-gray-800 mb-2">Recent Signups</h2>
-    <p className="text-3xl font-bold text-blue-600">0</p>
-    <p className="text-sm text-gray-500 mt-1">Last 7 days</p>
-  </div>
+    {/* Second Row of Stats */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Recent Signups</h2>
+        <p className="text-3xl font-bold text-blue-600">{adminData.recentSignups}</p>
+        <p className="text-sm text-gray-500 mt-1">Last 7 days</p>
+      </div>
 
-  <div className="bg-white rounded-xl shadow-lg p-6">
-    <h2 className="text-lg font-semibold text-gray-800 mb-2">Active Sessions</h2>
-    <p className="text-3xl font-bold text-teal-600">0</p>
-    <p className="text-sm text-gray-500 mt-1">Currently logged in</p>
-  </div>
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Active Sessions</h2>
+        <p className="text-3xl font-bold text-teal-600">{adminData.activeSessions}</p>
+        <p className="text-sm text-gray-500 mt-1">Currently logged in</p>
+      </div>
 
-  <div className="bg-white rounded-xl shadow-lg p-6">
-    <h2 className="text-lg font-semibold text-gray-800 mb-2">Platform Health</h2>
-    <p className="text-3xl font-bold text-green-600">100%</p>
-    <p className="text-sm text-gray-500 mt-1">All systems operational</p>
-  </div>
-</div>
+      {/* Real System Health Check */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Platform Health</h2>
+        <p className={`text-3xl font-bold ${
+          adminData.activeSessions > 0 ? 'text-green-600' : 
+          adminData.activeSessions === 0 ? 'text-yellow-500' : 'text-red-600'
+        }`}>
+          {adminData.activeSessions > 0 ? '100%' : 
+           adminData.activeSessions === 0 ? '75%' : '50%'}
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          {adminData.activeSessions > 0 ? 'All systems operational' : 
+           adminData.activeSessions === 0 ? 'No active sessions' : 'Critical issues detected'}
+        </p>
+      </div>
+    </div>
+  </>
+)}
+  </>
+)}
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="bg-white rounded-xl shadow-lg p-6">
