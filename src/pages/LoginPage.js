@@ -42,20 +42,14 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
-  // Memoize auth instance
   const auth = useMemo(() => getAuth(), []);
 
-  // Read env vars once
-  const USER_ID_VIEW = process.env.REACT_APP_EMAILJS_USER_ID_VIEW;
-  const SERVICEID = process.env.REACT_APP_EMAILJS_SERVICEID;
-  const TEMPLATE_TERMINATED = process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED;
+  const dismissError = useCallback(() => setError(null), []);
 
-  // === handleRouting: decide where to go after login ===
+  // === handleRouting: patient > admin > doctor ===
   const handleRouting = useCallback(
     async (email) => {
       try {
-        // Parallel fetch of patient/doctor/admin doc existence
         const [patSnap, docSnap, adminSnap] = await Promise.all([
           getDoc(doc(db, "patients", email)),
           getDoc(doc(db, "doctors", email)),
@@ -63,67 +57,67 @@ const LoginPage = () => {
         ]);
 
         const isPatient = patSnap.exists();
-        const isDoctor = docSnap.exists();
         const isAdmin = adminSnap.exists();
+        const isDoctor = docSnap.exists();
 
-        if (!isPatient && !isDoctor && !isAdmin) {
+        // not in any → signup
+        if (!isPatient && !isAdmin && !isDoctor) {
           navigate("/signup-landing");
           return;
         }
 
+        // patient first
         if (isPatient) {
-          // update lastLogin and navigate
-          await setDoc(
-            doc(db, "patients", email),
-            { lastLogin: new Date() },
-            { merge: true }
-          );
-          navigate("/patient-dashboard");
+          const { status } = patSnap.data();
+          if (status === "active") {
+            await setDoc(doc(db, "patients", email), { lastLogin: new Date() }, { merge: true });
+            navigate("/patient-dashboard");
+          } else {
+            setError("Your patient account is blocked. Please contact support.");
+            setTimeout(async () => { await signOut(auth); navigate("/"); }, 3000);
+          }
           return;
         }
 
+        // admin next
         if (isAdmin) {
+          await setDoc(doc(db, "admin", email), { lastLogin: new Date() }, { merge: true });
           navigate("/admin-dashboard");
           return;
         }
 
+        // doctor last
         if (isDoctor) {
-          const { status } = docSnap.data();
-          if (status === "approved") {
-            await setDoc(
-              doc(db, "doctors", email),
-              { lastLogin: new Date() },
-              { merge: true }
-            );
+          const { STATUS } = docSnap.data();
+          if (STATUS === "approved") {
+            await setDoc(doc(db, "doctors", email), { lastLogin: new Date() }, { merge: true });
             navigate("/doctor-dashboard");
-            return;
-          }
-          if (status === "pending") {
+          } else if (STATUS === "pending") {
             setError("Your doctor account is still pending approval. Please wait.");
-            await signOut(auth);
-            return;
-          }
-          if (status === "rejected") {
+            setTimeout(async () => { await signOut(auth); navigate("/"); }, 3000);
+          } else if (STATUS === "rejected") {
             setError("Your doctor application was rejected. Please contact support.");
-            await signOut(auth);
-            return;
+            setTimeout(async () => { await signOut(auth); navigate("/"); }, 3000);
+          } else {
+            setError("Your doctor account is blocked. Please contact support.");
+            setTimeout(async () => { await signOut(auth); navigate("/"); }, 3000);
           }
+          return;
         }
       } catch (err) {
         console.error("Error in routing:", err);
         setError("An error occurred during login. Please try again.");
-        await signOut(auth);
+        setTimeout(async () => { await signOut(auth); navigate("/"); }, 3000);
       }
     },
     [navigate, auth]
   );
 
-  // === handleGoogleLogin: sign in and route ===
+  // === handleGoogleLogin: sign in then route ===
   const handleGoogleLogin = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    // Create provider once per click
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "consent" });
     GOOGLE_SCOPES.forEach((scope) => provider.addScope(scope));
@@ -131,16 +125,10 @@ const LoginPage = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      // Extract token if present
       const credential = GoogleAuthProvider.credentialFromResult(result);
       if (credential?.accessToken) {
-        const calendarAccessToken = credential.accessToken;
-        console.log("✅ Google OAuth Access Token:", calendarAccessToken);
-        localStorage.setItem("google_calendar_access_token", calendarAccessToken);
-      } else {
-        console.warn("⚠️ No Google access token returned. Calendar calls may fail.");
+        localStorage.setItem("google_calendar_access_token", credential.accessToken);
       }
-      // Route based on role
       await handleRouting(user.email);
     } catch (err) {
       console.error("Google login error:", err);
@@ -150,10 +138,6 @@ const LoginPage = () => {
       setLoading(false);
     }
   }, [auth, handleRouting]);
-
-  const dismissError = useCallback(() => {
-    setError(null);
-  }, []);
 
   return (
     <div>
