@@ -2,11 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig.js';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { sendCancelEmail } from '../utils/sendEmail';
+import { arrayUnion } from 'firebase/firestore';
+import {
+  doc,
+  updateDoc,
+  deleteDoc,
+  getDoc
+} from 'firebase/firestore';
+import { deleteGoogleCalendarEvent, refreshAccessToken, deleteEventWithToken } from '../utils/google_api';
 
-const DoctorAppointment = ({ doctorEmail }) => {
+const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
 	const [appointments, setAppointments] = useState([]);
 	const [selectedDate, setSelectedDate] = useState('');
 	const [openDates, setOpenDates] = useState({});
+	const [doctorsList, setDoctorsList] = useState([]);
+
+	useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, 'doctors'));
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+    }
+  };
+
+  fetchDoctors();
+}, []);
 
 	useEffect(() => {
 		const fetchAppointments = async () => {
@@ -32,6 +56,60 @@ const DoctorAppointment = ({ doctorEmail }) => {
 			fetchAppointments();
 		}
 	}, [doctorEmail]);
+
+	const handleCancelAppointment = async (appointmentId, doctorEmail, timeslot, appData) => {
+  try {
+    const emailToUse = appData.patientEmail;
+    console.log("Patient email: ", emailToUse);
+
+    if (!emailToUse) {
+      console.error("Missing patient email during cancellation.");
+      throw new Error("Cannot send cancellation email: patient email missing.");
+    }
+
+    if (appData.calendarEventId && appData.organizerRefreshToken) {
+      const accessToken = await refreshAccessToken(appData.organizerRefreshToken);
+      await deleteEventWithToken(appData.patientEmail, appData.calendarEventId, accessToken);
+    }
+
+	console.log("Loaded doctors list:", doctors);
+	console.log("Trying to match doctorEmail:", doctorEmail);
+
+	if (!Array.isArray(doctors) || doctors.length === 0) {
+		throw new Error("Doctors list is missing or not loaded");
+	}
+
+    const doctorDoc = doctors.find((doc) => doc.email === doctorEmail);
+    if (!doctorDoc) throw new Error("Doctor not found in state");
+
+    const doctorRef = doc(db, "doctors", doctorDoc.id);
+
+    // Delete the appointment from Firestore
+    await deleteDoc(doc(db, "appointments", appointmentId));
+
+    // Restore the cancelled timeslot
+    await updateDoc(doctorRef, {
+      timeslots: arrayUnion(timeslot),
+    });
+
+    sendCancelEmail({
+      patientName: appData.patientName || 'Unknown Patient',
+      doctorName: appData.doctorName || 'Unknown Doctor',
+      patientEmail: emailToUse,
+      timeslot: timeslot,
+      cancelled_by: currentUser?.email || 'Unknown',
+    });
+
+    console.log("Sending cancel email to:", emailToUse);
+    // Remove from UI
+    setAppointments((prev) => prev.filter((appt) => appt.id !== appointmentId));
+
+    toast.success("Appointment cancelled successfully.");
+  } catch (error) {
+    console.error("Cancellation failed:", error);
+    toast.info("Something went wrong while canceling. Please try again.");
+  }
+};
 
 	const formatDateTime = isoString => {
 		if (!isoString) return '—';
@@ -75,6 +153,8 @@ const DoctorAppointment = ({ doctorEmail }) => {
 	}, {});
 
 	return (
+		<>
+		<ToastContainer position="bottom-right" autoClose={3000} />
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
@@ -155,7 +235,17 @@ const DoctorAppointment = ({ doctorEmail }) => {
 														className="text-orange-600 no-underline hover:text-orange-700"
 													>
 														Join the meeting
-													</motion.a>
+													</motion.a><br></br>
+													<motion.button
+														onClick={(e) => {
+														e.stopPropagation();
+														handleCancelAppointment(app.id, app.doctorEmail, app.timeslot, app);
+													 }}
+														className="rounded-lg text-orange-800 font-semibold px-4 py-2 bg-gradient-to-r from-orange-300 to-orange-400 hover:from-orange-400 hover:to-orange-500 transition"
+														whileHover={{ scale: 1.05 }}
+													>
+														 Cancel
+													</motion.button>
 												</motion.p>
 											</motion.div>
 										))}
@@ -168,6 +258,7 @@ const DoctorAppointment = ({ doctorEmail }) => {
 			)}
 		</motion.div>
 		</motion.div>
+		</>
 	);
 };
 
