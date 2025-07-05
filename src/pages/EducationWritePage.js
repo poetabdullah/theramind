@@ -10,16 +10,22 @@ import {
   getDocs,
 } from "firebase/firestore";
 import Footer from "../components/Footer";
-import ReactQuill from "react-quill"; // React Quill to process the written content styling
+import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { onAuthStateChanged } from "firebase/auth";
+
+const stripHtml = (html) => {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html;
+  return tempDiv.textContent || tempDiv.innerText || "";
+};
 
 const EducationWritePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isEditing = location.state?.isEditing || false;
   const docId = location.state?.id || null;
-  const type = location.state?.type || "";  // now "articles" or "patient_stories"
+  const type = location.state?.type || "";
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -62,7 +68,6 @@ const EducationWritePage = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Fetches all of the available tags that can be selected
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -78,18 +83,16 @@ const EducationWritePage = () => {
     fetchTags();
   }, []);
 
-  // Fetches the article / story data if in editing mode
   useEffect(() => {
     const fetchDocumentData = async () => {
       if (isEditing && docId) {
         try {
-          const collectionName = type;  // exactly "articles" or "patient_stories"
+          const collectionName = type;
           const docRef = doc(db, collectionName, docId);
           const docSnap = await getDoc(docRef);
 
           if (docSnap.exists()) {
             const data = docSnap.data();
-            console.log("Fetched Data:", data); // Debugging Log
             setTitle(data.title || "");
             setContent(data.content || "");
             setSelectedTags(data.selectedTags || []);
@@ -105,22 +108,22 @@ const EducationWritePage = () => {
     fetchDocumentData();
   }, [isEditing, docId, type]);
 
-  // Can select up to 5 tags
   const handleTagClick = (tag) => {
     setSelectedTags((prevTags) =>
       prevTags.includes(tag)
-        ? prevTags.filter((t) => t !== tag) // Remove tag if already selected
+        ? prevTags.filter((t) => t !== tag)
         : prevTags.length < 5
-          ? [...prevTags, tag] // Add tag if limit is not reached
+          ? [...prevTags, tag]
           : prevTags
     );
   };
 
-  // Checks the error conditions for the docs
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
+
+    const strippedContent = stripHtml(content);
 
     if (title.length < 10 || title.length > 100) {
       setError("Title must be between 10 and 100 characters.");
@@ -128,10 +131,7 @@ const EducationWritePage = () => {
       return;
     }
 
-    if (
-      content.replace(/<[^>]*>/g, "").length < 1500 ||
-      content.replace(/<[^>]*>/g, "").length > 9000
-    ) {
+    if (strippedContent.length < 1500 || strippedContent.length > 9000) {
       setError("Content must be between 1500 and 9000 characters.");
       setIsSubmitting(false);
       return;
@@ -144,15 +144,43 @@ const EducationWritePage = () => {
     }
 
     try {
+      const validationRes = await fetch("http://localhost:8000/api/validate-content/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ content }),
+      });
+
+      let validationData;
+      let raw;
+      try {
+        raw = await validationRes.text(); // read once only
+        validationData = JSON.parse(raw);
+      } catch (err) {
+        console.error("Invalid response JSON:", raw);
+        setError("Server returned invalid response.");
+        setIsSubmitting(false);
+        return;
+      }
+
+
+
+      if (!validationRes.ok) {
+        setError(validationData.error || "Validation failed.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const user = auth.currentUser;
       if (!user) throw new Error("User not logged in");
 
-      // If editing, use the passed-in `type`; otherwise fallback on role
       const collectionName = isEditing
-        ? type                                    // "articles" or "patient_stories"
-        : (userRole === "doctor"
+        ? type
+        : userRole === "doctor"
           ? "articles"
-          : "patient_stories");
+          : "patient_stories";
 
       if (isEditing && docId) {
         const docRef = doc(db, collectionName, docId);
@@ -214,18 +242,25 @@ const EducationWritePage = () => {
             className="w-full text-4xl font-semibold text-purple-900 bg-transparent border-b-2 border-gray-400 outline-none focus:ring-0 focus:border-purple-500 placeholder-gray-400"
             required
           />
-          {/* Write/Edit the main content in the React Quill structure */}
+
           <ReactQuill
             value={content}
             onChange={setContent}
             placeholder="Write your content here..."
             className="bg-purple-200 p-4 rounded-md shadow-md text-lg text-purple-900 border border-purple-300"
+            modules={{
+              toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ["bold", "italic", "underline", "strike"],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["link"],
+                ["clean"],
+              ],
+            }}
           />
 
           <div className="space-y-4">
-            <div className="text-lg font-medium text-purple-900">
-              Select Tags
-            </div>
+            <div className="text-lg font-medium text-purple-900">Select Tags</div>
             <div className="flex flex-wrap gap-3">
               {tags.map((tag) => (
                 <button

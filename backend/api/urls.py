@@ -35,6 +35,7 @@ from .views import (
     get_treatment_plans_by_user,
     mark_action_complete,
     get_treatment_plan,
+    validate_content,
 )
 
 urlpatterns = [
@@ -58,6 +59,8 @@ urlpatterns = [
         name="delete_patient_story",
     ),
     path("test-cors/", test_cors, name="test-cors"),
+    # -------ML Model-----------------
+    path("validate-content/", validate_content, name="validate-content"),
     # ------ TREATMENT PLAN ----------
     # Create and manage treatment plans
     path("treatment/create/", create_treatment_plan, name="create_treatment_plan"),
