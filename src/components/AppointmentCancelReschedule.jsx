@@ -82,6 +82,8 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
 
       // Send email notification
      await sendRescheduleEmail({
+      to_email: userRole === "doctor" ? appData.patientEmail : appData.doctorEmail,
+      to_role: userRole === "doctor" ? "patient" : "doctor",
       patientName: appData.patientName,
       doctorName: appData.doctorName,
       doctorEmail: appData.doctorEmail,
