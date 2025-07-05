@@ -38,6 +38,8 @@ export const sendCancelEmail = async ({
 };
 
 export const sendRescheduleEmail = async ({
+  to_email,
+  to_role,
   patientName,
   doctorName,
   patientEmail,
@@ -72,6 +74,8 @@ export const sendRescheduleEmail = async ({
         });
       };
     const templateParams = {
+      to_email,
+      to_role,
       patient_name: patientName,
       doctor_name: doctorName,
       email: recipientEmail,
