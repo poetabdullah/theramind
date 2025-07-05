@@ -14,10 +14,15 @@ from pathlib import Path
 import os
 import firebase_admin
 from firebase_admin import credentials
+import os
+
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = os.environ.get("DEBUG") == "True"
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
+ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
+
 
 # Firebase Admin Setup
 FIREBASE_ADMIN_CREDENTIALS = os.path.join(BASE_DIR, "firebase_admin_credentials.json")

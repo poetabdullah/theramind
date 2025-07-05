@@ -34,6 +34,14 @@ from firebase_admin import credentials, initialize_app
 from google.oauth2 import service_account
 from django.views.decorators.csrf import csrf_exempt
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from utils.ml_model import predict_mh
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 # This ensures Firebase is only initialized once (even if views are imported multiple times)
 if not firebase_admin._apps:
@@ -43,6 +51,34 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(credentials)
 
 db = firestore.client()
+
+
+# ML models
+@api_view(["POST"])
+def validate_content(request):
+    html = request.data.get("content", "")
+
+    if not html.strip():
+        return Response({"error": "No content provided."}, status=400)
+
+    try:
+        is_mh = predict_mh(html)
+    except Exception as e:
+        logger.exception("Error during mental health prediction: %s", str(e))
+        return Response(
+            {"error": f"Internal error during prediction: {str(e)}"}, status=500
+        )
+
+    if is_mh:
+        return Response({"valid": True})
+    else:
+        return Response(
+            {
+                "valid": False,
+                "error": "Content not classified as mental health. Please refactor.",
+            },
+            status=422,
+        )
 
 
 # Opens up the detail view of the specific article / patient story
