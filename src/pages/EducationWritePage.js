@@ -13,6 +13,7 @@ import Footer from "../components/Footer";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { onAuthStateChanged } from "firebase/auth";
+import AIAnalysisAnimation from "../components/AIAnalysisAnimation";
 
 const stripHtml = (html) => {
   const tempDiv = document.createElement("div");
@@ -36,6 +37,11 @@ const EducationWritePage = () => {
   const [authorEmail, setAuthorEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // AI Analysis Animation States
+  const [showAIAnimation, setShowAIAnimation] = useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState(null);
+  const [aiAnalysisMessage, setAiAnalysisMessage] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -118,6 +124,55 @@ const EducationWritePage = () => {
     );
   };
 
+  const handleAIAnalysisComplete = async () => {
+    setShowAIAnimation(false);
+
+    if (aiAnalysisResult) {
+      // AI approved the content - proceed with saving
+      try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("User not logged in");
+
+        const collectionName = isEditing
+          ? type
+          : userRole === "doctor"
+            ? "articles"
+            : "patient_stories";
+
+        if (isEditing && docId) {
+          const docRef = doc(db, collectionName, docId);
+          await updateDoc(docRef, {
+            title,
+            content,
+            selectedTags,
+            last_updated: new Date(),
+          });
+        } else {
+          await addDoc(collection(db, collectionName), {
+            title,
+            content,
+            selectedTags,
+            author_name: user.displayName || "Anonymous",
+            author_email: user.email,
+            user_id: user.uid,
+            date_time: new Date(),
+            last_updated: new Date(),
+          });
+        }
+
+        navigate("/education-main");
+      } catch (error) {
+        console.error("Error submitting:", error);
+        setError("An error occurred while submitting. Please try again.");
+      }
+    } else {
+      // AI flagged the content - show error
+      setError(aiAnalysisMessage || "Content was flagged by AI analysis. Please modify your content to ensure it meets our guidelines.");
+    }
+
+    setIsSubmitting(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -144,6 +199,9 @@ const EducationWritePage = () => {
     }
 
     try {
+      // Start AI Analysis Animation
+      setShowAIAnimation(true);
+
       const validationRes = await fetch("http://localhost:8000/api/validate-content/", {
         method: "POST",
         headers: {
@@ -156,59 +214,29 @@ const EducationWritePage = () => {
       let validationData;
       let raw;
       try {
-        raw = await validationRes.text(); // read once only
+        raw = await validationRes.text();
         validationData = JSON.parse(raw);
       } catch (err) {
         console.error("Invalid response JSON:", raw);
-        setError("Server returned invalid response.");
-        setIsSubmitting(false);
+        setAiAnalysisResult(false);
+        setAiAnalysisMessage("Server returned invalid response. Please try again.");
         return;
       }
-
-
 
       if (!validationRes.ok) {
-        setError(validationData.error || "Validation failed.");
-        setIsSubmitting(false);
+        setAiAnalysisResult(false);
+        setAiAnalysisMessage(validationData.error || "Content validation failed. Please review and modify your content.");
         return;
       }
 
-      const user = auth.currentUser;
-      if (!user) throw new Error("User not logged in");
+      // AI Analysis successful
+      setAiAnalysisResult(true);
+      setAiAnalysisMessage("Content has been approved and is ready for publication!");
 
-      const collectionName = isEditing
-        ? type
-        : userRole === "doctor"
-          ? "articles"
-          : "patient_stories";
-
-      if (isEditing && docId) {
-        const docRef = doc(db, collectionName, docId);
-        await updateDoc(docRef, {
-          title,
-          content,
-          selectedTags,
-          last_updated: new Date(),
-        });
-      } else {
-        await addDoc(collection(db, collectionName), {
-          title,
-          content,
-          selectedTags,
-          author_name: user.displayName || "Anonymous",
-          author_email: user.email,
-          user_id: user.uid,
-          date_time: new Date(),
-          last_updated: new Date(),
-        });
-      }
-
-      navigate("/education-main");
     } catch (error) {
       console.error("Error submitting:", error);
-      setError("An error occurred while submitting. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      setAiAnalysisResult(false);
+      setAiAnalysisMessage("An error occurred during content analysis. Please try again.");
     }
   };
 
@@ -281,12 +309,20 @@ const EducationWritePage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-purple-600 text-white py-3 px-8 rounded-lg hover:bg-purple-700"
+            className="bg-purple-600 text-white py-3 px-8 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isEditing ? "Update" : "Publish"}
+            {isSubmitting ? "Analyzing..." : isEditing ? "Update" : "Publish"}
           </button>
         </form>
       </div>
+
+      <AIAnalysisAnimation
+        isVisible={showAIAnimation}
+        onComplete={handleAIAnalysisComplete}
+        isSuccess={aiAnalysisResult}
+        message={aiAnalysisMessage}
+      />
+
       <Footer />
     </div>
   );
