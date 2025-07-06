@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { db, auth } from "../firebaseConfig";
 import {
@@ -15,10 +15,43 @@ import "react-quill/dist/quill.snow.css";
 import { onAuthStateChanged } from "firebase/auth";
 import AIAnalysisAnimation from "../components/AIAnalysisAnimation";
 
+// Enhanced Strip HTML/markdown for model input
 const stripHtml = (html) => {
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = html;
-  return tempDiv.textContent || tempDiv.innerText || "";
+  let text = tempDiv.textContent || tempDiv.innerText || "";
+
+  // Remove common markdown syntax
+  text = text
+    .replace(/#{1,6}\s+/g, '') // Remove headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+    .replace(/\*(.*?)\*/g, '$1') // Remove italic
+    .replace(/~~(.*?)~~/g, '$1') // Remove strikethrough
+    .replace(/`(.*?)`/g, '$1') // Remove inline code
+    .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links, keep text
+    .replace(/^\s*[-*+]\s+/gm, '') // Remove bullet points
+    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered lists
+    .replace(/^\s*>\s+/gm, '') // Remove blockquotes
+    .trim();
+
+  return text;
+};
+
+// Normalize text: collapse whitespace
+const normalize = (text) => text.trim().replace(/\s+/g, " ");
+
+// Count word differences between two stripped texts
+const countWordDiff = (oldText, newText) => {
+  const oldWords = normalize(oldText).split(/\s+/).filter(Boolean);
+  const newWords = normalize(newText).split(/\s+/).filter(Boolean);
+  let diff = 0;
+  const minLen = Math.min(oldWords.length, newWords.length);
+  for (let i = 0; i < minLen; i++) {
+    if (oldWords[i] !== newWords[i]) diff++;
+  }
+  diff += Math.abs(oldWords.length - newWords.length);
+  return diff;
 };
 
 const EducationWritePage = () => {
@@ -34,114 +67,177 @@ const EducationWritePage = () => {
   const [tags, setTags] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const [authorEmail, setAuthorEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // AI Analysis Animation States
+  // Keep originals for diff check
+  const originalStrippedRef = useRef("");
+  const originalTitleRef = useRef("");
+
+  // AI Animation and result state
   const [showAIAnimation, setShowAIAnimation] = useState(false);
   const [aiAnalysisResult, setAiAnalysisResult] = useState(null);
   const [aiAnalysisMessage, setAiAnalysisMessage] = useState("");
 
+  // Auth and role detection
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         navigate("/login");
         return;
       }
-
-      setAuthorEmail(user.email);
-
       try {
-        const patientDoc = await getDoc(doc(db, "patients", user.email));
-        const doctorDoc = await getDoc(doc(db, "doctors", user.email));
-
-        if (doctorDoc.exists()) {
-          setUserRole("doctor");
-        } else if (patientDoc.exists()) {
-          setUserRole("patient");
-        } else {
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Error fetching user role:", error);
+        const patientSnap = await getDoc(doc(db, "patients", user.email));
+        const doctorSnap = await getDoc(doc(db, "doctors", user.email));
+        if (doctorSnap.exists()) setUserRole("doctor");
+        else if (patientSnap.exists()) setUserRole("patient");
+        else navigate("/");
+      } catch (err) {
+        console.error(err);
         navigate("/");
       } finally {
         setLoading(false);
       }
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
+  // Fetch available tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const tagsCollection = collection(db, "tags");
-        const tagDocs = await getDocs(tagsCollection);
-        const fetchedTags = tagDocs.docs.map((doc) => doc.data().tag_name);
-        setTags(fetchedTags);
-      } catch (error) {
-        console.error("Error fetching tags:", error);
+        const tagDocs = await getDocs(collection(db, "tags"));
+        setTags(tagDocs.docs.map((d) => d.data().tag_name));
+      } catch (err) {
+        console.error("Error fetching tags:", err);
       }
     };
-
     fetchTags();
   }, []);
 
+  // Load original content when editing
   useEffect(() => {
-    const fetchDocumentData = async () => {
+    const fetchDoc = async () => {
       if (isEditing && docId) {
         try {
-          const collectionName = type;
-          const docRef = doc(db, collectionName, docId);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data();
+          const snap = await getDoc(doc(db, type, docId));
+          if (snap.exists()) {
+            const data = snap.data();
             setTitle(data.title || "");
             setContent(data.content || "");
             setSelectedTags(data.selectedTags || []);
-          } else {
-            console.error("Document not found.");
+            originalStrippedRef.current = normalize(stripHtml(data.content || ""));
+            originalTitleRef.current = data.title || "";
           }
-        } catch (error) {
-          console.error("Error fetching document:", error);
+        } catch (err) {
+          console.error("Error loading doc:", err);
         }
       }
     };
-
-    fetchDocumentData();
+    fetchDoc();
   }, [isEditing, docId, type]);
 
   const handleTagClick = (tag) => {
-    setSelectedTags((prevTags) =>
-      prevTags.includes(tag)
-        ? prevTags.filter((t) => t !== tag)
-        : prevTags.length < 5
-          ? [...prevTags, tag]
-          : prevTags
+    setSelectedTags((prev) =>
+      prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
+        : prev.length < 5
+          ? [...prev, tag]
+          : prev
     );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
+    const stripped = normalize(stripHtml(content));
+
+    // Validate ALL minimum criteria first - only proceed if everything is valid
+    if (title.length < 10 || title.length > 100) {
+      setError("Title must be 10–100 characters.");
+      setIsSubmitting(false);
+      return;
+    }
+    if (stripped.length < 1500 || stripped.length > 9000) {
+      setError("Content must be 1500–9000 characters.");
+      setIsSubmitting(false);
+      return;
+    }
+    if (selectedTags.length < 1 || selectedTags.length > 5) {
+      setError("Select 1–5 tags.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // On edits, check if changes are significant enough
+    if (isEditing) {
+      const titleUnchanged = title === originalTitleRef.current;
+      const diff = countWordDiff(originalStrippedRef.current, stripped);
+
+      // Don't allow update if less than 5 words changed
+      if (diff < 5) {
+        setError("Please make at least 5 words of changes before updating.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Skip AI validation if less than 7 words changed
+      if (titleUnchanged && diff < 7) {
+        try {
+          await updateDoc(doc(db, type, docId), {
+            title,
+            content,
+            selectedTags,
+            last_updated: new Date(),
+          });
+          navigate("/education-main");
+        } catch (err) {
+          setError("Update failed. Try again.");
+        }
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    // Trigger AI validation
+    setShowAIAnimation(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/validate-content/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title, content: stripped }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAiAnalysisResult(false);
+        setAiAnalysisMessage(data.error || "Validation failed.");
+      } else {
+        setAiAnalysisResult(true);
+        setAiAnalysisMessage("Content approved!");
+      }
+    } catch (err) {
+      console.error(err);
+      setAiAnalysisResult(false);
+      setAiAnalysisMessage("Validation error. Try again.");
+    }
   };
 
   const handleAIAnalysisComplete = async () => {
     setShowAIAnimation(false);
-
+    setIsSubmitting(false);
     if (aiAnalysisResult) {
-      // AI approved the content - proceed with saving
       try {
         const user = auth.currentUser;
-        if (!user) throw new Error("User not logged in");
-
         const collectionName = isEditing
           ? type
           : userRole === "doctor"
             ? "articles"
             : "patient_stories";
-
-        if (isEditing && docId) {
-          const docRef = doc(db, collectionName, docId);
-          await updateDoc(docRef, {
+        if (isEditing) {
+          await updateDoc(doc(db, collectionName, docId), {
             title,
             content,
             selectedTags,
@@ -159,94 +255,16 @@ const EducationWritePage = () => {
             last_updated: new Date(),
           });
         }
-
         navigate("/education-main");
-      } catch (error) {
-        console.error("Error submitting:", error);
-        setError("An error occurred while submitting. Please try again.");
+      } catch (err) {
+        setError("Submit failed. Try again.");
       }
     } else {
-      // AI flagged the content - show error
-      setError(aiAnalysisMessage || "Content was flagged by AI analysis. Please modify your content to ensure it meets our guidelines.");
-    }
-
-    setIsSubmitting(false);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError("");
-
-    const strippedContent = stripHtml(content);
-
-    if (title.length < 10 || title.length > 100) {
-      setError("Title must be between 10 and 100 characters.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (strippedContent.length < 1500 || strippedContent.length > 9000) {
-      setError("Content must be between 1500 and 9000 characters.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (selectedTags.length < 1 || selectedTags.length > 5) {
-      setError("You must select at least 1 tags and at most 5 tags.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      // Start AI Analysis Animation
-      setShowAIAnimation(true);
-
-      const validationRes = await fetch("http://localhost:8000/api/validate-content/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ content }),
-      });
-
-      let validationData;
-      let raw;
-      try {
-        raw = await validationRes.text();
-        validationData = JSON.parse(raw);
-      } catch (err) {
-        console.error("Invalid response JSON:", raw);
-        setAiAnalysisResult(false);
-        setAiAnalysisMessage("Server returned invalid response. Please try again.");
-        return;
-      }
-
-      if (!validationRes.ok) {
-        setAiAnalysisResult(false);
-        setAiAnalysisMessage(validationData.error || "Content validation failed. Please review and modify your content.");
-        return;
-      }
-
-      // AI Analysis successful
-      setAiAnalysisResult(true);
-      setAiAnalysisMessage("Content has been approved and is ready for publication!");
-
-    } catch (error) {
-      console.error("Error submitting:", error);
-      setAiAnalysisResult(false);
-      setAiAnalysisMessage("An error occurred during content analysis. Please try again.");
+      setError(aiAnalysisMessage);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-2xl">
-        Loading...
-      </div>
-    );
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen text-2xl">Loading...</div>;
 
   return (
     <div className="bg-gradient-to-b from-purple-200 to-purple-50 min-h-screen flex flex-col">
