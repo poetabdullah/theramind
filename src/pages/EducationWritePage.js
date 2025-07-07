@@ -202,27 +202,60 @@ const EducationWritePage = () => {
     }
 
     // Trigger AI validation
-    setShowAIAnimation(true);
-    try {
-      const res = await fetch("http://localhost:8000/api/validate-content/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title, content: stripped }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setAiAnalysisResult(false);
-        setAiAnalysisMessage(data.error || "Validation failed.");
-      } else {
-        setAiAnalysisResult(true);
-        setAiAnalysisMessage("Content approved!");
+
+    // Trigger AI validation
+    let res, data;
+    let retries = 0;
+    const maxRetries = 5;
+
+    while (retries < maxRetries) {
+      try {
+        res = await fetch("http://localhost:8000/api/validate-content/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ content }),
+        });
+
+        if (res.ok) {
+          data = await res.json();
+          if (data && typeof data.valid === "boolean") break;
+        }
+      } catch (e) {
+        console.error("Retry error:", e);
       }
-    } catch (err) {
-      console.error(err);
-      setAiAnalysisResult(false);
-      setAiAnalysisMessage("Validation error. Try again.");
+
+      retries++;
+      await new Promise((r) => setTimeout(r, 1500));
     }
+
+    if (!data || typeof data.valid !== "boolean") {
+      setAiAnalysisResult(false);
+      setAiAnalysisMessage("🚨 Validation error or timeout. Please try again.");
+      setShowAIAnimation(true); // trigger animation only after message is set
+      return;
+    }
+
+    const allowed = data.valid;
+    const conf = typeof data.confidence_score === "number"
+      ? `${(data.confidence_score * 100).toFixed(1)}%`
+      : "N/A";
+    const votes = typeof data.votes === "number" ? `${data.votes}/3` : "N/A";
+    const note = data.note || "No note provided.";
+
+    const msg = [
+      allowed ? "✅ Approved by AI ensemble!" : "❌ Blocked by AI moderation.",
+      `🧠 Confidence Score: ${conf}`,
+      `🧪 Confidence Threshold Passed: ${data.confidence_pass ? "✔️" : "✖️"}`,
+      `🔁 TTA (Augmented Consistency) Passed: ${data.tta_pass ? "✔️" : "✖️"}`,
+      `🧷 Keyword Override Triggered: ${data.override_pass ? "✔️" : "✖️"}`,
+      `📊 Total Votes: ${votes}`,
+      `📝 Note: ${note}`,
+    ].join("\n");
+
+    setAiAnalysisResult(allowed);
+    setAiAnalysisMessage(msg);
+    setShowAIAnimation(true); // trigger only once everything is ready
   };
 
   const handleAIAnalysisComplete = async () => {
