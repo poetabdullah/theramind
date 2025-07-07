@@ -37,7 +37,9 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from utils.ml_model import predict_mh
+from utils.ml_model import final_mh_decision
+import traceback
+
 
 import logging
 
@@ -53,32 +55,38 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
-# ML models
 @api_view(["POST"])
 def validate_content(request):
-    html = request.data.get("content", "")
+    html = request.data.get("content", "").strip()
 
-    if not html.strip():
-        return Response({"error": "No content provided."}, status=400)
+    if not html:
+        return Response({"error": "No content."}, status=400)
 
     try:
-        is_mh = predict_mh(html)
-    except Exception as e:
-        logger.exception("Error during mental health prediction: %s", str(e))
-        return Response(
-            {"error": f"Internal error during prediction: {str(e)}"}, status=500
-        )
+        res = final_mh_decision(html)
+        if not isinstance(res, dict):
+            raise ValueError("Model response is not a dictionary")
 
-    if is_mh:
-        return Response({"valid": True})
-    else:
-        return Response(
-            {
-                "valid": False,
-                "error": "Content not classified as mental health. Please refactor.",
-            },
-            status=422,
-        )
+        required_keys = [
+            "valid",
+            "confidence_score",
+            "confidence_pass",
+            "tta_pass",
+            "override_pass",
+            "votes",
+            "note",
+        ]
+        for key in required_keys:
+            if key not in res:
+                raise KeyError(f"Missing key in model response: {key}")
+
+        return Response(res, status=200 if res["valid"] else 422)
+
+    except Exception as e:
+        # Print to console/logs
+        print("❌ AI validation error:", str(e))
+        traceback.print_exc()  # <- This will show full traceback in logs
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 # Opens up the detail view of the specific article / patient story
