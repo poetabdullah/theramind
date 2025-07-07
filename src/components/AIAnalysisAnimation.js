@@ -1,25 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-const AIAnalysisAnimation = ({ isVisible, onComplete, isSuccess, message }) => {
+const AIAnalysisAnimation = ({ isVisible, onComplete, isSuccess, message, triggerCompletion }) => {
   const [stage, setStage] = useState(0);
   const [angle, setAngle] = useState(0);
 
   useEffect(() => {
-    if (isVisible) {
-      setStage(0);
-      const timers = [
-        setTimeout(() => setStage(1), 500),
-        setTimeout(() => setStage(2), 1500),
-        setTimeout(() => setStage(3), 3000),
+    if (!isVisible) return;
+
+    setStage(0);
+
+    const timer1 = setTimeout(() => setStage(1), 500);
+    const timer2 = setTimeout(() => setStage(2), 1500);
+    const timer3 = setTimeout(() => setStage(3), 3000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (triggerCompletion) {
+      const delay = setTimeout(() => {
+        setStage(4); // final stage with results
         setTimeout(() => {
-          setStage(4);
-          setTimeout(() => onComplete(), 1500);
-        }, 4500),
-      ];
-      return () => timers.forEach(clearTimeout);
+          onComplete(); // call parent handler
+        }, 1500); // allow display time
+      }, 500); // optional short pause
+      return () => clearTimeout(delay);
     }
-  }, [isVisible, onComplete]);
+  }, [triggerCompletion, onComplete]);
+
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -91,19 +105,34 @@ const AIAnalysisAnimation = ({ isVisible, onComplete, isSuccess, message }) => {
                 {stage < 4 ? "Analyzing..." : "Review Complete"}
               </div>
               <div className="text-indigo-200 mt-1 text-sm font-mono">
-                {stage < 4 ? "SBERT + CNN pipeline" : "Final model decision"}
+                {stage < 4 ? "SBERT + 1D-CNN pipeline" : "Final model decision"}
               </div>
             </div>
 
             {/* Card 2: Final Result */}
             <div className="w-[300px] max-w-xs px-6 py-5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg text-center">
-              <div className={`text-3xl font-bold mb-3 ${isSuccess ? "text-emerald-400" : "text-rose-400"}`}>
-                {isSuccess ? "✓ Clean" : "⚠ Action Needed"}
-              </div>
-              <div className="text-white font-medium text-base leading-relaxed">
-                {message}
-              </div>
+              {stage < 4 ? (
+                <>
+                  <div className="text-3xl font-bold mb-3 text-yellow-300 animate-pulse">
+                    ⏳ Analyzing...
+                  </div>
+                  <div className="text-white font-medium text-base leading-relaxed">
+                    Please wait while our AI processes your content.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={`text-3xl font-bold mb-3 ${isSuccess ? "text-emerald-400" : "text-rose-400"}`}>
+                    {isSuccess ? "✓ Clean" : "⚠ Action Needed"}
+                  </div>
+                  <div className="text-white font-medium text-base leading-relaxed whitespace-pre-line">
+                    {message}
+                  </div>
+                </>
+              )}
             </div>
+
+
           </div>
         </motion.div>
       )}
