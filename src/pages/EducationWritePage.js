@@ -79,6 +79,8 @@ const EducationWritePage = () => {
   const [aiAnalysisResult, setAiAnalysisResult] = useState(null);
   const [aiAnalysisMessage, setAiAnalysisMessage] = useState("");
 
+  const [triggerCompletion, setTriggerCompletion] = useState(false);
+
   // Auth and role detection
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -201,9 +203,10 @@ const EducationWritePage = () => {
       }
     }
 
-    // Trigger AI validation
 
     // Trigger AI validation
+    setShowAIAnimation(true);
+
     let res, data;
     let retries = 0;
     const maxRetries = 5;
@@ -231,8 +234,8 @@ const EducationWritePage = () => {
 
     if (!data || typeof data.valid !== "boolean") {
       setAiAnalysisResult(false);
-      setAiAnalysisMessage("🚨 Validation error or timeout. Please try again.");
-      setShowAIAnimation(true); // trigger animation only after message is set
+      setAiAnalysisMessage("🚨 AI validation failed or returned incomplete data.");
+      setTriggerCompletion(true); // Force AI animation to finish
       return;
     }
 
@@ -255,7 +258,8 @@ const EducationWritePage = () => {
 
     setAiAnalysisResult(allowed);
     setAiAnalysisMessage(msg);
-    setShowAIAnimation(true); // trigger only once everything is ready
+    setTriggerCompletion(true);  // This is what allows animation to exit stage 3
+
   };
 
   const handleAIAnalysisComplete = async () => {
@@ -372,7 +376,9 @@ const EducationWritePage = () => {
         onComplete={handleAIAnalysisComplete}
         isSuccess={aiAnalysisResult}
         message={aiAnalysisMessage}
+        triggerCompletion={triggerCompletion}
       />
+
 
       <Footer />
     </div>
