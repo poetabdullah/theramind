@@ -183,9 +183,14 @@ const PatientSignUp = () => {
 
   const handleHealthHistorySubmit = useCallback(async (historyData) => {
     try {
-      const final = { ...userData, ...historyData, createdAt: new Date(), userId: authInstance.currentUser?.uid || Date.now().toString() };
+      const final = {
+        ...userData,
+        ...historyData,
+        createdAt: new Date(),
+        userId: authInstance.currentUser?.uid || Date.now().toString(),
+        status: "active"
+      };
       await setDoc(doc(db, "patients", final.email), final);
-      // force a full reload so <Navbar> re-fetches the new patient doc:
       navigate("/patient-dashboard");
       window.location.reload();
     } catch (err) {
@@ -193,6 +198,7 @@ const PatientSignUp = () => {
       setError({ general: "Failed to save data. Please try again." });
     }
   }, [userData, authInstance, navigate]);
+
 
 
   return (
