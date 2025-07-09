@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import HomePage from "./pages/HomePage";
@@ -34,45 +34,45 @@ import { initGoogleApi } from './utils/google_api';
 
 const App = () => {
   useEffect(() => {
-  initGoogleApi();
-}, []);
+    initGoogleApi();
+  }, []);
 
-return (
-  <div>
-    <Navbar />
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/meditation" element={<Meditation />} />
-      <Route path="/questionnaire" element={<QuestionnairePage />} />
-      <Route path="/start-screen" element={<StartScreen />} />
-      <Route path="/contact-us" element={<ContactUs />} />
-      <Route path="/about-us" element={<AboutUs />} />
-      <Route path="/signup" element={<PatientSignUp />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/therachat" element={<TheraChat />} />
-      <Route path="/education-main" element={<EducationMainPage />} />
-      <Route path="/articles" element={<ArticlesListPage />} />
-      <Route path="/patient-stories" element={<PatientStoriesListPage />} />
-      <Route path="/stories/:id" element={<EducationDetailView />} />
-      <Route path="/articles/:id" element={<EducationDetailView />} />
-      <Route path="/write-education" element={<EducationWritePage />} />
-      <Route path="/splash-screen" element={<SplashScreen />} />
-      <Route path="/testimonial" element={<Testimonial />} />
-      <Route path="/patient-dashboard" element={<PatientDashboard />} />
-      <Route path="/doctor-signup" element={<DoctorSignUp />} />
-      <Route path="/signup-landing" element={<SignUpLandingPage />} />
-      <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-      <Route path="/appointment-booking" element={<AppointmentBooking />} />
-      <Route path="/appointment-cancel-reschedule" element={<AppointmentCancelReschedule />} />
-      <Route path="/create-treatment" element={<CreateTreatmentPlan />} />
-      <Route path="/manage-patients" element={<ManagePatients />} />
-      <Route path="/treatment-recommendation" element={<TreatmentRecommendation />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/terms-of-service" element={<TermsOfService />} />
-    </Routes>
-  </div>
-)
+  return (
+    <div>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/meditation" element={<Meditation />} />
+        <Route path="/questionnaire" element={<QuestionnairePage />} />
+        <Route path="/start-screen" element={<StartScreen />} />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/signup" element={<PatientSignUp />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/therachat" element={<TheraChat />} />
+        <Route path="/education-main" element={<EducationMainPage />} />
+        <Route path="/articles" element={<ArticlesListPage />} />
+        <Route path="/patient-stories" element={<PatientStoriesListPage />} />
+        <Route path="/stories/:id" element={<EducationDetailView />} />
+        <Route path="/articles/:id" element={<EducationDetailView />} />
+        <Route path="/write-education" element={<EducationWritePage />} />
+        <Route path="/splash-screen" element={<SplashScreen />} />
+        <Route path="/testimonial" element={<Testimonial />} />
+        <Route path="/patient-dashboard" element={<PatientDashboard />} />
+        <Route path="/doctor-signup" element={<DoctorSignUp />} />
+        <Route path="/signup-landing" element={<SignUpLandingPage />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+        <Route path="/appointment-booking" element={<AppointmentBooking />} />
+        <Route path="/appointment-cancel-reschedule" element={<AppointmentCancelReschedule />} />
+        <Route path="/create-treatment" element={<CreateTreatmentPlan />} />
+        <Route path="/manage-patients" element={<ManagePatients />} />
+        <Route path="/treatment-recommendation" element={<TreatmentRecommendation />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+      </Routes>
+    </div>
+  )
 };
 
 export default App;
