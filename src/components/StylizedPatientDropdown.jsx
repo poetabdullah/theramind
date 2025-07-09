@@ -1,4 +1,5 @@
 import React from "react";
+import { ChevronDown } from "lucide-react";
 
 const StylizedPatientDropdown = ({
   selectedPatient,
@@ -13,23 +14,24 @@ const StylizedPatientDropdown = ({
   };
 
   return (
-    <div className="mb-10">
-      <div className="relative w-full max-w-md mx-auto">
-        <label
-          htmlFor="stylized-patient-select"
-          className="block mb-2 text-lg font-semibold text-gray-800"
-        >
-          Choose a Patient
-        </label>
+    <div className="mb-10 w-full max-w-xl mx-auto">
+      <label
+        htmlFor="patient-select"
+        className="block text-lg font-semibold text-orange-800 mb-3"
+      >
+        Select a Patient
+      </label>
+
+      <div className="relative">
         <select
-          id="stylized-patient-select"
-          className="block w-full appearance-none rounded-2xl border border-gray-300 bg-white px-4 py-3 text-base shadow-lg focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all duration-300"
+          id="patient-select"
           value={selectedPatient || ""}
           onChange={handleChange}
           disabled={loading}
+          className="w-full cursor-pointer rounded-2xl border border-orange-200 bg-white px-5 py-4 pr-12 text-base font-medium text-gray-800 shadow-lg transition duration-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 focus:outline-none appearance-none hover:border-orange-300 hover:shadow-xl"
         >
           <option value="" disabled>
-            {loading ? "Fetching patients..." : "Select a patient"}
+            {loading ? "Loading patients..." : "Choose a patient"}
           </option>
           {patients.map((p) => (
             <option key={p.email} value={p.email}>
@@ -38,20 +40,8 @@ const StylizedPatientDropdown = ({
           ))}
         </select>
 
-        <div className="pointer-events-none absolute inset-y-0 right-3 top-[40px] flex items-center text-gray-400">
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
+        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+          <ChevronDown className="w-5 h-5 text-orange-500" />
         </div>
       </div>
     </div>
