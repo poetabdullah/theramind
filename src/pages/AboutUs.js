@@ -68,18 +68,18 @@ const AboutUs = () => {
           </motion.p>
           <motion.ul className="list-disc list-inside space-y-2">
             {[
-              "Stress(Acute Stress, Chronic Stress, Post-Traumatic Stress Disorder - PTSD)",
+              "Stress (Acute Stress, Chronic Stress, Post-Traumatic Stress Disorder - PTSD)",
               "Anxiety (Separation Anxiety, Generalized Anxiety Disorder, Panic Disorder)",
               "Depression (Post-Partum Depression, Major Depressive Disorder, Atypical Depression)",
               "Trauma (Single Event Trauma, Complex Trauma, Developmental Trauma)",
               "Obsessive Compulsive Disorder - OCD (Contamination OCD, Checking OCD, Symmetry OCD)"
             ].map((condition, index) => (
-              <motion.li key={index}
-                className="text-gray-700 flex items-center space-x-2 cursor-pointer transition duration-300 hover:text-orange-600"
+              <motion.li
+                key={index}
+                className="text-gray-700 cursor-pointer transition duration-300 hover:text-orange-600"
                 whileHover={{ scale: 1.05 }}
               >
-                <span className="w-2 h-2 bg-puple-700 rounded-full flex-shrink-0"></span>
-                <span>{condition}</span>
+                {condition}
               </motion.li>
             ))}
           </motion.ul>
