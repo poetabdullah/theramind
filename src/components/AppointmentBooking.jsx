@@ -321,6 +321,11 @@ const handleRescheduleAppointment = async (
       return;
     }
 
+    if (newStart < new Date()) {
+      toast.warning("Cannot reschedule to a past date.");
+      return;
+    }
+
     const doctorDoc = doctors.find((doc) => doc.email === appointment.doctorEmail);
     if (!doctorDoc) throw new Error("Doctor not found.");
     const doctorRef = doc(db, "doctors", doctorDoc.id);
@@ -633,7 +638,11 @@ const handleRescheduleAppointment = async (
                       <option value="">Select new timeslot</option>
                       {doctors
                         ?.find((doc) => doc.email === appt.doctorEmail)
-                        ?.timeslots.filter((slot) => slot !== appt.timeslot)
+                        ?.timeslots.filter((slot) => {
+                        const slotTime = new Date(slot);
+                        const nowTime = new Date();
+                        return slot !== appt.timeslot && slotTime > nowTime;
+                        })
                         .sort((a, b) => new Date(a) - new Date(b))
                         .map((slot) => (
                           <option key={slot} value={slot}>
