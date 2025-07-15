@@ -132,6 +132,7 @@ const handleRescheduleAppointment = async (appointment, new_time) => {
       return;
     }
 
+	//Filtering the past dates
 	if (newStart < new Date()) {
 	  toast.warning("Cannot reschedule to a past date.");
 	  return;
