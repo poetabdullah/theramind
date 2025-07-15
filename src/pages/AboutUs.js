@@ -216,13 +216,6 @@ const AboutUs = () => {
                 </motion.a><span> - theramind.web@gmail.com
                 </span>
               </motion.li>
-              <motion.li>
-                <motion.a href="/twitter"
-                  className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
-                hover:underline">Twitter
-                </motion.a><span> - theramind
-                </span>
-              </motion.li>
             </motion.ul>
           </motion.p>
         </motion.div>

@@ -23,7 +23,7 @@ const Contact = () => {
 
   const validate = () => {
     let errors = {};
-
+    //Validating If Fields Are Empty Or Not
     if (!formData.name.trim()) errors.name = "Name is required";
     if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
       errors.email = "Please enter a valid email address";
