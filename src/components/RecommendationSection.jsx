@@ -41,6 +41,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
   //Fetch Healing Tips & Meditational Links From Firestore
   const fetchHealingData = async () => {
     try {
+      //Matching the diagnosed subtype with healing tip's subtype to fetch relevant tips
       const docRef = doc(db, "healingTips", diagnosedSubtype);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
@@ -58,22 +59,23 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
   };
 
   // Fetch doctors by subtype or condition
-  const fetchDoctorsBySubtype = async (subtype) => {
-    if (!subtype) {
+  const fetchDoctorsBySubtype = async (diagnosedSubtype) => {
+    if (!diagnosedSubtype) {
       console.error("Subtype is undefined or empty.");
       return;
     }
 
     const q = query(
       collection(db, "doctors"),
-      where("subtypeTags", "array-contains", subtype),
-      where("status", "==", "active")
+      where("subtypeTags", "array-contains", diagnosedSubtype),
+      where("STATUS", "==", "approved")
     );
     const querySnapshot = await getDocs(q);
     const doctors = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
+    console.log("Subtype Diagnosed:", diagnosedSubtype);
     console.log("Matched doctors by subtype:", doctors);
     setDoctorProfile(doctors);
   };
