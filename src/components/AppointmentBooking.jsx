@@ -314,7 +314,7 @@ const AppointmentBooking = () => {
       // Delete the appointment from Firestore
       await deleteDoc(doc(db, "appointments", appointmentId));
 
-      // Restore the cancelled timeslot
+      // Restore the cancelled timeslot, arrayUnion ensures no duplicates
       await updateDoc(doctorRef, {
         timeslots: arrayUnion(timeslot),
       });
