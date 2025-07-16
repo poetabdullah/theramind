@@ -38,18 +38,42 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils.ml_model import final_mh_decision
-import traceback
 
+import traceback
+from google.oauth2 import service_account
+
+from google.auth.transport.requests import Request
+import requests
+import json
+
+import traceback
+import os
 
 import logging
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from google.auth import default as google_auth_default
+
+from dotenv import load_dotenv
+
+from google import genai
+from google.genai import types
+import base64  # Not explicitly used in your snippet, but keep if needed elsewhere
+
+
+load_dotenv()
+
 
 logger = logging.getLogger(__name__)
 
 # This ensures Firebase is only initialized once (even if views are imported multiple times)
 if not firebase_admin._apps:
     credentials = service_account.Credentials.from_service_account_file(
-        "C:/Users/user/VSCodeJSProjects/React/theramind/backend/firebase_admin_credentials.json"
+        "./firebase_admin_credentials.json",
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
     )
+
     firebase_admin.initialize_app(credentials)
 
 db = firestore.client()
@@ -797,3 +821,85 @@ def delete_goal_from_version(request, plan_id, version_id):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+# ------ TheraChat ------
+
+# ---- Constants ----
+PROJECT_ID = "996770367618"
+LOCATION = "us-central1"
+VERTEX_AI_MODEL_ENDPOINT = (
+    "projects/996770367618/locations/us-central1/endpoints/3658854739354845184"
+)
+
+# ---- Initialize Vertex AI client globally ----
+genai_client = genai.Client(
+    vertexai=True,
+    project=PROJECT_ID,
+    location=LOCATION,
+)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class TheraChatView(APIView):
+    def get(self, request):
+        return Response(
+            {
+                "message": "TheraChat API is running. Send a POST request with a 'prompt'."
+            }
+        )
+
+    def post(self, request):
+        user_input = request.data.get("prompt")
+        if not user_input:
+            return Response(
+                {"error": "No prompt provided"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # ---- Prepare content ----
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[types.Part(text=user_input)],
+                )
+            ]
+
+            generation_config = types.GenerateContentConfig(
+                temperature=0.7,
+                top_p=0.95,
+                max_output_tokens=1024,
+            )
+
+            # ---- Streaming generation (official way to call fine-tuned endpoints) ----
+            stream = genai_client.models.generate_content_stream(
+                model=VERTEX_AI_MODEL_ENDPOINT,
+                contents=contents,
+                config=generation_config,
+            )
+
+            # ---- Combine stream text ----
+            generated_text = ""
+            for chunk in stream:
+                if hasattr(chunk, "text"):
+                    generated_text += chunk.text
+
+            if not generated_text.strip():
+                return Response(
+                    {"error": "No content returned from the model."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+
+            return Response({"response": generated_text})
+
+        except Exception as e:
+            import traceback
+
+            print(
+                f"Error during TheraChat generation for prompt: '{user_input}'\n",
+                traceback.format_exc(),
+            )
+            return Response(
+                {"error": f"Internal server error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

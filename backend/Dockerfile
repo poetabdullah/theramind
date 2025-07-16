@@ -1,27 +1,31 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
-# Set working directory
-WORKDIR /backend
+ENV PYTHONUNBUFFERED=1
+ENV NLTK_DATA=/app/ml_models/nltk_data
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/vertex_ai_credentials.json
+ENV DJANGO_SETTINGS_MODULE=theramind_backend.settings
 
-# Copy requirements.txt from the backend dir
+WORKDIR /app
+
+# Install requirements
 COPY requirements.txt .
-
-# Install requirements (with timeout fix)
-# This will install tensorflow==2.19.0 and its bundled Keras 3.x
 RUN pip install --default-timeout=300 --no-cache-dir -r requirements.txt
+RUN pip install google-genai
 
-# Download NLTK punkt tokenizer (moved before copying app code, good practice)
-RUN python -m nltk.downloader punkt
+# Download NLTK data
+RUN python -m nltk.downloader punkt wordnet omw-1.4
 
-# Copy model-related and Django app directories
+# Copy credentials
+COPY vertex_ai_credentials.json /app/vertex_ai_credentials.json
+COPY firebase_admin_credentials.json /app/firebase_admin_credentials.json
+
+# Copy project files
 COPY ./ml_models ./ml_models
 COPY ./api ./api
 COPY ./utils ./utils
 COPY ./theramind_backend ./theramind_backend
 COPY manage.py .
 
-# Expose the port
 EXPOSE 8000
 
-# Start Django
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
