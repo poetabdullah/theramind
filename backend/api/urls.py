@@ -36,6 +36,7 @@ from .views import (
     mark_action_complete,
     get_treatment_plan,
     validate_content,
+    TheraChatView,
 )
 
 urlpatterns = [
@@ -118,4 +119,6 @@ urlpatterns = [
         calculate_weekly_performance,
         name="calculate_weekly_performance",
     ),
+    # --- TheraChat ---
+    path("therachat/", TheraChatView.as_view(), name="therachat"),
 ]

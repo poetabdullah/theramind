@@ -10,15 +10,7 @@ services:
     env_file:
       - ./backend/.env
     volumes:
-      - ./backend:/backend # optional for live reload
+      - ./backend:/app
+      - ./backend/firebase_admin_credentials.json:/app/firebase_admin_credentials.json
+      - ./backend/vertex_ai_credentials.json:/app/vertex_ai_credentials.json
     command: python manage.py runserver 0.0.0.0:8000
-
-  mlmodel:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/backend
-    command: python manage.py runserver 0.0.0.0:5000
