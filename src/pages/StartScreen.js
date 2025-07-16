@@ -7,8 +7,7 @@ import { getFirestore,
   query,
   orderBy,
   limit,
-  getDocs,
-  doc, } from "firebase/firestore";
+  getDocs, } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const WelcomeScreen = () => {
@@ -19,7 +18,7 @@ const WelcomeScreen = () => {
 
   useEffect(() => {
   const auth = getAuth();
-
+    //Check if user is logged in
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (!user) {
       setMessage("You must be logged in to access the questionnaire.");
@@ -27,27 +26,28 @@ const WelcomeScreen = () => {
       setLoading(false);
       return;
     }
-
+    //Check Assessments subcollection to see if user has already taken the questionnaire
     const db = getFirestore();
     const assessmentsRef = collection(db, "patients", user.email, "assessments");
+    //Query to get the latest assessment
     const assessmentsQuery = query(assessmentsRef, orderBy("timestamp", "desc"), limit(1));
     const snapshot = await getDocs(assessmentsQuery);
 
     if (snapshot.empty) {
-      // No assessments found — allow access
+      //No assessments found — allow access
       setEligible(true);
       setLoading(false);
       return;
     }
 
-    // Get the latest assessment timestamp
+    //Get the latest assessment timestamp
     const latestAssessmentDoc = snapshot.docs[0];
     const latestTimestamp = latestAssessmentDoc.data().timestamp.toDate();
     const today = new Date();
-
+    //Check if the latest assessment was taken more than 3 months ago
     const nextEligibleDate = new Date(latestTimestamp);
     nextEligibleDate.setMonth(nextEligibleDate.getMonth() + 3);
-
+    //If the latest assessment was taken less than 3 months ago, calculate remaining days
     if (today < nextEligibleDate) {
       const remainingDays = Math.ceil(
         (nextEligibleDate - today) / (1000 * 60 * 60 * 24)
@@ -64,7 +64,7 @@ const WelcomeScreen = () => {
 
   return () => unsubscribe();
 }, []);
-
+//Redirects to start screen if questionnaire has not been started, preventing direct access to the questionnaire page without start screen
 useEffect(() => {
   const started = sessionStorage.getItem("questionnaireStarted");
   if (!started) {
@@ -73,6 +73,7 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  //Prevent back navigation to the start screen
   window.history.pushState(null, "", window.location.href);
   window.onpopstate = function () {
     navigate("/start-screen");
@@ -82,7 +83,7 @@ useEffect(() => {
 
 const handleStart = () => {
   if (eligible) {
-    sessionStorage.setItem("questionnaireStarted", "true"); 
+    sessionStorage.setItem("questionnaireStarted", "true");
     navigate("/questionnaire");
   }
 };

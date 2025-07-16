@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "./questionnaire.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "../components/Footer.js";
 import { db } from "../firebaseConfig.js";
