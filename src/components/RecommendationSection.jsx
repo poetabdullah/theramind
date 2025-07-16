@@ -12,7 +12,7 @@ import {
 import ListViewCard from "./ListViewCard.js";
 import { useNavigate } from "react-router-dom";
 
-const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
+const RecommendationSection = ({ diagnosedSubtype }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [meditations, setMeditations] = useState([]);
   const [doctorProfile, setDoctorProfile] = useState([]);
