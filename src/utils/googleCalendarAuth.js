@@ -2,10 +2,10 @@ import { initGoogleApi, signInWithGoogle } from './google_api';
 
 export const initGoogleCalendarAuth = async () => {
   try {
-    // Load API scripts and initialize client
+    //Loading API scripts and initializing client
     await initGoogleApi();
 
-    // Request access token from user
+    //Requesting access token from user
     const accessToken = await signInWithGoogle();
 
     if (!accessToken) {
@@ -13,7 +13,7 @@ export const initGoogleCalendarAuth = async () => {
     }
 
     console.log("✅ Google Calendar access granted");
-    return accessToken; // You can now use this with gapi.client calls
+    return accessToken;
   } catch (err) {
     console.error("Google Calendar Auth Error:", err);
     throw err;

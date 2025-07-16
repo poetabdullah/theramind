@@ -4,7 +4,7 @@ let accessToken = null;
 const CLIENT_ID = "996770367618-1u5ib31uqm033hf0n353rc45qt7r2gpg.apps.googleusercontent.com";
 const SCOPES = "https://www.googleapis.com/auth/calendar.events";
 
-// Wait for Google Identity Services script to load
+//Waiting for Google Identity Services (GIS) script to get loaded
 export function waitForGoogle() {
   
   return new Promise((resolve, reject) => {
