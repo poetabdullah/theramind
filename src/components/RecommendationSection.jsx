@@ -41,6 +41,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
   //Fetch Healing Tips & Meditational Links From Firestore
   const fetchHealingData = async () => {
     try {
+      //Matching the diagnosed subtype with healing tip's subtype to fetch relevant tips
       const docRef = doc(db, "healingTips", diagnosedSubtype);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
@@ -67,7 +68,7 @@ const RecommendationSection = ({ diagnosedSubtype, diagnosedCondition }) => {
     const q = query(
       collection(db, "doctors"),
       where("subtypeTags", "array-contains", subtype),
-      where("status", "==", "active")
+      where("status", "==", "approved")
     );
     const querySnapshot = await getDocs(q);
     const doctors = querySnapshot.docs.map((doc) => ({
