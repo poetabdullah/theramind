@@ -19,6 +19,8 @@ import os
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG") == "True"
 
+PORT = os.getenv("PORT", "8080")
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
 ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
