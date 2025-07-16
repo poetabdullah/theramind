@@ -12,6 +12,7 @@ __pycache__/
 *.log
 .Python
 *.sqlite3
+*.json
 
 # === Virtualenvs ===
 venv/
@@ -20,6 +21,8 @@ env/
 ENV/
 .venv/
 .ENV/
+backend/secrets/
+
 
 # === Django / Python ===
 *.db
