@@ -7,19 +7,19 @@ ENV DJANGO_SETTINGS_MODULE=theramind_backend.settings
 
 WORKDIR /app
 
-# Install requirements
+# Install deps
 COPY requirements.txt .
 RUN pip install --default-timeout=300 --no-cache-dir -r requirements.txt
 RUN pip install google-genai
 
-# Download NLTK data
+# NLTK downloads
 RUN python -m nltk.downloader punkt wordnet omw-1.4
 
 # Copy credentials
-COPY vertex_ai_credentials.json /app/vertex_ai_credentials.json
 COPY firebase_admin_credentials.json /app/firebase_admin_credentials.json
+COPY vertex_ai_credentials.json /app/vertex_ai_credentials.json
 
-# Copy project files
+# Copy all code
 COPY ./ml_models ./ml_models
 COPY ./api ./api
 COPY ./utils ./utils
