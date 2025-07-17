@@ -95,12 +95,12 @@ def add_cors_headers(get_response):
     return middleware
 
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://theramind-cmns1e5bh-abdullah-imrans-projects-6b375d96.vercel.app",
-    "https://theramind.site",
-    "https://thera-mind.web.app",
-    "https://theramind-backend-996770367618.us-central1.run.app",
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://theramind(-[\w]+)?\.abdullah-imrans-projects-6b375d96\.vercel\.app$",
+    r"^https://theramind\.site$",
+    r"^https://thera-mind\.web\.app$",
+    r"^http://localhost:3000$",
+    r"^https://theramind-backend-996770367618\.us-central1\.run\.app$",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
