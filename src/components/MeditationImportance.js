@@ -51,7 +51,7 @@ const MeditationImportance = () => {
           }}
         >
           <img 
-            src="/img/meditation.png" 
+            src="/img/meditation.jpg" 
             alt="Meditation Importance"
             className="max-w-full h-auto rounded-xl shadow-xl transform transition-transform duration-300"
           />

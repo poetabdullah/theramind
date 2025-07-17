@@ -13,12 +13,13 @@ const ApprovedDoctorsList = () => {
       try {
         const q = query(
           collection(db, 'doctors'),
-          where('STATUS', '==', 'approved') // Changed STATUS to status to match your Firestore field
+          where('STATUS', '==', 'approved') 
         );
         const snapshot = await getDocs(q);
         
         const doctorsData = snapshot.docs.map(doc => ({
           id: doc.id,
+          ...doc.data(),
           name: doc.data().fullName || doc.data().name || 'N/A',
           email: doc.data().email || 'N/A',
           phone: doc.data().contact || doc.data().phone || 'N/A',
@@ -38,12 +39,12 @@ const ApprovedDoctorsList = () => {
     fetchDoctors();
   }, []);
 
-  const handleBlockDoctor = async (doctorId, email) => {
+  const handleBlockDoctor = async (doctorId) => {
     if (window.confirm("Are you sure you want to block this doctor?")) {
       try {
         setProcessing(true);
         await updateDoc(doc(db, 'doctors', doctorId), {
-          status: 'blocked'
+          STATUS: 'blocked'
         });
         toast.success("Doctor blocked successfully");
         setDoctors(doctors.filter(doctor => doctor.id !== doctorId));
@@ -56,7 +57,7 @@ const ApprovedDoctorsList = () => {
     }
   };
 
-  const handleDeleteDoctor = async (doctorId, email) => {
+  const handleDeleteDoctor = async (doctorId) => {
     if (window.confirm("Are you sure you want to permanently delete this doctor?")) {
       try {
         setProcessing(true);
@@ -102,7 +103,7 @@ const ApprovedDoctorsList = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">expertise</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expertise</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -126,14 +127,14 @@ const ApprovedDoctorsList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleBlockDoctor(doctor.id, doctor.email)}
+                        onClick={() => handleBlockDoctor(doctor.id)}
                         className="text-yellow-600 hover:text-yellow-900"
                         disabled={processing}
                       >
                         Block
                       </button>
                       <button
-                        onClick={() => handleDeleteDoctor(doctor.id, doctor.email)}
+                        onClick={() => handleDeleteDoctor(doctor.id)}
                         className="text-red-600 hover:text-red-900"
                         disabled={processing}
                       >
