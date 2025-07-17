@@ -23,7 +23,8 @@ const PatientStoriesListPage = () => {
   const fetchStories = () => {
     setLoading(true);
     setNoResults(false);
-    let url = `http://127.0.0.1:8000/api/get_patient_stories/?page=${page}`;
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://127.0.0.1:8000";
+    let url = `${backendUrl}/api/get_patient_stories/?page=${page}`;
     if (selectedTags.length > 0) { // / Adds tags as a comma-separated query string if any are selected.
       url += `&tags=${selectedTags.join(",")}`;
     }

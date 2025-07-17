@@ -20,7 +20,7 @@ export default function EducationMainPage() {
     const fetchData = async () => {
       try {
         const apiUrl =
-          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+          process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
         // Promise.all saves a bit time while fetching
         const [articlesRes, storiesRes] = await Promise.all([

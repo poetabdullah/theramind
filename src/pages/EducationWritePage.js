@@ -213,7 +213,8 @@ const EducationWritePage = () => {
 
     while (retries < maxRetries) {
       try {
-        res = await fetch("http://localhost:8000/api/validate-content/", {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+        res = await fetch(`${backendUrl}/api/validate-content/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

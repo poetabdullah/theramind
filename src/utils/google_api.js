@@ -48,7 +48,6 @@ export async function initGoogleApi() {
   });
 }
 
-// ⛔ DEPRECATED — do not use again
 export function requestAccessToken(prompt = 'consent') {
   return new Promise((resolve, reject) => {
     if (!tokenClient) {

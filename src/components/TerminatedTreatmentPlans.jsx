@@ -5,7 +5,8 @@ import axios from "axios";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
 // Base URL for your API
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+const API_BASE =
+  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
 /**
  * Read-only view for terminated treatment plans for a patient.
