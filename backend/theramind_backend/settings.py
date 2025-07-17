@@ -15,6 +15,7 @@ import os
 import firebase_admin
 from firebase_admin import credentials
 import os
+from corsheaders.defaults import default_headers
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG") == "True"
@@ -95,15 +96,16 @@ def add_cors_headers(get_response):
     return middleware
 
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://theramind.site",
-    "https://thera-mind.web.app",
-    "https://theramind-backend-996770367618.us-central1.run.app",
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^https:\/\/theramind\.site$",
+    r"^https:\/\/thera-mind\.web\.app$",
+    r"^http:\/\/localhost:3000$",
 ]
 
-CORS_ORIGIN_REGEX_WHITELIST = [
-    r"^https:\/\/theramind-[a-z0-9]+\.abdullah-imrans-projects-6b375d96\.vercel\.app$"
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "Content-Type",
+    "Authorization",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
