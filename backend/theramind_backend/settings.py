@@ -28,8 +28,8 @@ ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
 
 
 # Firebase Admin Setup
-FIREBASE_ADMIN_CREDENTIALS = os.path.join(BASE_DIR, "firebase_admin_credentials.json")
-firebase_cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIALS)
+firebase_cred = credentials.ApplicationDefault()
+firebase_admin.initialize_app(firebase_cred)
 firebase_admin.initialize_app(firebase_cred)
 # Above added code aims to connect the firestore database
 
