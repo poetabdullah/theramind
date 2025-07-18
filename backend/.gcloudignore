@@ -4,5 +4,3 @@ __pycache__/
 *.pyo
 
 .env
-firebase_admin_credentials.json
-vertex_ai_credentials.json
