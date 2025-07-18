@@ -40,7 +40,7 @@ if not firebase_admin._apps:
 # STATIC_URL Setup: If we plan to serve static files (e.g., for admin or documentation):
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-
+STATIC_URL = "/static/"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
