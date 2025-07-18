@@ -26,11 +26,14 @@ PORT = os.getenv("PORT", "8080")
 BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
 ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
 
+FIREBASE_CRED_PATH = os.environ.get(
+    "FIREBASE_APPLICATION_CREDENTIALS", "/secrets/firebase_admin_credentials.json"
+)
 
-# Firebase Admin Setup
-firebase_cred = credentials.ApplicationDefault()
-firebase_admin.initialize_app(firebase_cred)
-firebase_admin.initialize_app(firebase_cred)
+if not firebase_admin._apps:
+    cred = credentials.Certificate(FIREBASE_CRED_PATH)
+    firebase_admin.initialize_app(cred)
+
 # Above added code aims to connect the firestore database
 
 
