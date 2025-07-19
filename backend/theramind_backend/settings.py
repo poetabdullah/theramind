@@ -11,30 +11,76 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import json
 import os
 import firebase_admin
 from firebase_admin import credentials
 import os
-from corsheaders.defaults import default_headers
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = os.environ.get("DEBUG") == "True"
+DEBUG = os.environ.get("DEBUG") == "True"  # Ensure DEBUG is boolean for safety
 
 PORT = os.getenv("PORT", "8080")
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
 ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
 
-firebase_path = os.environ.get(
-    "FIREBASE_APPLICATION_CREDENTIALS", "firebase_credentials.json"
-)
 
-if not firebase_admin._apps:
-    cred = credentials.Certificate(firebase_path)
-    firebase_admin.initialize_app(cred)
+# --- CORRECTED FIREBASE INITIALIZATION ---
+# Get the Firebase credentials string from the environment variable
+FIREBASE_CREDS_JSON_STRING = os.environ.get(
+    "FIREBASE_APPLICATION_CREDENTIALS"
+)  # Using os.environ.get directly
 
-# Above added code aims to connect the firestore database
+if FIREBASE_CREDS_JSON_STRING:
+    try:
+        # Crucial: Parse the JSON string into a Python dictionary
+        firebase_config_dict = json.loads(FIREBASE_CREDS_JSON_STRING)
+
+        # Pass the dictionary to credentials.Certificate()
+        cred = credentials.Certificate(firebase_config_dict)
+
+        # Initialize the Firebase app (only if not already initialized)
+        if not firebase_admin._apps:  # This check is important
+            firebase_admin.initialize_app(cred)
+            print(
+                "Firebase Admin SDK initialized successfully from environment variable in settings.py."
+            )
+        else:
+            print("Firebase Admin SDK already initialized in settings.py.")
+
+    except json.JSONDecodeError as e:
+        print(
+            f"ERROR: Could not decode Firebase credentials JSON from environment variable in settings.py: {e}"
+        )
+        # In production, you might want to raise an exception here to prevent app from starting
+        # raise Exception(f"Failed to load Firebase credentials in settings.py: {e}")
+    except Exception as e:
+        print(
+            f"ERROR: An unexpected error occurred during Firebase initialization in settings.py: {e}"
+        )
+        # raise Exception(f"Firebase initialization error in settings.py: {e}")
+else:
+    # This block will run if FIREBASE_APPLICATION_CREDENTIALS is not set as an environment variable
+    # For local development, if you still want to use a local file, you can put that logic here.
+    # Otherwise, for Heroku, this means the credentials are truly missing.
+    print(
+        "WARNING: FIREBASE_APPLICATION_CREDENTIALS environment variable is not set. Firebase Admin SDK will not be initialized."
+    )
+    # Fallback to local file for development:
+    local_firebase_path = (
+        BASE_DIR / "secrets" / "firebase_credentials.json"
+    )  # Assumes 'secrets' folder in BASE_DIR
+    if local_firebase_path.exists():
+        try:
+            cred = credentials.Certificate(
+                str(local_firebase_path)
+            )  # Path to string for credentials.Certificate
+            if not firebase_admin._apps:
+                firebase_admin.initialize_app(cred)
+                print("Firebase Admin SDK initialized from local file in settings.py.")
+        except Exception as e:
+            print(f"Error initializing Firebase from local file in settings.py: {e}")
 
 
 # STATIC_URL Setup: If we plan to serve static files (e.g., for admin or documentation):
