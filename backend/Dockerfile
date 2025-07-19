@@ -1,23 +1,18 @@
-# Use official Python image
-FROM python:3.11-slim
+# Use Python base image
+FROM python:3.10
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Create app directory
+# Set workdir
 WORKDIR /app
 
-# Install dependencies
+# Copy requirements and install
 COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project
+# Copy the rest of the code
 COPY . .
 
-# Expose port (Cloud Run uses 8080)
-EXPOSE 8080
+# Expose port (ensure Django runs on this)
+EXPOSE 8000
 
-# Run the app
-CMD ["gunicorn", "theramind_backend.wsgi:application", "--bind", "0.0.0.0:8080"]
+# Start Django server (no DB, so no migrations needed)
+CMD ["gunicorn", "theramind_backend.wsgi:application", "--bind", "0.0.0.0:8000"]
