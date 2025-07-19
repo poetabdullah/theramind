@@ -49,7 +49,14 @@ STATIC_URL = "/static/"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]  # Update the localhost
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",  # Docker
+    "theramind.site",
+    "thera-mind.web.app",
+    ".vercel.app",  # for subdomains
+]
 
 
 # Application definition
@@ -105,6 +112,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https:\/\/thera-mind\.web\.app$",
     r"^http:\/\/localhost:3000$",
 ]
+
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "Content-Type",
