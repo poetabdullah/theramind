@@ -45,7 +45,6 @@ STATIC_URL = "/static/"
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-#hgrkc_+6v(8pgmmz71%7yg@dv@@!ap@%1oc3+_wlb(k5s_o^u"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
