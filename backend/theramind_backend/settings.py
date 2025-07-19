@@ -15,31 +15,36 @@ import os
 import firebase_admin
 from firebase_admin import credentials
 import os
+from corsheaders.defaults import default_headers
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG") == "True"
+
+PORT = os.getenv("PORT", "8080")
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
 ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
 
+firebase_path = os.environ.get(
+    "FIREBASE_APPLICATION_CREDENTIALS", "firebase_credentials.json"
+)
 
-# Firebase Admin Setup
-FIREBASE_ADMIN_CREDENTIALS = os.path.join(BASE_DIR, "firebase_admin_credentials.json")
-firebase_cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIALS)
-firebase_admin.initialize_app(firebase_cred)
+if not firebase_admin._apps:
+    cred = credentials.Certificate(firebase_path)
+    firebase_admin.initialize_app(cred)
+
 # Above added code aims to connect the firestore database
 
 
 # STATIC_URL Setup: If we plan to serve static files (e.g., for admin or documentation):
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-
+STATIC_URL = "/static/"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-#hgrkc_+6v(8pgmmz71%7yg@dv@@!ap@%1oc3+_wlb(k5s_o^u"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -70,6 +75,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 from django.http import JsonResponse
@@ -93,9 +99,18 @@ def add_cors_headers(get_response):
     return middleware
 
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^https:\/\/theramind\.site$",
+    r"^https:\/\/thera-mind\.web\.app$",
+    r"^http:\/\/localhost:3000$",
 ]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "Content-Type",
+    "Authorization",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 

@@ -1,31 +1,23 @@
-FROM python:3.11-slim-bookworm
+# Use official Python image
+FROM python:3.11-slim
 
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV NLTK_DATA=/app/ml_models/nltk_data
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/vertex_ai_credentials.json
-ENV DJANGO_SETTINGS_MODULE=theramind_backend.settings
 
+# Create app directory
 WORKDIR /app
 
-# Install deps
+# Install dependencies
 COPY requirements.txt .
-RUN pip install --default-timeout=300 --no-cache-dir -r requirements.txt
-RUN pip install google-genai
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# NLTK downloads
-RUN python -m nltk.downloader punkt wordnet omw-1.4
+# Copy project
+COPY . .
 
-# Copy credentials
-COPY firebase_admin_credentials.json /app/firebase_admin_credentials.json
-COPY vertex_ai_credentials.json /app/vertex_ai_credentials.json
+# Expose port (Cloud Run uses 8080)
+EXPOSE 8080
 
-# Copy all code
-COPY ./ml_models ./ml_models
-COPY ./api ./api
-COPY ./utils ./utils
-COPY ./theramind_backend ./theramind_backend
-COPY manage.py .
-
-EXPOSE 8000
-
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Run the app
+CMD ["gunicorn", "theramind_backend.wsgi:application", "--bind", "0.0.0.0:8080"]
