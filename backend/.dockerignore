@@ -1,7 +1,11 @@
-**/__pycache__/
-**/.pytest_cache/
-**/*.pyc
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+db.sqlite3
+*.log
+.git/
 node_modules/
 .env
-*.tgz
-.git/
