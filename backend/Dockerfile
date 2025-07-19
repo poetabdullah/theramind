@@ -1,18 +1,19 @@
-# Use Python base image
-FROM python:3.10
+# Stage 1: Build dependencies
+FROM python:3.10-slim AS builder
 
-# Set workdir
 WORKDIR /app
-
-# Copy requirements and install
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install --user -r requirements.txt
 
-# Copy the rest of the code
+# Stage 2: Runtime
+FROM python:3.10-slim
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
+
 COPY . .
 
-# Expose port (ensure Django runs on this)
-EXPOSE 8000
-
-# Start Django server (no DB, so no migrations needed)
 CMD ["gunicorn", "theramind_backend.wsgi:application", "--bind", "0.0.0.0:8000"]
