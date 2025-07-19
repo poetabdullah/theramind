@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: theramind-backend
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn theramind_backend.wsgi:application
+    rootDir: backend
+    envVars:
+      - fromGroup: theramind-backend-env

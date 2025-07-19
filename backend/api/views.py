@@ -69,10 +69,11 @@ logger = logging.getLogger(__name__)
 
 # This ensures Firebase is only initialized once (even if views are imported multiple times)
 if not firebase_admin._apps:
-    credentials = service_account.Credentials.from_service_account_file(
-        "./firebase_admin_credentials.json",
-        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    cred_path = os.environ.get(
+        "FIREBASE_APPLICATION_CREDENTIALS", "secrets/firebase_admin_credentials.json"
     )
+    cred = credentials.Certificate(cred_path)
+    firebase_admin.initialize_app(cred)
 
     firebase_admin.initialize_app(credentials)
 
