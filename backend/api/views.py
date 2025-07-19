@@ -66,18 +66,41 @@ load_dotenv()
 
 
 logger = logging.getLogger(__name__)
-
 # This ensures Firebase is only initialized once (even if views are imported multiple times)
 if not firebase_admin._apps:
-    cred_path = os.environ.get(
-        "FIREBASE_APPLICATION_CREDENTIALS", "secrets/firebase_admin_credentials.json"
-    )
-    cred = credentials.Certificate(cred_path)
-    firebase_admin.initialize_app(cred)
+    firebase_creds_value = os.environ.get("FIREBASE_APPLICATION_CREDENTIALS")
 
-    firebase_admin.initialize_app(credentials)
-
-db = firestore.client()
+    if firebase_creds_value:
+        try:
+            # Attempt to parse the environment variable value as JSON
+            firebase_config_dict = json.loads(firebase_creds_value)
+            cred = credentials.Certificate(firebase_config_dict)
+            firebase_admin.initialize_app(cred)
+            print(
+                "Firebase Admin SDK initialized successfully from environment variable in views.py."
+            )
+        except json.JSONDecodeError as e:
+            print(
+                f"Error decoding Firebase credentials JSON from environment variable in views.py: {e}"
+            )
+            # You might want to raise an exception or log a critical error here
+        except Exception as e:
+            print(
+                f"An unexpected error occurred during Firebase initialization in views.py: {e}"
+            )
+            # Handle other potential errors during initialization
+    else:
+        # Fallback for local development if you still want to use a file locally,
+        # or if the env var is truly missing (though it shouldn't be on Heroku now)
+        local_cred_path = "secrets/firebase_admin_credentials.json"
+        if os.path.exists(local_cred_path):
+            cred = credentials.Certificate(local_cred_path)
+            firebase_admin.initialize_app(cred)
+            print("Firebase Admin SDK initialized from local file in views.py.")
+        else:
+            print(
+                "WARNING: Firebase credentials not found (neither env var nor local file). Firebase Admin SDK not initialized."
+            )
 
 
 @api_view(["POST"])
