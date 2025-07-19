@@ -57,8 +57,8 @@ from google.auth import default as google_auth_default
 
 from dotenv import load_dotenv
 
-from google import genai
-from google.genai import types
+import google.generativeai as genai
+from google.generativeai import types
 import base64  # Not explicitly used in your snippet, but keep if needed elsewhere
 
 
