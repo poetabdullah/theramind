@@ -17,6 +17,7 @@ __pycache__/
 # === Virtualenvs ===
 venv/
 backend/venv/
+backend/.venv
 env/
 ENV/
 .venv/
