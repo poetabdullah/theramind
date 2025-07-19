@@ -9,3 +9,4 @@ db.sqlite3
 .git/
 node_modules/
 .env
+backend/venv
