@@ -16,4 +16,5 @@ ENV PATH=/root/.local/bin:$PATH
 
 COPY . .
 
-CMD ["gunicorn", "theramind_backend.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "theramind_backend.wsgi:application", "--bind", "0.0.0.0:8080"]
+
