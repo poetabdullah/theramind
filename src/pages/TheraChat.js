@@ -99,7 +99,7 @@ const TheraChat = () => {
 
     try {
       // ✅ FIXED AXIOS CALL (assuming env already has `/api`)
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
 
       const response = await axios.post(
         `${backendUrl}/therachat/`,  // <- Don't add /api again here
