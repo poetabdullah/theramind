@@ -19,15 +19,25 @@ export default function EducationMainPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+<<<<<<< HEAD
         const apiUrl =
           process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
         // Promise.all saves a bit time while fetching
+=======
+        const apiUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+
+        // Remove duplicate `/api` here
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
         const [articlesRes, storiesRes] = await Promise.all([
           axios.get(`${apiUrl}/get_articles/`),
           axios.get(`${apiUrl}/get_patient_stories/`),
         ]);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
         const articlesData = articlesRes.data.results || [];
         const storiesData = storiesRes.data.results || [];
 

@@ -14,18 +14,28 @@ from django.views.decorators.csrf import csrf_exempt
 
 from theramind_backend.config import db, initialize_firebase
 from google.cloud import firestore
+<<<<<<< HEAD
 import firebase_admin
+=======
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 
 from datetime import datetime
 
 
+<<<<<<< HEAD
 from firebase_admin import firestore
+=======
+# from firebase_admin import firestore
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 from utils.firestore import add_document
 
 
@@ -61,6 +71,7 @@ import google.generativeai as genai
 from google.generativeai import types
 import base64  # Not explicitly used in your snippet, but keep if needed elsewhere
 
+<<<<<<< HEAD
 
 load_dotenv()
 
@@ -101,6 +112,63 @@ if not firebase_admin._apps:
             print(
                 "WARNING: Firebase credentials not found (neither env var nor local file). Firebase Admin SDK not initialized."
             )
+=======
+from dotenv import load_dotenv
+from pathlib import Path
+
+
+# api/views.py
+from django.http import JsonResponse
+
+
+def test_view(request):
+    print("✅ Test view hit")
+    return JsonResponse({"message": "It works!"})
+
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+cred = None
+
+# # 1. Try loading from FIREBASE_CRED_PATH (path to JSON)
+# firebase_path = os.getenv("FIREBASE_CRED_PATH")
+# if firebase_path and Path(firebase_path).exists():
+#     cred = credentials.Certificate(firebase_path)
+#     print(f"[Firebase] Loaded from FIREBASE_CRED_PATH: {firebase_path}")
+
+# # 2. Try loading from FIREBASE_CRED_JSON (raw JSON)
+# elif os.getenv("FIREBASE_CRED_JSON"):
+#     try:
+#         firebase_json = json.loads(os.getenv("FIREBASE_CRED_JSON"))
+#         cred = credentials.Certificate(firebase_json)
+#         print(f"[Firebase] Loaded from FIREBASE_CRED_JSON (inline JSON)")
+#     except Exception as e:
+#         raise RuntimeError(f"Invalid FIREBASE_CRED_JSON: {e}")
+
+# # 3. Fallback to secrets/firebase_admin_credentials.json
+# else:
+#     fallback_path = BASE_DIR / "secrets" / "firebase_admin_credentials.json"
+#     if fallback_path.exists():
+#         cred = credentials.Certificate(str(fallback_path))
+#         print(f"[Firebase] Loaded from fallback: {fallback_path}")
+#     else:
+#         raise FileNotFoundError("❌ Firebase credentials not found in .env or secrets/")
+
+# --- Firebase Initialization ---
+# if cred and not firebase_admin._apps:
+# firebase_admin.initialize_app(cred)
+
+# --- Firestore DB ---
+# db = firestore.client()
+
+
+@csrf_exempt
+def health_check(request):
+    return JsonResponse({"status": "ok", "msg": "Backend is up"})
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 
 @api_view(["POST"])
@@ -848,6 +916,11 @@ def delete_goal_from_version(request, plan_id, version_id):
 
 
 # ------ TheraChat ------
+<<<<<<< HEAD
+=======
+from vertexai.preview.generative_models import GenerativeModel, Part
+from vertexai import init
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 # ---- Constants ----
 PROJECT_ID = "996770367618"
@@ -856,12 +929,17 @@ VERTEX_AI_MODEL_ENDPOINT = (
     "projects/996770367618/locations/us-central1/endpoints/3658854739354845184"
 )
 
+<<<<<<< HEAD
 # ---- Initialize Vertex AI client globally ----
 genai_client = genai.Client(
     vertexai=True,
     project=PROJECT_ID,
     location=LOCATION,
 )
+=======
+# ---- Init Vertex AI ----
+init(project=PROJECT_ID, location=LOCATION)
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -881,6 +959,7 @@ class TheraChatView(APIView):
             )
 
         try:
+<<<<<<< HEAD
             # ---- Prepare content ----
             contents = [
                 types.Content(
@@ -906,6 +985,24 @@ class TheraChatView(APIView):
             generated_text = ""
             for chunk in stream:
                 if hasattr(chunk, "text"):
+=======
+            model = GenerativeModel(model_name=VERTEX_AI_MODEL_ENDPOINT)
+
+            stream = model.generate_content(
+                [Part.from_text(user_input)],
+                stream=True,
+                generation_config={
+                    "temperature": 0.7,
+                    "top_p": 0.95,
+                    "max_output_tokens": 1024,
+                },
+            )
+
+            # Combine streamed parts
+            generated_text = ""
+            for chunk in stream:
+                if chunk.text:
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
                     generated_text += chunk.text
 
             if not generated_text.strip():
@@ -927,3 +1024,11 @@ class TheraChatView(APIView):
                 {"error": f"Internal server error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+<<<<<<< HEAD
+=======
+
+
+def dummy_test(request):
+    print("✅ Dummy test hit")
+    return JsonResponse({"message": "Dummy working"})
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
