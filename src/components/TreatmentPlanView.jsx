@@ -299,13 +299,13 @@ export default function TreatmentPlanView({
   const isCurrent = currentIdx === versions.length - 1;
 
   return (
-    <div className="mb-8 relative">
+    <div className="px-4 sm:px-0">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
         <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
           Treatment Plan
         </h2>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           <span className="text-sm text-gray-600 font-medium">
             Version {currentIdx + 1} of {versions.length}
           </span>
@@ -313,7 +313,7 @@ export default function TreatmentPlanView({
             <button
               onClick={prev}
               disabled={currentIdx === 0}
-              className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 sm:w-8 sm:h-8 flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
                 className="w-4 h-4"
@@ -410,7 +410,7 @@ export default function TreatmentPlanView({
                   return (
                     <div
                       key={act.id}
-                      className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border transition-all ${
                         done
                           ? "bg-green-50 border-green-200"
                           : "bg-white border-gray-200 hover:border-purple-200"
@@ -462,7 +462,7 @@ export default function TreatmentPlanView({
 
           {/* Overall Progress */}
           <div className="border-t pt-6 space-y-4 border-gray-200">
-            <div className="flex justify-between mb-2">
+            <div className="flex flex-col sm:flex-row sm:justify-between mb-2 gap-2">
               <span className="text-lg font-semibold text-gray-800">
                 Overall Progress
               </span>
@@ -488,7 +488,7 @@ export default function TreatmentPlanView({
                       <p className="text-gray-800 mb-3">
                         Are you sure you want to terminate this plan?
                       </p>
-                      <div className="flex justify-end space-x-3">
+                      <div className="flex flex-col sm:flex-row justify-end sm:space-x-3 space-y-3 sm:space-y-0">
                         <button
                           onClick={() => {
                             setShowConfirm(false);
