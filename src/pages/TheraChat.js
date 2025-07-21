@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Menu } from "lucide-react";
 import Footer from "../components/Footer";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
 import Sidebar from "../components/TheraChat Sidebar";
 import { db } from "../firebaseConfig";
@@ -15,9 +14,7 @@ import {
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-
-const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+import axios from "axios";
 
 const TheraChat = () => {
   const [messages, setMessages] = useState([]);
@@ -42,7 +39,6 @@ const TheraChat = () => {
       }
     });
 
-    // Handle mobile view - close sidebar by default on small screens to make the screen easier to navigate
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
@@ -50,96 +46,75 @@ const TheraChat = () => {
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      // Auto-scrolls the chat window down whenever messages change.
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // Fetches the current user's conversations by recency
   const fetchConversations = (userId) => {
     const conversationsRef = collection(db, "conversations");
     onSnapshot(conversationsRef, (snapshot) => {
       const userConversations = snapshot.docs
         .map((doc) => ({ id: doc.id, ...doc.data() }))
         .filter((conv) => conv.userId === userId)
-        .sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent
+        .sort((a, b) => b.timestamp - a.timestamp);
       setConversations(userConversations);
     });
   };
-  // When the new chat starts, it resets the chat
+
   const startNewConversation = () => {
     setCurrentConversation(null);
     setMessages([]);
     setHideHeadline(false);
-    // Auto closes the sidebar on mobile after selecting a conversation, or starting a new conversation
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
   };
 
-  // Handles the selected past conversations, finds the selected conversation and displays it to the user
   const handleSelectConversation = (conversationId) => {
-    const selectedChat = conversations.find(
-      (conv) => conv.id === conversationId
-    );
+    const selectedChat = conversations.find((conv) => conv.id === conversationId);
     if (selectedChat) {
       setCurrentConversation(selectedChat);
       setMessages(selectedChat.messages || []);
       setHideHeadline(true);
-      // Close sidebar on mobile after selecting a conversation
       if (window.innerWidth < 768) {
         setSidebarOpen(false);
       }
     }
   };
 
-  // Handles the sidebar toggle
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Generate an appropriate title of the conversation
   const createTitle = (text) => {
-    // Create a meaningful title from the first message
     return text.length > 30 ? `${text.substring(0, 30)}...` : text;
   };
 
-  const sendMessage = async () => { // Awaits for external processes with Gemini
-    if (input.trim() === "") return; // Prevents sending blank messages.
-    if (messages.length === 0) setHideHeadline(true); //Hides the initial headlines once the conversation starts
-
-    // Temporarily stores the user's messages in chat
+  const sendMessage = async () => {
+    if (!input.trim()) return;
     const userMessage = { text: input, sender: "user", timestamp: Date.now() };
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setLoading(true); // Shows "typing..."
+    setLoading(true);
 
     try {
-      const result = await model.generateContent(input); // Function of Gemini SDK
-      let aiResponse = result?.response?.text(); // Extracts the text of the response
-      if (!aiResponse || typeof aiResponse !== "string") {
-        aiResponse = "I couldn't process that, please try again.";
-      }
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
-      // For the processing of the Gemini's response
-      const botMessage = {
-        text: aiResponse,
-        sender: "ai",
-        timestamp: Date.now(),
-      };
+      const response = await axios.post(`${backendUrl}/api/therachat/`,
+        { prompt: input },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      const updatedMessages = [...messages, userMessage, botMessage];
-      // Updates the React state (setMessages) so it renders in the chat window
-      setMessages(updatedMessages);
+      const aiResponse = response.data.response || "Something went wrong.";
+      const botMessage = { text: aiResponse, sender: "ai", timestamp: Date.now() };
+      setMessages((prev) => [...prev, botMessage]);
 
       if (user) {
-        // Makes sure that the user is authenticated
+        const updatedMessages = [...messages, userMessage, botMessage];
         if (!currentConversation) {
-          // Create a new conversation
           const chatRef = doc(collection(db, "conversations"));
           const title = createTitle(input);
-          const newConversation = {
+          const newConvo = {
             id: chatRef.id,
             userId: user.uid,
             userEmail: user.email,
@@ -148,31 +123,25 @@ const TheraChat = () => {
             timestamp: Date.now(),
             title,
           };
-
-          await setDoc(chatRef, newConversation);
-          // Keeps a copy in currentConversation state so we know which session is active
-          setCurrentConversation(newConversation);
+          await setDoc(chatRef, newConvo);
+          setCurrentConversation(newConvo);
         } else {
-          // Update existing conversation
           const chatRef = doc(db, "conversations", currentConversation.id);
-          const updatedConversation = {
-            ...currentConversation,
-            messages: updatedMessages,
-            timestamp: Date.now(), // Update timestamp to move to top of list
-          };
-
           await updateDoc(chatRef, {
             messages: updatedMessages,
             timestamp: Date.now(),
           });
-
-          setCurrentConversation(updatedConversation);
+          setCurrentConversation({
+            ...currentConversation,
+            messages: updatedMessages,
+            timestamp: Date.now(),
+          });
         }
       }
-    } catch (error) {
-      console.error("Error fetching Gemini response:", error);
-      setMessages((prevMessages) => [
-        ...prevMessages,
+    } catch (err) {
+      console.error("Error calling backend:", err);
+      setMessages((prev) => [
+        ...prev,
         {
           text: "Oops! Something went wrong.",
           sender: "ai",
@@ -180,10 +149,10 @@ const TheraChat = () => {
         },
       ]);
     } finally {
-      // Whether success or error, hide the typing animation
       setLoading(false);
     }
   };
+
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">

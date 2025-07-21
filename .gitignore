@@ -1,28 +1,61 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# === Node ===
+node_modules/
+.pnp/
 .pnp.js
 
-# testing
-/coverage
+# === Python ===
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+*.log
+.Python
+*.sqlite3
+*.json
 
-# production
-/build
+# === Virtualenvs ===
+venv/
+backend/venv/
+backend/.venv
+env/
+ENV/
+.venv/
+.ENV/
+backend/secrets/
 
-# misc
+
+# === Django / Python ===
+*.db
+*.log
+*.pot
+*.pyc
+*.pyo
+*.mo
+*.log
+*.swp
+db.sqlite3
+*.bak
+
+# === VS Code & IDEs ===
+.vscode/
+.idea/
 .DS_Store
-.env.local
-.env
-.env.development.local
-.env.test.local
-.env.production.local
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-*.js text eol=lf
+# === React ===
+build/
+.env*
+*.env
+*.local
 
+# === NLTK & Models ===
+nltk_data/
+*.h5
+*.keras
+*.ckpt
+*.safetensors
+*.tflite
+*.pb
 
-settings.json
+# === Git LFS markers ===
+*.lfs

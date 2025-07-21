@@ -491,7 +491,7 @@ const AdminDashboard = () => {
         <h2 className="text-lg font-semibold text-gray-800 mb-2">Pending Approvals</h2>
         <p className="text-3xl font-bold text-orange-500">{adminData.pendingDoctors}</p>
         {adminData.pendingDoctors > 0 && (
-          <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+          <span className="absolute bottom-4 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
             Action Needed
           </span>
         )}
@@ -605,7 +605,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
               
-              {/* Patients Table - Removed View button */}
+              {/* Patients Table  */}
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -623,7 +623,6 @@ const AdminDashboard = () => {
                           <div>
                             <p className="text-sm font-medium text-gray-900">{patient.name || 'No name'}</p>
                             <p className="text-sm text-gray-500">{patient.email}</p>
-                            <p className="text-sm text-gray-500">{patient.phone || 'No phone'}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

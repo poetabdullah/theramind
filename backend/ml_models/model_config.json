@@ -1,0 +1,9 @@
+{
+    "MAX_SEQ_LEN": 32,
+    "EMBED_DIM": 384,
+    "TARGET_NAMES": [
+        "Non-MH",
+        "MH"
+    ],
+    "BASE_SBERT_MODEL_NAME": "all-MiniLM-L6-v2"
+}

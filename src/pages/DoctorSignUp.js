@@ -112,22 +112,28 @@ export default function DoctorSignUp() {
             ]);
 
             // doctor check
+            // doctor check
             if (docSnap.exists()) {
                 const { STATUS } = docSnap.data();
+
+                if (STATUS === "blocked") {
+                    setError("Your doctor account is blocked.");
+                    setTimeout(() => { signOut(authInstance); navigate("/"); }, 3000);
+                    return;
+                }
+
                 if (STATUS === "approved") {
                     await setDoc(doc(db, "doctors", email), { lastLogin: new Date() }, { merge: true });
                     return navigate("/doctor-dashboard");
                 }
+
                 const msg = STATUS === "pending"
                     ? "Your doctor application is pending approval."
-                    : STATUS === "rejected"
-                        ? "Your doctor application was rejected."
-                        : "Your doctor account is blocked.";
+                    : "Your doctor application was rejected.";
                 setError(msg);
                 setTimeout(() => { signOut(authInstance); navigate("/"); }, 3000);
                 return;
             }
-
             // admin override
             if (adminSnap.exists()) {
                 await setDoc(doc(db, "admin", email), { lastLogin: new Date() }, { merge: true });

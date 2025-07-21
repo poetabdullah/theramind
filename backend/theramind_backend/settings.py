@@ -12,38 +12,112 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import json
 import firebase_admin
 from firebase_admin import credentials
-
+from corsheaders.defaults import default_headers  # Import default_headers here!
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Firebase Admin Setup
-FIREBASE_ADMIN_CREDENTIALS = os.path.join(BASE_DIR, "firebase_admin_credentials.json")
-firebase_cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIALS)
-firebase_admin.initialize_app(firebase_cred)
-# Above added code aims to connect the firestore database
+BASE_DIR = Path(__file__).resolve().parent.parent  # Points to the 'backend/' directory
 
 
-# STATIC_URL Setup: If we plan to serve static files (e.g., for admin or documentation):
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
+# --- SECRET KEY & DEBUG (Production Ready) ---
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-#hgrkc_+6v(8pgmmz71%7yg@dv@@!ap@%1oc3+_wlb(k5s_o^u"
+# Use os.getenv to get environment variables. Provide a strong default ONLY for local development.
+# On Heroku, set this via `heroku config:set SECRET_KEY='your_super_secret_key'`
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "django-insecure-your-very-insecure-key-for-local-dev-only-change-this",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG should be False in production. Control it via an environment variable.
+# On Heroku, `heroku config:set DEBUG=False`
+DEBUG = (
+    os.getenv("DEBUG", "False").lower() == "true"
+)  # Converts "True" to True, "False" to False
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]  # Update the localhost
+# Heroku provides the PORT environment variable
+PORT = os.getenv(
+    "PORT", "8000"
+)  # Default to 8000 if not set (common for Django dev server)
+
+# --- ML Models Directory ---
+ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
+
+# --- Firebase Initialization ---
+# Get the Firebase credentials string from the environment variable
+FIREBASE_CREDS_JSON_STRING = os.getenv("FIREBASE_APPLICATION_CREDENTIALS")
+
+if FIREBASE_CREDS_JSON_STRING:
+    try:
+        # Crucial: Parse the JSON string from the environment variable into a Python dictionary
+        firebase_config_dict = json.loads(FIREBASE_CREDS_JSON_STRING)
+
+        # Pass the dictionary to credentials.Certificate()
+        cred = credentials.Certificate(firebase_config_dict)
+
+        # Initialize the Firebase app (only if not already initialized)
+        if not firebase_admin._apps:  # This check prevents re-initialization
+            firebase_admin.initialize_app(cred)
+            print(
+                "Firebase Admin SDK initialized successfully from environment variable."
+            )
+        else:
+            print("Firebase Admin SDK already initialized.")
+
+    except json.JSONDecodeError as e:
+        print(
+            f"ERROR: Could not decode Firebase credentials JSON from environment variable: {e}"
+        )
+        # In a production setup, you might want to raise an exception to prevent app startup
+        # raise Exception(f"Failed to load Firebase credentials: {e}")
+    except Exception as e:
+        print(
+            f"ERROR: An unexpected error occurred during Firebase initialization: {e}"
+        )
+        # raise Exception(f"Firebase initialization error: {e}")
+else:
+    # This block handles local development where FIREBASE_APPLICATION_CREDENTIALS might not be set
+    print("WARNING: FIREBASE_APPLICATION_CREDENTIALS environment variable is not set.")
+    # Fallback to local file for development if it exists:
+    local_firebase_path = BASE_DIR / "secrets" / "firebase_credentials.json"
+    if local_firebase_path.exists():
+        try:
+            cred = credentials.Certificate(str(local_firebase_path))
+            if not firebase_admin._apps:
+                firebase_admin.initialize_app(cred)
+                print("Firebase Admin SDK initialized from local file.")
+        except Exception as e:
+            print(f"Error initializing Firebase from local file: {e}")
+    else:
+        print(
+            "WARNING: No Firebase credentials found (neither env var nor local file). Firebase Admin SDK will not be initialized."
+        )
 
 
-# Application definition
+# --- ALLOWED_HOSTS (For Production Security) ---
+# List of strings representing the host/domain names that this Django site can serve.
+# When DEBUG is False, Django will not allow requests with a Host header that does not match these.
+# On Heroku, it will be your-app-name.herokuapp.com. You can also add custom domains.
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    # "0.0.0.0", # This is for listening on all interfaces, not for ALLOWED_HOSTS
+    "theramind.site",
+    "thera-mind.web.app",
+    ".vercel.app",  # Allows subdomains like <something>.vercel.app
+    # Add your Heroku app's domain dynamically
+    # Heroku automatically sets an env var like HEROKU_APP_NAME
+    os.getenv("HEROKU_APP_NAME", "") + ".herokuapp.com",
+    # If you have other custom domains on Heroku:
+    # 'your-custom-domain.com',
+    # 'www.your-custom-domain.com',
+]
+# Filter out any empty strings that might result from os.getenv if the variable isn't set
+ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h]
 
+# --- Application definition ---
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -51,48 +125,44 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "corsheaders",  # Added
-    "rest_framework",  # Added
-    "api",  # Added
+    "corsheaders",  # Added for CORS handling
+    "rest_framework",  # Added for Django REST Framework
+    "api",  # Your custom API app
 ]
 
+# --- MIDDLEWARE Configuration ---
+# Order matters for middleware!
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # Added
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise should be placed directly after SecurityMiddleware for static files
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # CorsMiddleware should be placed as high as possible, especially before any
+    # middleware that can generate responses, such as Django's CommonMiddleware
+    # or Whitenoise's WhiteNoiseMiddleware if you have custom responses.
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-from django.http import JsonResponse
+# --- CORS Headers Configuration ---
+# REMOVED: The `add_cors_headers` function from `django.http import JsonResponse`
+# and the function itself. This is handled by `django-cors-headers`.
 
-
-def add_cors_headers(get_response):
-    def middleware(request):
-        response = get_response(request)
-        response["Access-Control-Allow-Origin"] = (
-            "http://localhost:3000"  # Allow your frontend URL
-        )
-        response["Access-Control-Allow-Credentials"] = (
-            "true"  # Allow cookies and credentials
-        )
-        response["Access-Control-Allow-Methods"] = (
-            "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-        )
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-        return response
-
-    return middleware
-
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^https:\/\/theramind\.site$",
+    r"^https:\/\/thera-mind\.web\.app$",
+    r"^http:\/\/localhost:3000$",
+    r"^https:\/\/[a-zA-Z0-9-]+\.herokuapp\.com$",  # Regex for Heroku app domains
 ]
-CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_CREDENTIALS = (
+    True  # Allows cookies and authentication headers to be sent cross-origin
+)
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -103,21 +173,24 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
-CORS_ALLOW_HEADERS = [
+# COMBINED and CORRECTED: You had two CORS_ALLOW_HEADERS definitions.
+# This one correctly combines the default headers with your custom ones.
+CORS_ALLOW_HEADERS = list(default_headers) + [
     "accept",
     "accept-encoding",
     "authorization",
     "content-type",
     "dnt",
-    "origin",
+    # "origin", # default_headers already contains 'origin'
     "user-agent",
     "x-csrftoken",
     "x-requested-with",
 ]
 
-
+# --- URL Configuration ---
 ROOT_URLCONF = "theramind_backend.urls"
 
+# --- Template Configuration ---
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -134,19 +207,21 @@ TEMPLATES = [
     },
 ]
 
+# --- WSGI Application ---
 WSGI_APPLICATION = "theramind_backend.wsgi.application"
 
 
-# Database
+# --- Database Configuration ---
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.dummy"  # Dummy engine since Firestore is NoSQL
+        "ENGINE": "django.db.backends.dummy"  # Dummy engine as you're using Firestore (NoSQL)
     }
 }
 
-# Add logging to track Firebase operations for debugging purposes
+
+# --- Logging Configuration ---
+# Add logging to track Firebase operations and general app behavior for debugging purposes
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -157,14 +232,21 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "INFO",
+        "level": "INFO",  # Set to "DEBUG" for more verbose output during development
     },
+    # You can add specific loggers for certain modules if needed, e.g.:
+    # 'loggers': {
+    #     'firebase_admin': {
+    #         'handlers': ['console'],
+    #         'level': 'DEBUG',
+    #         'propagate': False,
+    #     },
+    # }
 }
 
 
-# Password validation
+# --- Password Validation ---
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -181,24 +263,46 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
+# --- Django REST Framework Configuration ---
+REST_FRAMEWORK = {
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    # Consider adding renderers if you want to explicitly control output format
+    # "DEFAULT_RENDERER_CLASSES": [
+    #     "rest_framework.renderers.JSONRenderer",
+    # ],
+    # If you use authentication in your API, configure it here:
+    # "DEFAULT_AUTHENTICATION_CLASSES": [
+    #     "rest_framework.authentication.TokenAuthentication",
+    #     "rest_framework.authentication.SessionAuthentication",
+    # ],
+    # "DEFAULT_PERMISSION_CLASSES": [
+    #     "rest_framework.permissions.IsAuthenticated",
+    # ],
+}
+
+
+# --- Internationalization and Time Zone ---
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
+TIME_ZONE = "Asia/Karachi"  # Set to your local time zone if needed, otherwise 'UTC' is common for servers
 USE_I18N = True
+USE_TZ = True  # Enables timezone support in Django
 
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
+# --- Static files (CSS, JavaScript, Images) ---
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = "static/"
+# This is the directory where `collectstatic` will gather all static files from your apps
+# and other STATICFILES_DIRS. WhiteNoise will then serve from here.
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# Configure WhiteNoise to serve compressed and cached static files in production
+if not DEBUG:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    # Additional WhiteNoise settings if needed, for example to not bundle certain files:
+    # WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.zip']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

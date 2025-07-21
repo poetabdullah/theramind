@@ -17,6 +17,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
+  //Fetching Appointments from Firestore
   const [appointments, setAppointments] = useState([]);
   const [newTimes, setNewTimes] = useState({});
 
@@ -29,6 +30,7 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
           where(userRole === "doctor" ? "doctorEmail" : "patientEmail", "==", userEmail)
         );
         const snapshot = await getDocs(q);
+        //Only Showing Future Appointments
         const futureAppointments = snapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() }))
           .filter((app) => new Date(app.timeslot) > new Date());
@@ -45,6 +47,7 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
       await deleteDoc(doc(db, "appointments", appointmentId));
 
       const doctorRef = doc(db, "doctors", doctorEmail);
+      //Adding the deleted timeslot back to doctor's available timeslots
       await updateDoc(doctorRef, {
         timeslots: arrayUnion(timeslot),
       });
@@ -71,7 +74,7 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
     try {
       const appointmentRef = doc(db, "appointments", appointmentId);
       await updateDoc(appointmentRef, { timeslot: newTimeslot });
-
+      //Removing the old timeslot & adding the new timeslot to doctor's available timeslots
       const doctorRef = doc(db, "doctors", doctorEmail);
       await updateDoc(doctorRef, {
         timeslots: arrayRemove(oldTimeslot),
@@ -82,6 +85,8 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
 
       // Send email notification
      await sendRescheduleEmail({
+      to_email: userRole === "doctor" ? appData.patientEmail : appData.doctorEmail,
+      to_role: userRole === "doctor" ? "patient" : "doctor",
       patientName: appData.patientName,
       doctorName: appData.doctorName,
       doctorEmail: appData.doctorEmail,
