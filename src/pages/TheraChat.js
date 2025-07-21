@@ -98,14 +98,14 @@ const TheraChat = () => {
     setLoading(true);
 
     try {
-      // ✅ FIXED AXIOS CALL (assuming env already has `/api`)
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api/";
 
       const response = await axios.post(
-        `${backendUrl}/therachat/`,  // <- Don't add /api again here
+        `${backendUrl}therachat/`,  // No leading slash here, trailing slash on base URL
         { prompt: input },
         { headers: { "Content-Type": "application/json" } }
       );
+
 
       const aiResponse = response.data.response || "Something went wrong.";
       const botMessage = { text: aiResponse, sender: "ai", timestamp: Date.now() };
