@@ -98,10 +98,10 @@ const TheraChat = () => {
     setLoading(true);
 
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api/";
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api/"; // <– Ensure trailing slash
 
       const response = await axios.post(
-        `${backendUrl}therachat/`,  // No leading slash here, trailing slash on base URL
+        `${backendUrl}therachat/`, // <– No leading slash
         { prompt: input },
         { headers: { "Content-Type": "application/json" } }
       );
