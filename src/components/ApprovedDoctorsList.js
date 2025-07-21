@@ -8,21 +8,57 @@ const ApprovedDoctorsList = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
+  // Helper function to format experience data
+  const formatExperiences = (experiences) => {
+    if (!experiences || experiences.length === 0) {
+      return 'No experience listed';
+    }
+    
+    return experiences.map((exp, index) => (
+      <div key={index} className="mb-2 text-sm">
+        <div className="font-medium text-gray-900">{exp.role || 'N/A'}</div>
+        <div className="text-gray-600">{exp.org || 'N/A'}</div>
+        <div className="text-gray-500 text-xs">
+          {exp.start ? `${exp.start} - ${exp.end || 'Present'}` : 'Dates not specified'}
+        </div>
+      </div>
+    ));
+  };
+
+  // Helper function to format education data
+  const formatEducation = (education) => {
+    if (!education || education.length === 0) {
+      return 'No education listed';
+    }
+    
+    return education.map((edu, index) => (
+      <div key={index} className="mb-2 text-sm">
+        <div className="font-medium text-gray-900">{edu.degree || 'N/A'}</div>
+        <div className="text-gray-600">{edu.institute || 'N/A'}</div>
+        <div className="text-gray-500 text-xs">
+          {edu.gradDate ? `Graduated: ${edu.gradDate}` : 'Graduation date not specified'}
+        </div>
+      </div>
+    ));
+  };
+
+
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         const q = query(
           collection(db, 'doctors'),
-          where('STATUS', '==', 'approved') // Changed STATUS to status to match your Firestore field
+          where('STATUS', '==', 'approved') 
         );
         const snapshot = await getDocs(q);
         
         const doctorsData = snapshot.docs.map(doc => ({
           id: doc.id,
+          ...doc.data(),
           name: doc.data().fullName || doc.data().name || 'N/A',
           email: doc.data().email || 'N/A',
-          phone: doc.data().contact || doc.data().phone || 'N/A',
-          expertise: doc.data().expertise || 'Not specified',
+          experiences: doc.data().experiences || [],
+          education: doc.data().education || [],
           location: doc.data().location || 'N/A'
         }));
 
@@ -34,16 +70,16 @@ const ApprovedDoctorsList = () => {
         setLoading(false);
       }
     };
-
+   
     fetchDoctors();
   }, []);
 
-  const handleBlockDoctor = async (doctorId, email) => {
+  const handleBlockDoctor = async (doctorId) => {
     if (window.confirm("Are you sure you want to block this doctor?")) {
       try {
         setProcessing(true);
         await updateDoc(doc(db, 'doctors', doctorId), {
-          status: 'blocked'
+          STATUS: 'blocked'
         });
         toast.success("Doctor blocked successfully");
         setDoctors(doctors.filter(doctor => doctor.id !== doctorId));
@@ -56,7 +92,7 @@ const ApprovedDoctorsList = () => {
     }
   };
 
-  const handleDeleteDoctor = async (doctorId, email) => {
+  const handleDeleteDoctor = async (doctorId) => {
     if (window.confirm("Are you sure you want to permanently delete this doctor?")) {
       try {
         setProcessing(true);
@@ -101,8 +137,12 @@ const ApprovedDoctorsList = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">expertise</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Experience
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Education
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -114,11 +154,15 @@ const ApprovedDoctorsList = () => {
                     <div className="text-sm font-medium text-gray-900">{doctor.name}</div>
                     <div className="text-sm text-gray-500">{doctor.email}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {doctor.phone}
+                 <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                    <div className="max-h-32 overflow-y-auto">
+                      {formatExperiences(doctor.experiences)}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {doctor.expertise}
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                    <div className="max-h-32 overflow-y-auto">
+                      {formatEducation(doctor.education)}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {doctor.location}
@@ -126,14 +170,14 @@ const ApprovedDoctorsList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleBlockDoctor(doctor.id, doctor.email)}
+                        onClick={() => handleBlockDoctor(doctor.id)}
                         className="text-yellow-600 hover:text-yellow-900"
                         disabled={processing}
                       >
                         Block
                       </button>
                       <button
-                        onClick={() => handleDeleteDoctor(doctor.id, doctor.email)}
+                        onClick={() => handleDeleteDoctor(doctor.id)}
                         className="text-red-600 hover:text-red-900"
                         disabled={processing}
                       >

@@ -496,23 +496,7 @@ body {
   min-height: 100vh; /* Changed from 400vh */
 }
 
-/* Header */
-/* .meditation-header {
-  background: linear-gradient(135deg, #a635d6, #ff7b00);
-  text-align: center;
-  color: white;
-  padding: 70px 80px;
-  height: 50vh;
-}
-.meditation-header .title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: white;
-}
-.meditation-header .subtitle {
-  font-size: 1.2rem;
-  margin-top: 10px;
-} */
+
 
 /* Importance Section */
 .importance-card {
@@ -590,6 +574,7 @@ body {
   --dark-text: #333;
   --border-radius: 12px;
 }
+/* 
 .guided-meditation-container {
   display: flex;
   justify-content: space-between;
@@ -598,6 +583,14 @@ body {
   background: linear-gradient(to right, #b43d65, #ecd4dc, #ffccbc);
   padding: 20px;
   margin-top: 40px;
+}
+
+@media (max-width: 768px) {
+  .guided-meditation-container {
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+  }
 }
 
 .medimage-slider {
@@ -615,6 +608,12 @@ body {
   width: 100%;
   height: 400px;
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .medslider-content {
+    height: 300px;
+  }
 }
 
 .medslider-content img {
@@ -640,6 +639,12 @@ body {
   margin-bottom: 20px;
 }
 
+@media (max-width: 768px) {
+  .medtitle {
+    font-size: 1.5rem;
+  }
+}
+
 .exercise-card {
   background: rgba(255, 255, 255, 0.8);
   padding: 15px;
@@ -659,10 +664,15 @@ body {
   color: white;
 }
 
-/* Removing the color definitions from CSS since we're handling them inline for consistency */
 .exercise-title {
   font-size: 1.5rem;
   margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .exercise-title {
+    font-size: 1.2rem;
+  }
 }
 
 .steps {
@@ -675,23 +685,27 @@ body {
   transition: all 0.3s;
 }
 
-/* We're using inline styles for hover effects, but keeping this for backup */
+@media (max-width: 768px) {
+  .steps li {
+    font-size: 1rem;
+  }
+}
+
 .steps li:hover {
   transform: translateX(10px);
 }
 
-/* Fix for active card text colors */
 .exercise-card.active .exercise-title,
 .exercise-card.active .steps li {
   color: white;
 }
 
-/*breathing */
 .breathing-title {
   color: orange;
   margin-top: 30px;
   font-weight: bold;
 }
+
 .breathing-exercise {
   text-align: center;
   padding: 3rem 0;
@@ -712,93 +726,6 @@ body {
   margin: auto;
 }
 
-/*meditationtimer */
-/* .meditation-timer {
-  text-align: center;
-  background: linear-gradient(to right, #ff9a9e, #fad0c4);
-  padding: 40px;
-  border-radius: 15px;
-  max-width: 400px;
-  margin: 50px auto;
-  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 1s ease-in-out;
-} */
-
-/* .meditation-timer h2 {
-  font-size: 1.8rem;
-  color: #fff;
-  margin-bottom: 15px;
-  font-weight: bold;
-  text-transform: uppercase;
-} */
-
-/* .meditation-timer h2 {
-  font-size: 1.8rem;
-  color: #fff;
-  margin-bottom: 15px;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.timer {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #fff;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  width: 120px;
-  text-align: center;
-  animation: pulse 1.5s infinite alternate;
-}
-
-.timer-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-
-.timer-buttons button {
-  background: #ff758c;
-  border: none;
-  padding: 10px 20px;
-  font-size: 1rem;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-}
-
-.timer-buttons button:hover {
-  background: #ff5f7e;
-  transform: scale(1.05);
-}
-
-.timer-buttons button:active {
-  transform: scale(0.95);
-} */
-
-/* Animations */
-/* @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulse {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.05);
-  }
-} */
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -817,9 +744,9 @@ body {
   to {
     transform: scale(1.05);
   }
-}
+} */ 
 
-.meditation-card,
+/* .meditation-card,
 .benefit-card {
   padding: 15px;
   border-radius: 10px;
@@ -830,21 +757,6 @@ body {
   transition: 0.3s ease;
 }
 
-/* .breath-circle {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: #ffdde1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.timer-display {
-  font-size: 32px;
-  text-align: center;
-} */
 .meditation-types,
 .meditation-gallery {
   text-align: center;
@@ -865,7 +777,6 @@ body {
   transition: 0.3s;
 }
 
-/* Meditation Types Section */
 .meditation-types {
   margin: 40px 0;
 }
@@ -904,20 +815,6 @@ body {
   opacity: 1;
 }
 
-/* Video Gallery */
-/* .video-gallery-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #444;
-  margin: 30px 0;
-}
-
-.video-slider-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 .video-slider {
   display: flex;
   justify-content: center;
@@ -954,4 +851,4 @@ body {
   font-size: 1.1rem;
   font-weight: bold;
 }
- */
+; */
