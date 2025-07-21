@@ -14,15 +14,6 @@ from pathlib import Path
 import os
 import json
 import firebase_admin
-<<<<<<< HEAD
-from firebase_admin import credentials
-from corsheaders.defaults import default_headers  # Import default_headers here!
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent  # Points to the 'backend/' directory
-
-
-=======
 from utils.firebase_client import db
 
 # from firebase_admin import credentials
@@ -42,7 +33,6 @@ local_firebase_path = BASE_DIR / "secrets" / "firebase_admin_credentials.json"
 # point load_dotenv at your project root .env
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 # --- SECRET KEY & DEBUG (Production Ready) ---
 # SECURITY WARNING: keep the secret key used in production secret!
 # Use os.getenv to get environment variables. Provide a strong default ONLY for local development.
@@ -64,61 +54,6 @@ PORT = os.getenv(
     "PORT", "8000"
 )  # Default to 8000 if not set (common for Django dev server)
 
-<<<<<<< HEAD
-# --- ML Models Directory ---
-ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
-
-# --- Firebase Initialization ---
-# Get the Firebase credentials string from the environment variable
-FIREBASE_CREDS_JSON_STRING = os.getenv("FIREBASE_APPLICATION_CREDENTIALS")
-
-if FIREBASE_CREDS_JSON_STRING:
-    try:
-        # Crucial: Parse the JSON string from the environment variable into a Python dictionary
-        firebase_config_dict = json.loads(FIREBASE_CREDS_JSON_STRING)
-
-        # Pass the dictionary to credentials.Certificate()
-        cred = credentials.Certificate(firebase_config_dict)
-
-        # Initialize the Firebase app (only if not already initialized)
-        if not firebase_admin._apps:  # This check prevents re-initialization
-            firebase_admin.initialize_app(cred)
-            print(
-                "Firebase Admin SDK initialized successfully from environment variable."
-            )
-        else:
-            print("Firebase Admin SDK already initialized.")
-
-    except json.JSONDecodeError as e:
-        print(
-            f"ERROR: Could not decode Firebase credentials JSON from environment variable: {e}"
-        )
-        # In a production setup, you might want to raise an exception to prevent app startup
-        # raise Exception(f"Failed to load Firebase credentials: {e}")
-    except Exception as e:
-        print(
-            f"ERROR: An unexpected error occurred during Firebase initialization: {e}"
-        )
-        # raise Exception(f"Firebase initialization error: {e}")
-else:
-    # This block handles local development where FIREBASE_APPLICATION_CREDENTIALS might not be set
-    print("WARNING: FIREBASE_APPLICATION_CREDENTIALS environment variable is not set.")
-    # Fallback to local file for development if it exists:
-    local_firebase_path = BASE_DIR / "secrets" / "firebase_credentials.json"
-    if local_firebase_path.exists():
-        try:
-            cred = credentials.Certificate(str(local_firebase_path))
-            if not firebase_admin._apps:
-                firebase_admin.initialize_app(cred)
-                print("Firebase Admin SDK initialized from local file.")
-        except Exception as e:
-            print(f"Error initializing Firebase from local file: {e}")
-    else:
-        print(
-            "WARNING: No Firebase credentials found (neither env var nor local file). Firebase Admin SDK will not be initialized."
-        )
-
-=======
 # --- Firebase Initialization ---
 # cred = None
 
@@ -151,7 +86,6 @@ else:
 # # Initialize Firebase
 # if cred and not firebase_admin._apps:
 #     firebase_admin.initialize_app(cred)
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 # --- ALLOWED_HOSTS (For Production Security) ---
 # List of strings representing the host/domain names that this Django site can serve.
@@ -160,10 +94,7 @@ else:
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-<<<<<<< HEAD
-=======
     "localhost:3000",
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
     # "0.0.0.0", # This is for listening on all interfaces, not for ALLOWED_HOSTS
     "theramind.site",
     "thera-mind.web.app",
@@ -177,11 +108,7 @@ ALLOWED_HOSTS = [
 ]
 # Filter out any empty strings that might result from os.getenv if the variable isn't set
 ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h]
-<<<<<<< HEAD
-
-=======
 CORS_ALLOW_ALL_ORIGINS = True
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 # --- Application definition ---
 INSTALLED_APPS = [
     "django.contrib.admin",

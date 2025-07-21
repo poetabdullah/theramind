@@ -37,11 +37,8 @@ from .views import (
     get_treatment_plan,
     validate_content,
     TheraChatView,
-<<<<<<< HEAD
-=======
     health_check,
     dummy_test,
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 )
 
 urlpatterns = [
@@ -126,9 +123,6 @@ urlpatterns = [
     ),
     # --- TheraChat ---
     path("therachat/", TheraChatView.as_view(), name="therachat"),
-<<<<<<< HEAD
-=======
     path("health/", health_check),
     path("dummy/", dummy_test),
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 ]

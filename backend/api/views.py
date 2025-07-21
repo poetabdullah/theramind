@@ -14,28 +14,16 @@ from django.views.decorators.csrf import csrf_exempt
 
 from theramind_backend.config import db, initialize_firebase
 from google.cloud import firestore
-<<<<<<< HEAD
-import firebase_admin
-=======
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 
 from datetime import datetime
 
 
-<<<<<<< HEAD
-from firebase_admin import firestore
-=======
 # from firebase_admin import firestore
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-<<<<<<< HEAD
-
-=======
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 from utils.firestore import add_document
 
 
@@ -71,48 +59,6 @@ import google.generativeai as genai
 from google.generativeai import types
 import base64  # Not explicitly used in your snippet, but keep if needed elsewhere
 
-<<<<<<< HEAD
-
-load_dotenv()
-
-
-logger = logging.getLogger(__name__)
-# This ensures Firebase is only initialized once (even if views are imported multiple times)
-if not firebase_admin._apps:
-    firebase_creds_value = os.environ.get("FIREBASE_APPLICATION_CREDENTIALS")
-
-    if firebase_creds_value:
-        try:
-            # Attempt to parse the environment variable value as JSON
-            firebase_config_dict = json.loads(firebase_creds_value)
-            cred = credentials.Certificate(firebase_config_dict)
-            firebase_admin.initialize_app(cred)
-            print(
-                "Firebase Admin SDK initialized successfully from environment variable in views.py."
-            )
-        except json.JSONDecodeError as e:
-            print(
-                f"Error decoding Firebase credentials JSON from environment variable in views.py: {e}"
-            )
-            # You might want to raise an exception or log a critical error here
-        except Exception as e:
-            print(
-                f"An unexpected error occurred during Firebase initialization in views.py: {e}"
-            )
-            # Handle other potential errors during initialization
-    else:
-        # Fallback for local development if you still want to use a file locally,
-        # or if the env var is truly missing (though it shouldn't be on Heroku now)
-        local_cred_path = "secrets/firebase_admin_credentials.json"
-        if os.path.exists(local_cred_path):
-            cred = credentials.Certificate(local_cred_path)
-            firebase_admin.initialize_app(cred)
-            print("Firebase Admin SDK initialized from local file in views.py.")
-        else:
-            print(
-                "WARNING: Firebase credentials not found (neither env var nor local file). Firebase Admin SDK not initialized."
-            )
-=======
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -168,7 +114,6 @@ cred = None
 @csrf_exempt
 def health_check(request):
     return JsonResponse({"status": "ok", "msg": "Backend is up"})
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 
 @api_view(["POST"])
@@ -863,10 +808,7 @@ def delete_action_from_version(request, plan_id, version_id):
         action_id = request.data.get("action_id")
 
         version_ref = (
-            db.collection("treatment_plans")
-            .document(plan_id)
-            .collection("versions")
-            .document(version_id)
+            db.collection("treatment_plans").document(plan_id).collection("versions")
         )
         version_doc = version_ref.get()
         if not version_doc.exists:
@@ -916,11 +858,8 @@ def delete_goal_from_version(request, plan_id, version_id):
 
 
 # ------ TheraChat ------
-<<<<<<< HEAD
-=======
 from vertexai.preview.generative_models import GenerativeModel, Part
 from vertexai import init
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 # ---- Constants ----
 PROJECT_ID = "996770367618"
@@ -929,17 +868,8 @@ VERTEX_AI_MODEL_ENDPOINT = (
     "projects/996770367618/locations/us-central1/endpoints/3658854739354845184"
 )
 
-<<<<<<< HEAD
-# ---- Initialize Vertex AI client globally ----
-genai_client = genai.Client(
-    vertexai=True,
-    project=PROJECT_ID,
-    location=LOCATION,
-)
-=======
 # ---- Init Vertex AI ----
 init(project=PROJECT_ID, location=LOCATION)
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -959,33 +889,6 @@ class TheraChatView(APIView):
             )
 
         try:
-<<<<<<< HEAD
-            # ---- Prepare content ----
-            contents = [
-                types.Content(
-                    role="user",
-                    parts=[types.Part(text=user_input)],
-                )
-            ]
-
-            generation_config = types.GenerateContentConfig(
-                temperature=0.7,
-                top_p=0.95,
-                max_output_tokens=1024,
-            )
-
-            # ---- Streaming generation (official way to call fine-tuned endpoints) ----
-            stream = genai_client.models.generate_content_stream(
-                model=VERTEX_AI_MODEL_ENDPOINT,
-                contents=contents,
-                config=generation_config,
-            )
-
-            # ---- Combine stream text ----
-            generated_text = ""
-            for chunk in stream:
-                if hasattr(chunk, "text"):
-=======
             model = GenerativeModel(model_name=VERTEX_AI_MODEL_ENDPOINT)
 
             stream = model.generate_content(
@@ -1002,7 +905,6 @@ class TheraChatView(APIView):
             generated_text = ""
             for chunk in stream:
                 if chunk.text:
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
                     generated_text += chunk.text
 
             if not generated_text.strip():
@@ -1024,11 +926,8 @@ class TheraChatView(APIView):
                 {"error": f"Internal server error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-<<<<<<< HEAD
-=======
 
 
 def dummy_test(request):
     print("✅ Dummy test hit")
     return JsonResponse({"message": "Dummy working"})
->>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
