@@ -98,16 +98,25 @@ const TheraChat = () => {
     setLoading(true);
 
     try {
+<<<<<<< HEAD
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+
+      const response = await axios.post(`${backendUrl}/api/therachat/`,
+=======
       // ✅ FIXED AXIOS CALL (assuming env already has `/api`)
       const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
       const response = await axios.post(
         `${backendUrl}/therachat/`,  // <- Don't add /api again here
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
         { prompt: input },
         { headers: { "Content-Type": "application/json" } }
       );
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
       const aiResponse = response.data.response || "Something went wrong.";
       const botMessage = { text: aiResponse, sender: "ai", timestamp: Date.now() };
       setMessages((prev) => [...prev, botMessage]);
