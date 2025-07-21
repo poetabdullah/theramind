@@ -98,12 +98,14 @@ const TheraChat = () => {
     setLoading(true);
 
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+      const backendUrl = "https://api.theramind.site/api/";
 
-      const response = await axios.post(`${backendUrl}/api/therachat/`,
+      const response = await axios.post(
+        `${backendUrl}therachat/`, // <– No leading slash
         { prompt: input },
         { headers: { "Content-Type": "application/json" } }
       );
+
 
       const aiResponse = response.data.response || "Something went wrong.";
       const botMessage = { text: aiResponse, sender: "ai", timestamp: Date.now() };

@@ -30,7 +30,7 @@ import Footer from "../components/Footer";
 
 // Base URL for your API (make sure this matches your Django server)
 const API_BASE =
-  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+  process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
 
 export default function ManagePatients() {
   const [doctorEmail, setDoctorEmail] = useState(null);
