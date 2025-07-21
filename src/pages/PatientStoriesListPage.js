@@ -24,7 +24,7 @@ const PatientStoriesListPage = () => {
     setLoading(true);
     setNoResults(false);
     const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
-    let url = `${backendUrl}/api/get_patient_stories/?page=${page}`;
+    let url = `${backendUrl}get_patient_stories/?page=${page}`;
     if (selectedTags.length > 0) { // / Adds tags as a comma-separated query string if any are selected.
       url += `&tags=${selectedTags.join(",")}`;
     }
