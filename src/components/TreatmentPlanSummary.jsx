@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Defining the API_BASE as a global variable
 const API_BASE =
-  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+  process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
 
 const priorityLabels = {
   1: "Low Priority",

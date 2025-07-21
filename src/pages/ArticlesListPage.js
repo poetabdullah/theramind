@@ -24,7 +24,7 @@ const ArticlesListPage = () => {
   const fetchArticles = () => {
     setLoading(true);
     setNoResults(false);
-    let url = `http://127.0.0.1:8000/api/get_articles/?page=${page}`;
+    let url = `https://api.theramind.site/api/get_articles/?page=${page}`;
     if (selectedTags.length > 0) { // Adds tags as a comma-separated query string if any are selected.
       url += `&tags=${selectedTags.join(",")}`;
     }

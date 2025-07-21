@@ -32,7 +32,7 @@ const EducationDetailView = () => {
     // Fetches the data from the backend: article or a story
     const fetchData = async () => {
       const apiUrl =
-        process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+        process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
       const url = `${apiUrl}/${type}/${id}`;
 
       try {

@@ -15,7 +15,7 @@ import Footer from "../components/Footer";
 
 // Base URL for your API (adjust if needed)
 const API_BASE =
-  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+  process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
 
 // EmailJS configuration
 const EMAILJS_USER_ID_CREATE = process.env.REACT_APP_EMAILJS_USER_ID_CREATE;
