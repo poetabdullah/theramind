@@ -34,15 +34,107 @@ from firebase_admin import credentials, initialize_app
 from google.oauth2 import service_account
 from django.views.decorators.csrf import csrf_exempt
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from utils.ml_model import final_mh_decision
 
+import traceback
+from google.oauth2 import service_account
+
+from google.auth.transport.requests import Request
+import requests
+import json
+
+import traceback
+import os
+
+import logging
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from google.auth import default as google_auth_default
+
+from dotenv import load_dotenv
+
+import google.generativeai as genai
+from google.generativeai import types
+import base64  # Not explicitly used in your snippet, but keep if needed elsewhere
+
+
+load_dotenv()
+
+
+logger = logging.getLogger(__name__)
 # This ensures Firebase is only initialized once (even if views are imported multiple times)
 if not firebase_admin._apps:
-    credentials = service_account.Credentials.from_service_account_file(
-        "C:/Users/user/VSCodeJSProjects/React/theramind/backend/firebase_admin_credentials.json"
-    )
-    firebase_admin.initialize_app(credentials)
+    firebase_creds_value = os.environ.get("FIREBASE_APPLICATION_CREDENTIALS")
 
-db = firestore.client()
+    if firebase_creds_value:
+        try:
+            # Attempt to parse the environment variable value as JSON
+            firebase_config_dict = json.loads(firebase_creds_value)
+            cred = credentials.Certificate(firebase_config_dict)
+            firebase_admin.initialize_app(cred)
+            print(
+                "Firebase Admin SDK initialized successfully from environment variable in views.py."
+            )
+        except json.JSONDecodeError as e:
+            print(
+                f"Error decoding Firebase credentials JSON from environment variable in views.py: {e}"
+            )
+            # You might want to raise an exception or log a critical error here
+        except Exception as e:
+            print(
+                f"An unexpected error occurred during Firebase initialization in views.py: {e}"
+            )
+            # Handle other potential errors during initialization
+    else:
+        # Fallback for local development if you still want to use a file locally,
+        # or if the env var is truly missing (though it shouldn't be on Heroku now)
+        local_cred_path = "secrets/firebase_admin_credentials.json"
+        if os.path.exists(local_cred_path):
+            cred = credentials.Certificate(local_cred_path)
+            firebase_admin.initialize_app(cred)
+            print("Firebase Admin SDK initialized from local file in views.py.")
+        else:
+            print(
+                "WARNING: Firebase credentials not found (neither env var nor local file). Firebase Admin SDK not initialized."
+            )
+
+
+@api_view(["POST"])
+def validate_content(request):
+    html = request.data.get("content", "").strip()
+
+    if not html:
+        return Response({"error": "No content."}, status=400)
+
+    try:
+        res = final_mh_decision(html)
+        if not isinstance(res, dict):
+            raise ValueError("Model response is not a dictionary")
+
+        required_keys = [
+            "valid",
+            "confidence_score",
+            "confidence_pass",
+            "tta_pass",
+            "override_pass",
+            "votes",
+            "note",
+        ]
+        for key in required_keys:
+            if key not in res:
+                raise KeyError(f"Missing key in model response: {key}")
+
+        return Response(res, status=200 if res["valid"] else 422)
+
+    except Exception as e:
+        # Print to console/logs
+        print("❌ AI validation error:", str(e))
+        traceback.print_exc()  # <- This will show full traceback in logs
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 # Opens up the detail view of the specific article / patient story
@@ -753,3 +845,85 @@ def delete_goal_from_version(request, plan_id, version_id):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+# ------ TheraChat ------
+
+# ---- Constants ----
+PROJECT_ID = "996770367618"
+LOCATION = "us-central1"
+VERTEX_AI_MODEL_ENDPOINT = (
+    "projects/996770367618/locations/us-central1/endpoints/3658854739354845184"
+)
+
+# ---- Initialize Vertex AI client globally ----
+genai_client = genai.Client(
+    vertexai=True,
+    project=PROJECT_ID,
+    location=LOCATION,
+)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class TheraChatView(APIView):
+    def get(self, request):
+        return Response(
+            {
+                "message": "TheraChat API is running. Send a POST request with a 'prompt'."
+            }
+        )
+
+    def post(self, request):
+        user_input = request.data.get("prompt")
+        if not user_input:
+            return Response(
+                {"error": "No prompt provided"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # ---- Prepare content ----
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[types.Part(text=user_input)],
+                )
+            ]
+
+            generation_config = types.GenerateContentConfig(
+                temperature=0.7,
+                top_p=0.95,
+                max_output_tokens=1024,
+            )
+
+            # ---- Streaming generation (official way to call fine-tuned endpoints) ----
+            stream = genai_client.models.generate_content_stream(
+                model=VERTEX_AI_MODEL_ENDPOINT,
+                contents=contents,
+                config=generation_config,
+            )
+
+            # ---- Combine stream text ----
+            generated_text = ""
+            for chunk in stream:
+                if hasattr(chunk, "text"):
+                    generated_text += chunk.text
+
+            if not generated_text.strip():
+                return Response(
+                    {"error": "No content returned from the model."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+
+            return Response({"response": generated_text})
+
+        except Exception as e:
+            import traceback
+
+            print(
+                f"Error during TheraChat generation for prompt: '{user_input}'\n",
+                traceback.format_exc(),
+            )
+            return Response(
+                {"error": f"Internal server error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

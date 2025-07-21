@@ -51,18 +51,55 @@ const TreatmentRecommendation = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "patients"));
-        const patientList = querySnapshot.docs.map((doc) => ({
-          email: doc.id,
-          name: doc.data().name,
-        }));
-        setPatients(patientList);
+        const appointmentsSnapshot = await getDocs(
+          collection(db, "appointments")
+        );
+        const allAppointments = appointmentsSnapshot.docs.map((doc) =>
+          doc.data()
+        );
+
+        const doctorEmail = auth.currentUser.email;
+
+        // Filter appointments booked with this doctor
+        const relevantAppointments = allAppointments.filter(
+          (app) => app.doctorEmail === doctorEmail
+        );
+
+        // Fetch all patients from the 'patients' collection
+        const patientsSnapshot = await getDocs(collection(db, "patients"));
+        const validPatientEmails = new Set(
+          patientsSnapshot.docs.map((doc) => doc.id)
+        );
+
+        const uniquePatients = {};
+
+        for (const app of relevantAppointments) {
+          const { patientEmail, patientName } = app;
+
+          const isSelfBooking = patientEmail === doctorEmail;
+          const isInPatientsCollection = validPatientEmails.has(patientEmail);
+
+          if (
+            !isSelfBooking &&
+            isInPatientsCollection &&
+            !uniquePatients[patientEmail]
+          ) {
+            uniquePatients[patientEmail] = {
+              email: patientEmail,
+              name: patientName,
+            };
+          }
+        }
+
+        setPatients(Object.values(uniquePatients));
       } catch (error) {
-        console.error("Error fetching patients:", error);
+        console.error("Error fetching filtered appointment patients:", error);
       }
     };
 
-    fetchPatients();
+    if (auth.currentUser) {
+      fetchPatients();
+    }
   }, []);
 
   const selectedPatientData = patients.find((p) => p.email === selectedPatient);

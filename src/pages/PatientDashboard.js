@@ -19,7 +19,7 @@ import PatientBookAppointment from "../components/PatientBookAppointment";
 import { motion } from "framer-motion";
 
 // Global variable for easier access to the backend:
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+const API_BASE = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
 // Patient Dashboard is the area patient is directed to on login
 const PatientDashboard = () => {
@@ -633,8 +633,8 @@ const PatientDashboard = () => {
           {/* Book Appointment Section */}
           <motion.div
             className="mb-8 p-6 bg-white rounded-2xl shadow border border-gray-200">
-              {user && <PatientBookAppointment patientEmail={user.email} />}
-            </motion.div>
+            {user && <PatientBookAppointment patientEmail={user.email} />}
+          </motion.div>
 
           {/* === Treatment Plan Section === */}
           {planId && planMeta ? (

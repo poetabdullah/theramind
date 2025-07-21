@@ -18,7 +18,7 @@ export default function TreatmentPlanView({
   const navigate = useNavigate();
 
   const USER_ID_VIEW = process.env.REACT_APP_EMAILJS_USER_ID_VIEW;
-  const SERVICEID = process.env.REACT_APP_EMAILJS_SERVICEID;
+  const SERVICEID = process.env.REACT_APP_EMAILJS_SERVICEID1;
   const TEMPLATE_TERMINATED = process.env.REACT_APP_EMAILJS_TEMPLATE_TERMINATED;
 
   const [currentIdx, setCurrentIdx] = useState(versionIndex);

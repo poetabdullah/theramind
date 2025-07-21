@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import "./questionnaire.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "../components/Footer.js";
 import { db } from "../firebaseConfig.js";
 import { collection, getDocs, getDoc, query, orderBy, doc, setDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { set } from "date-fns";
 import RecommendationSection from "../components/RecommendationSection.jsx";
 
 const fadeInUp = {
@@ -81,6 +79,7 @@ const Questionnaire = () => {
 }, [auth, navigate]);
 
 useEffect(() => {
+  //To prevent questionnaire from being restarted if reloaded page midway
   const started = sessionStorage.getItem("questionnaireStarted");
   if (!started) {
     navigate("/start-screen"); 
@@ -98,12 +97,13 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
+    //No Condition Diagnosed
     if (currentQuestionIndex === 1 && responses["question_question1"] === "none" && responses["question_question2"] === "no_symptoms") {
       setNoConditionDiagnosed(true);
     } else {
       setNoConditionDiagnosed(false);
     }
-
+    //Suicidal Thoughts Detected
     if (currentQuestionIndex === 2 && responses["question_question3"] === "yes_suicidalthoughts") {
       setSuicidalThoughts(true);
     } else {
@@ -111,19 +111,19 @@ useEffect(() => {
     }
   }, [currentQuestionIndex, responses]);
 
-  // Destructuring: To pull out properties from an input field selected by a user
+  //Destructuring: To pull out properties from an input field selected by a user
   const changeEvent = (event) => {
     const { name, value } = event.target;
     setResponses((prev) => {
       const updatedResponses = { ...prev, [name]: value };
 
-      // Get the question text that corresponds to this answer
+      //Get the question text that corresponds to this answer
       const questionKey = name.replace("question_", "");
       const question = questions.find(q => q.id === questionKey);
 
-      // If user is authenticated, save this response to Firestore
+      //If user is authenticated, save this response to Firestore
       if (user && question) {
-        // Store each individual response as it's selected
+        //Store each individual response as it's selected
         const responseData = {
           questionId: questionKey,
           questionText: question.text,
@@ -138,7 +138,7 @@ useEffect(() => {
 
       }
 
-      // Reset detected conditions if a question in range 3-6 is changed
+      //Reset detected conditions if a question in range 3-6 is changed
       const questionIndex = questions.findIndex(q => `question_${q.id}` === name);
       if (questionIndex >= 3 && questionIndex <= 6) {
         setDetectedConditions([]);
@@ -234,12 +234,12 @@ useEffect(() => {
   setNoConditionDiagnosed(false);
   setSuicidalThoughts(false);
 
-  // Use detectedCondition state, not detectedConditions array
+  //Use detectedCondition state, not detectedConditions array
   const condition = detectedCondition;
 
   let newIndex = currentQuestionIndex - 1;
 
-  // Skip postpartum questions backward if Depression & Gender = Male Or Female with no birth history
+  //Skip postpartum questions backward if Depression & Gender = Male Or Female with no birth history
   if (
   condition === "Depression" &&
   newIndex >= 35 && newIndex <= 37 &&
@@ -258,26 +258,26 @@ useEffect(() => {
     return;
   }
 
-  // If currently inside detected condition range, just go one question back within range
+  //If currently inside detected condition range, just go one question back within range
   if (condition && currentQuestionIndex > conditionRanges[condition].start) {
     setCurrentQuestionIndex(newIndex);
     return;
   }
 
-  // If at the first question of detected condition, go back to question 6
+  //If at the first question of detected condition, go back to question 6
   if (condition && currentQuestionIndex === conditionRanges[condition].start) {
     setDetectedCondition(null);
     setCurrentQuestionIndex(6);
     return;
   }
 
-  // If no detected condition and currently at question 6, go back to question 3
+  //If no detected condition and currently at question 6, go back to question 3
   if (!condition && currentQuestionIndex === 6) {
     setCurrentQuestionIndex(3);
     return;
   }
 
-  // Prevent going below question 0
+  //Prevent going below question 0
   setCurrentQuestionIndex(Math.max(0, newIndex));
 };
 
@@ -312,6 +312,7 @@ useEffect(() => {
   }
 
   if (isQuestionnaireComplete) {
+    //To prevent questionnaire from being restarted if reloaded page midway
     sessionStorage.removeItem("questionnaireStarted");
     return (
       <motion.div className="flex flex-col min-h-screen bg-gray-50"

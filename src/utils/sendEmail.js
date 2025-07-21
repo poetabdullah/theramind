@@ -38,6 +38,8 @@ export const sendCancelEmail = async ({
 };
 
 export const sendRescheduleEmail = async ({
+  to_email,
+  to_role,
   patientName,
   doctorName,
   patientEmail,
@@ -50,7 +52,7 @@ export const sendRescheduleEmail = async ({
     const recipientEmail = patientEmail?.trim() || doctorEmail?.trim() || '';
 
   if (!recipientEmail) {
-    console.error('❌ No valid recipient email found. Rescheduling email not sent.',  
+    console.error('❌ No valid recipient email found. Rescheduling email not sent.',
       patientEmail,
       doctorEmail,
   );
@@ -72,6 +74,8 @@ export const sendRescheduleEmail = async ({
         });
       };
     const templateParams = {
+      to_email,
+      to_role,
       patient_name: patientName,
       doctor_name: doctorName,
       email: recipientEmail,
@@ -80,7 +84,7 @@ export const sendRescheduleEmail = async ({
       rescheduled_by: rescheduledBy,
     };
 
-    console.log('Template Params (Cancel):', templateParams);
+    console.log('Template Params (Reschedule):', templateParams);
     const response = await emailjs.send(
       process.env.REACT_APP_EMAILJS_SERVICE_ID,
       process.env.REACT_APP_EMAILJS_RESCHEDULE_TEMPLATE,

@@ -280,7 +280,8 @@ const saveHealingTipsToFirestore = async () => {
 
     for (const subtype in healing_tips_meditations) {
       const data = healing_tips_meditations[subtype];
-      const docRef = doc(collectionRef, subtype); // Use subtype as document ID
+      //Using subtype as document ID
+      const docRef = doc(collectionRef, subtype);
       await setDoc(docRef, {
         subtype,
         ...data
@@ -295,4 +296,3 @@ const saveHealingTipsToFirestore = async () => {
 };
 
 saveHealingTipsToFirestore();
-   

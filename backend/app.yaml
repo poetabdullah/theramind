@@ -1,0 +1,9 @@
+runtime: python311
+
+entrypoint: gunicorn theramind_backend.wsgi:application --bind :$PORT --workers 2
+
+env_variables:
+  DJANGO_SETTINGS_MODULE: "theramind_backend.settings"
+  PYTHONUNBUFFERED: "1"
+  FIREBASE_APPLICATION_CREDENTIALS: "firebase_credentials.json"
+  GOOGLE_APPLICATION_CREDENTIALS: "vertex_credentials.json"
