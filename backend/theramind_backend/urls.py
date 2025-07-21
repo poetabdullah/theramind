@@ -19,9 +19,18 @@ from django.contrib import admin
 from django.urls import path, include
 from .views import home
 from . import views
+<<<<<<< HEAD
+=======
+from api.views import test_view, health_check
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 urlpatterns = [
     path("", home, name="home"),  # Root URL redirects to React app
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
+<<<<<<< HEAD
+=======
+    path("health/", health_check),  # already works
+    path("", test_view),
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 ]

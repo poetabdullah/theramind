@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import json
 import firebase_admin
+<<<<<<< HEAD
 from firebase_admin import credentials
 from corsheaders.defaults import default_headers  # Import default_headers here!
 
@@ -21,6 +22,27 @@ from corsheaders.defaults import default_headers  # Import default_headers here!
 BASE_DIR = Path(__file__).resolve().parent.parent  # Points to the 'backend/' directory
 
 
+=======
+from utils.firebase_client import db
+
+# from firebase_admin import credentials
+from corsheaders.defaults import default_headers  # Import default_headers here!
+
+from dotenv import load_dotenv
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Path to ML models directory (outside of settings.py)
+ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
+
+# --- Firebase Initialization ---
+local_firebase_path = BASE_DIR / "secrets" / "firebase_admin_credentials.json"
+
+# point load_dotenv at your project root .env
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 # --- SECRET KEY & DEBUG (Production Ready) ---
 # SECURITY WARNING: keep the secret key used in production secret!
 # Use os.getenv to get environment variables. Provide a strong default ONLY for local development.
@@ -42,6 +64,7 @@ PORT = os.getenv(
     "PORT", "8000"
 )  # Default to 8000 if not set (common for Django dev server)
 
+<<<<<<< HEAD
 # --- ML Models Directory ---
 ML_MODELS_DIR = os.path.join(BASE_DIR, "ml_models")
 
@@ -95,6 +118,40 @@ else:
             "WARNING: No Firebase credentials found (neither env var nor local file). Firebase Admin SDK will not be initialized."
         )
 
+=======
+# --- Firebase Initialization ---
+# cred = None
+
+# # Try loading from .env path
+# firebase_path = os.getenv("FIREBASE_CRED_PATH")
+# if firebase_path and os.path.exists(firebase_path):
+#     cred = credentials.Certificate(firebase_path)
+#     print(f"Firebase initialized from path: {firebase_path}")
+
+# # Try loading from raw JSON in .env
+# elif os.getenv("FIREBASE_CRED_JSON"):
+#     try:
+#         import json
+
+#         firebase_json = json.loads(os.getenv("FIREBASE_CRED_JSON"))
+#         cred = credentials.Certificate(firebase_json)
+#         print("Firebase initialized from raw JSON in .env")
+#     except Exception as e:
+#         print(f"Invalid FIREBASE_CRED_JSON: {e}")
+
+# # Fallback to secrets/firebase_credentials.json
+# else:
+#     fallback_path = BASE_DIR / "secrets" / "firebase_admin_credentials.json"
+#     if fallback_path.exists():
+#         cred = credentials.Certificate(str(fallback_path))
+#         print(f"Firebase initialized from fallback path: {fallback_path}")
+#     else:
+#         print("❌ Firebase credentials not found in .env or secrets/")
+
+# # Initialize Firebase
+# if cred and not firebase_admin._apps:
+#     firebase_admin.initialize_app(cred)
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 
 # --- ALLOWED_HOSTS (For Production Security) ---
 # List of strings representing the host/domain names that this Django site can serve.
@@ -103,6 +160,10 @@ else:
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
+<<<<<<< HEAD
+=======
+    "localhost:3000",
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
     # "0.0.0.0", # This is for listening on all interfaces, not for ALLOWED_HOSTS
     "theramind.site",
     "thera-mind.web.app",
@@ -116,7 +177,11 @@ ALLOWED_HOSTS = [
 ]
 # Filter out any empty strings that might result from os.getenv if the variable isn't set
 ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h]
+<<<<<<< HEAD
 
+=======
+CORS_ALLOW_ALL_ORIGINS = True
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8
 # --- Application definition ---
 INSTALLED_APPS = [
     "django.contrib.admin",
