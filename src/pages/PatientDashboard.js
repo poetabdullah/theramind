@@ -19,7 +19,7 @@ import PatientBookAppointment from "../components/PatientBookAppointment";
 import { motion } from "framer-motion";
 
 // Global variable for easier access to the backend:
-const API_BASE = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+const API_BASE = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
 
 // Patient Dashboard is the area patient is directed to on login
 const PatientDashboard = () => {

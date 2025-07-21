@@ -59,3 +59,8 @@ nltk_data/
 
 # === Git LFS markers ===
 *.lfs
+<<<<<<< HEAD
+=======
+backend/wheelsbackend/venv
+backend/wheels
+>>>>>>> 8cf5bdd81a2abff589e78d943dee3c86d865f4b8

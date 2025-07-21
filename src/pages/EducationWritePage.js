@@ -213,8 +213,8 @@ const EducationWritePage = () => {
 
     while (retries < maxRetries) {
       try {
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
-        res = await fetch(`${backendUrl}/api/validate-content/`, {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
+        res = await fetch(`${backendUrl}/validate-content/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

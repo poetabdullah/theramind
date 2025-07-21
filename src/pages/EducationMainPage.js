@@ -19,10 +19,10 @@ export default function EducationMainPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl =
-          process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+        const apiUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
 
-        // Promise.all saves a bit time while fetching
+
+        // Remove duplicate `/api` here
         const [articlesRes, storiesRes] = await Promise.all([
           axios.get(`${apiUrl}/get_articles/`),
           axios.get(`${apiUrl}/get_patient_stories/`),
