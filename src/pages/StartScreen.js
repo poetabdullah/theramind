@@ -2,12 +2,16 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
-import { getFirestore,
+import {
+  getFirestore,
   collection,
   query,
   orderBy,
   limit,
-  getDocs, } from "firebase/firestore";
+  getDocs,
+  getDoc,
+  doc
+} from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const WelcomeScreen = () => {
@@ -15,78 +19,95 @@ const WelcomeScreen = () => {
   const [eligible, setEligible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-  const auth = getAuth();
-    //Check if user is logged in
-  const unsubscribe = onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      setMessage("You must be logged in to access the questionnaire.");
-      setEligible(false);
-      setLoading(false);
-      return;
-    }
-    //Check Assessments subcollection to see if user has already taken the questionnaire
+    const auth = getAuth();
     const db = getFirestore();
-    const assessmentsRef = collection(db, "patients", user.email, "assessments");
-    //Query to get the latest assessment
-    const assessmentsQuery = query(assessmentsRef, orderBy("timestamp", "desc"), limit(1));
-    const snapshot = await getDocs(assessmentsQuery);
 
-    if (snapshot.empty) {
-      //No assessments found — allow access
-      setEligible(true);
-      setLoading(false);
-      return;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setMessage("You must be logged in to access the questionnaire.");
+        setEligible(false);
+        setLoading(false);
+        return;
+      }
+      //Storing user to be used later
+      setUser(user);
+      try {
+        //Only Patients and Doctors can access the questionnaire
+        const patientDoc = await getDoc(doc(db, "patients", user.email));
+        const doctorDoc = await getDoc(doc(db, "doctors", user.email));
+
+        if (!patientDoc.exists() && !doctorDoc.exists()) {
+          navigate("/");
+          return;
+        }
+
+        //Check if patient has taken the assessment recently
+        const assessmentsRef = collection(db, "patients", user.email, "assessments");
+        const assessmentsQuery = query(
+          assessmentsRef,
+          orderBy("timestamp", "desc"),
+          limit(1)
+        );
+        const snapshot = await getDocs(assessmentsQuery);
+
+        if (snapshot.empty) {
+          setEligible(true);
+          setMessage("You are eligible to take the questionnaire.");
+        } else {
+          const latestAssessmentDoc = snapshot.docs[0];
+          const latestTimestamp = latestAssessmentDoc.data().timestamp.toDate();
+          const today = new Date();
+          const nextEligibleDate = new Date(latestTimestamp);
+          nextEligibleDate.setMonth(nextEligibleDate.getMonth() + 3);
+
+          if (today < nextEligibleDate) {
+            const remainingDays = Math.ceil(
+              (nextEligibleDate - today) / (1000 * 60 * 60 * 24)
+            );
+            setMessage(`You can take the questionnaire again in ${remainingDays} days.`);
+            setEligible(false);
+          } else {
+            setMessage("You are eligible to take the questionnaire.");
+            setEligible(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking eligibility:", error);
+        setEligible(false);
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Redirect if questionnaire was not started
+  useEffect(() => {
+    const started = sessionStorage.getItem("questionnaireStarted");
+    if (!started) {
+      navigate("/start-screen");
     }
+  }, [navigate]);
 
-    //Get the latest assessment timestamp
-    const latestAssessmentDoc = snapshot.docs[0];
-    const latestTimestamp = latestAssessmentDoc.data().timestamp.toDate();
-    const today = new Date();
-    //Check if the latest assessment was taken more than 3 months ago
-    const nextEligibleDate = new Date(latestTimestamp);
-    nextEligibleDate.setMonth(nextEligibleDate.getMonth() + 3);
-    //If the latest assessment was taken less than 3 months ago, calculate remaining days
-    if (today < nextEligibleDate) {
-      const remainingDays = Math.ceil(
-        (nextEligibleDate - today) / (1000 * 60 * 60 * 24)
-      );
-      setMessage(`You can take the questionnaire again in ${remainingDays} days.`);
-      setEligible(false);
-    } else {
-      setMessage("You are eligible to take the questionnaire.");
-      setEligible(true);
+  // Prevent back button navigation
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = () => {
+      navigate("/start-screen");
+    };
+  }, [navigate]);
+
+  const handleStart = () => {
+    if (eligible) {
+      sessionStorage.setItem("questionnaireStarted", "true");
+      navigate("/questionnaire");
     }
-
-    setLoading(false);
-  });
-
-  return () => unsubscribe();
-}, []);
-//Redirects to start screen if questionnaire has not been started, preventing direct access to the questionnaire page without start screen
-useEffect(() => {
-  const started = sessionStorage.getItem("questionnaireStarted");
-  if (!started) {
-    navigate("/start-screen"); 
-  }
-}, []);
-
-useEffect(() => {
-  //Prevent back navigation to the start screen
-  window.history.pushState(null, "", window.location.href);
-  window.onpopstate = function () {
-    navigate("/start-screen");
   };
-}, []);
-
-
-const handleStart = () => {
-  if (eligible) {
-    sessionStorage.setItem("questionnaireStarted", "true");
-    navigate("/questionnaire");
-  }
-};
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
