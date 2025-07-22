@@ -142,7 +142,7 @@ export default function TreatmentPlanView({
   const prev = () => setCurrentIdx((i) => Math.max(0, i - 1));
   const next = () => setCurrentIdx((i) => Math.min(versions.length - 1, i + 1));
 
-  // 5) Toggle “complete” on individual actions
+  // 5) Toggle "complete" on individual actions
   const handleToggle = async ({ goalId, actionId, newStatus }) => {
     try {
       if (!onToggleComplete) return;
@@ -204,7 +204,7 @@ export default function TreatmentPlanView({
     return parseFloat((sum / arr.length).toFixed(2));
   }, [versions, allVersionsData]);
 
-  // 6) Confirmation “Yes → terminate” handler
+  // 6) Confirmation "Yes → terminate" handler
   const handleConfirmTerminate = async () => {
     try {
       await onTerminate(planId);
@@ -253,17 +253,21 @@ export default function TreatmentPlanView({
   // 7) If critical props missing
   if (Object.keys(errors).length) {
     return (
-      <div className="my-8 p-6 bg-red-50 rounded-2xl shadow border border-red-200">
-        <h3 className="text-red-800 font-semibold mb-2">Configuration Error</h3>
-        <p className="text-red-700 mb-3">
+      <div className="mx-2 my-4 sm:my-8 p-4 sm:p-6 bg-red-50 rounded-2xl shadow border border-red-200">
+        <h3 className="text-red-800 font-semibold mb-2 text-sm sm:text-base">
+          Configuration Error
+        </h3>
+        <p className="text-red-700 mb-3 text-xs sm:text-sm">
           This component is missing required props (or patient/doctor):
         </p>
-        <ul className="text-red-600 text-sm space-y-1 mb-4">
+        <ul className="text-red-600 text-xs space-y-1 mb-4">
           {Object.values(errors).map((errMsg, idx) => (
-            <li key={idx}>• {errMsg}</li>
+            <li key={idx} className="break-words">
+              • {errMsg}
+            </li>
           ))}
         </ul>
-        <div className="bg-red-100 p-3 rounded text-sm text-red-800">
+        <div className="bg-red-100 p-3 rounded text-xs text-red-800">
           <strong>Solution:</strong> Pass valid functions and patient/doctor
           objects.
         </div>
@@ -274,8 +278,8 @@ export default function TreatmentPlanView({
   // 8) Show loading
   if (loading) {
     return (
-      <div className="my-8 p-6 bg-white rounded-2xl shadow border border-purple-100 text-center text-purple-600">
-        Loading treatment plan...
+      <div className="mx-2 my-4 sm:my-8 p-4 sm:p-6 bg-white rounded-2xl shadow border border-purple-100 text-center text-purple-600">
+        <div className="text-sm sm:text-base">Loading treatment plan...</div>
       </div>
     );
   }
@@ -283,12 +287,12 @@ export default function TreatmentPlanView({
   // 9) If no data
   if (!data || data.error) {
     return (
-      <div className="my-8 p-6 bg-yellow-50 rounded-2xl shadow border border-yellow-200 text-center">
-        <div className="text-yellow-800 font-medium">
+      <div className="mx-2 my-4 sm:my-8 p-4 sm:p-6 bg-yellow-50 rounded-2xl shadow border border-yellow-200 text-center">
+        <div className="text-yellow-800 font-medium text-sm sm:text-base">
           No treatment plan available
         </div>
         {data?.error && (
-          <div className="text-yellow-600 text-sm mt-2">
+          <div className="text-yellow-600 text-xs sm:text-sm mt-2 break-words">
             Error: {data.error}
           </div>
         )}
@@ -299,24 +303,24 @@ export default function TreatmentPlanView({
   const isCurrent = currentIdx === versions.length - 1;
 
   return (
-    <div className="px-4 sm:px-0">
+    <div className="px-2 sm:px-4 md:px-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-        <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
+      <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 sm:space-y-0">
+        <h2 className="text-xl sm:text-2xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
           Treatment Plan
         </h2>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-          <span className="text-sm text-gray-600 font-medium">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
+          <span className="text-xs sm:text-sm text-gray-600 font-medium">
             Version {currentIdx + 1} of {versions.length}
           </span>
           <div className="flex space-x-2">
             <button
               onClick={prev}
               disabled={currentIdx === 0}
-              className="w-8 h-8 sm:w-8 sm:h-8 flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
-                className="w-4 h-4"
+                className="w-3 h-3 sm:w-4 sm:h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -335,7 +339,7 @@ export default function TreatmentPlanView({
               className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
-                className="w-4 h-4"
+                className="w-3 h-3 sm:w-4 sm:h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -354,26 +358,26 @@ export default function TreatmentPlanView({
 
       {/* Main Card */}
       <div className="bg-white shadow-lg rounded-2xl border border-purple-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 border-b border-purple-100">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 sm:p-6 border-b border-purple-100">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 break-words">
                 Created By:{" "}
                 {treatmentPlan?.doctor_name || "Doctor name not available"}
               </h3>
               {treatmentPlan?.error && (
-                <div className="text-red-500 text-xs mt-1">
+                <div className="text-red-500 text-xs mt-1 break-words">
                   {treatmentPlan.error}
                 </div>
               )}
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-1">
-                <span>
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-1">
+                <span className="break-words">
                   Created:{" "}
                   {data.start_date
                     ? new Date(data.start_date).toLocaleDateString()
                     : "N/A"}
                 </span>
-                <span>
+                <span className="break-words">
                   Updated:{" "}
                   {data.end_date
                     ? new Date(data.end_date).toLocaleDateString()
@@ -381,23 +385,26 @@ export default function TreatmentPlanView({
                 </span>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-600 mb-1">
+            <div className="text-left sm:text-right flex-shrink-0">
+              <div className="text-xs sm:text-sm text-gray-600 mb-1">
                 Current Version Progress
               </div>
-              <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 {versionProgress}%
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {data.goals?.map((goal) => (
-            <div key={goal.id} className="border p-5 rounded-xl bg-gray-50">
-              <h4 className="text-xl font-semibold mb-4 flex items-center">
-                <span className="w-2 h-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full mr-3" />
-                {goal.title}
+            <div
+              key={goal.id}
+              className="border p-3 sm:p-5 rounded-xl bg-gray-50"
+            >
+              <h4 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-start">
+                <span className="w-2 h-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full mr-3 mt-2 flex-shrink-0" />
+                <span className="break-words">{goal.title}</span>
               </h4>
               <div className="space-y-3">
                 {goal.actions?.map((act) => {
@@ -410,48 +417,57 @@ export default function TreatmentPlanView({
                   return (
                     <div
                       key={act.id}
-                      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border transition-all ${
+                      className={`flex flex-col gap-3 p-3 sm:p-4 rounded-lg border transition-all ${
                         done
                           ? "bg-green-50 border-green-200"
                           : "bg-white border-gray-200 hover:border-purple-200"
+                      } ${
+                        showCheckbox
+                          ? "sm:flex-row sm:items-center sm:justify-between"
+                          : ""
                       }`}
                     >
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p
                           className={`${
                             done
                               ? "line-through text-gray-500"
                               : "text-gray-800"
-                          } mb-1`}
+                          } mb-2 break-words text-sm sm:text-base`}
                         >
                           {act.description}
                         </p>
-                        <div className="flex items-center space-x-3 text-sm text-gray-500">
+                        <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3 text-xs sm:text-sm text-gray-500">
                           <span>Priority: {act.priority}</span>
-                          <span>•</span>
+                          <span className="hidden sm:inline">•</span>
                           <span>Assigned to: {act.assigned_to}</span>
                         </div>
                       </div>
                       {showCheckbox && (
-                        <button
-                          onClick={() =>
-                            handleToggle({
-                              goalId: goal.id,
-                              actionId: act.id,
-                              newStatus: !done,
-                            })
-                          }
-                          className="ml-4 p-2 rounded-full transition-all hover:bg-gray-100"
-                        >
-                          {done ? (
-                            <CheckSquare size={24} className="text-green-600" />
-                          ) : (
-                            <Square
-                              size={24}
-                              className="text-gray-400 hover:text-purple-600"
-                            />
-                          )}
-                        </button>
+                        <div className="flex justify-end sm:justify-center">
+                          <button
+                            onClick={() =>
+                              handleToggle({
+                                goalId: goal.id,
+                                actionId: act.id,
+                                newStatus: !done,
+                              })
+                            }
+                            className="p-2 rounded-full transition-all hover:bg-gray-100"
+                          >
+                            {done ? (
+                              <CheckSquare
+                                size={20}
+                                className="text-green-600 sm:w-6 sm:h-6"
+                              />
+                            ) : (
+                              <Square
+                                size={20}
+                                className="text-gray-400 hover:text-purple-600 sm:w-6 sm:h-6"
+                              />
+                            )}
+                          </button>
+                        </div>
                       )}
                     </div>
                   );
@@ -461,12 +477,12 @@ export default function TreatmentPlanView({
           ))}
 
           {/* Overall Progress */}
-          <div className="border-t pt-6 space-y-4 border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:justify-between mb-2 gap-2">
-              <span className="text-lg font-semibold text-gray-800">
+          <div className="border-t pt-4 sm:pt-6 space-y-3 sm:space-y-4 border-gray-200">
+            <div className="flex flex-col space-y-1 sm:flex-row sm:justify-between sm:space-y-0 mb-2">
+              <span className="text-base sm:text-lg font-semibold text-gray-800">
                 Overall Progress
               </span>
-              <span className="text-lg font-bold text-purple-600">
+              <span className="text-base sm:text-lg font-bold text-purple-600">
                 {overallProgress}%
               </span>
             </div>
@@ -480,28 +496,28 @@ export default function TreatmentPlanView({
 
           {/* Terminate button (doctor only) with inline confirmation above button */}
           {role === "doctor" && isCurrent && !data.is_terminated && (
-            <div className="border-t pt-6 border-gray-200">
+            <div className="border-t pt-4 sm:pt-6 border-gray-200">
               {showConfirm && (
-                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+                <div className="mb-4 p-3 sm:p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
                   {terminationResult === null && (
                     <>
-                      <p className="text-gray-800 mb-3">
+                      <p className="text-gray-800 mb-3 text-sm sm:text-base">
                         Are you sure you want to terminate this plan?
                       </p>
-                      <div className="flex flex-col sm:flex-row justify-end sm:space-x-3 space-y-3 sm:space-y-0">
+                      <div className="flex flex-col space-y-2 sm:flex-row sm:justify-end sm:space-y-0 sm:space-x-3">
                         <button
                           onClick={() => {
                             setShowConfirm(false);
                             setTerminationResult(null);
                             setTerminationError(null);
                           }}
-                          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition"
+                          className="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition text-sm sm:text-base"
                         >
                           No
                         </button>
                         <button
                           onClick={handleConfirmTerminate}
-                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
+                          className="w-full sm:w-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition text-sm sm:text-base"
                         >
                           Yes, Terminate
                         </button>
@@ -510,7 +526,7 @@ export default function TreatmentPlanView({
                   )}
                   {terminationResult === "success" && (
                     <>
-                      <p className="text-green-700 mb-3">
+                      <p className="text-green-700 mb-3 text-sm sm:text-base">
                         Treatment plan terminated successfully.
                       </p>
                       <div className="flex justify-end">
@@ -520,7 +536,7 @@ export default function TreatmentPlanView({
                             setTerminationResult(null);
                             navigate("/doctor-dashboard");
                           }}
-                          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
+                          className="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition text-sm sm:text-base"
                         >
                           OK
                         </button>
@@ -529,10 +545,10 @@ export default function TreatmentPlanView({
                   )}
                   {terminationResult === "error" && (
                     <>
-                      <p className="text-red-700 mb-2">
+                      <p className="text-red-700 mb-2 text-sm sm:text-base">
                         Error terminating plan
                       </p>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="text-xs sm:text-sm text-gray-600 mb-3 break-words">
                         {terminationError}
                       </p>
                       <div className="flex justify-end">
@@ -542,7 +558,7 @@ export default function TreatmentPlanView({
                             setTerminationResult(null);
                             setTerminationError(null);
                           }}
-                          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition"
+                          className="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition text-sm sm:text-base"
                         >
                           Close
                         </button>
@@ -558,7 +574,7 @@ export default function TreatmentPlanView({
                     setTerminationResult(null);
                     setTerminationError(null);
                   }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 py-3 text-white rounded-lg font-bold shadow hover:shadow-lg transition"
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 py-3 text-white rounded-lg font-bold shadow hover:shadow-lg transition text-sm sm:text-base"
                 >
                   Terminate Plan
                 </button>
