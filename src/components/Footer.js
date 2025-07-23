@@ -110,9 +110,6 @@ const Footer = () => {
                 <Mail className="w-5 h-5" /> theramind2025@gmail.com
               </div>
               <div className="flex items-center gap-3 text-gray-300">
-                <Phone className="w-5 h-5" /> +923164853878
-              </div>
-              <div className="flex items-center gap-3 text-gray-300">
                 <MapPin className="w-5 h-5" />{" "}
                 <span>Lahore, Punjab, Pakistan</span>
               </div>
@@ -127,7 +124,7 @@ const Footer = () => {
           <div className="flex items-center gap-6">
             {/* X Logo */}
             <a
-              href="https://twitter.com/AbdulaImran"
+              href="https://x.com/theramind"
               className="text-gray-300 hover:text-orange-400"
               aria-label="X"
             >
@@ -162,7 +159,7 @@ const Footer = () => {
 
             {/* Facebook Logo */}
             <a
-              href="https://www.facebook.com/abdullahimranarshad/"
+              href="https://www.facebook.com/people/TheraMind/61578365679039/"
               className="text-gray-300 hover:text-orange-400"
               aria-label="Facebook"
             >
