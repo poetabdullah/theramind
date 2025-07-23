@@ -4,8 +4,8 @@ import Footer from "../components/Footer";
 
 const AboutUs = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-orange-50">
-      <header className="meditation-header relative bg-gradient-to-r from-purple-600 to-orange-500 py-20">
+    <motion.div className="flex flex-col min-h-screen bg-orange-50">
+      <motion.header className="meditation-header relative bg-gradient-to-r from-purple-600 to-orange-500 py-20">
         {/* Animated Heading */}
         <motion.h1
           initial={{ opacity: 0, y: -30, scale: 0.9 }}
@@ -30,9 +30,9 @@ const AboutUs = () => {
           surrounding mental health and create a safe space for people to understand, manage, and improve
           their well-being.
         </motion.p>
-      </header>
+      </motion.header>
 
-      <main className="flex-grow flex flex-col items-center bg-gradient-to-r from-purple-150 to-orange-150 pb-10">
+      <motion.main className="flex-grow flex flex-col items-center bg-gradient-to-r from-purple-150 to-orange-150 pb-10">
         {/* Who We Are */}
         <motion.div
           className="service-item bg-white shadow-sm rounded-lg p-6 mt-4 w-11/12 max-w-4xl transition duration-300 hover:scale-105"
@@ -44,12 +44,12 @@ const AboutUs = () => {
           <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             Who We Are
           </motion.h3>
-          <p className="leading-relaxed text-black">
+          <motion.p className="leading-relaxed text-gray-700">
             TheraMind brings together a team of dedicated mental health professionals, technology experts,
             and advocates committed to enhancing mental health awareness. Our platform offers AI-driven support,
             educational resources, and access to professional help, ensuring that anyone struggling with mental
             health challenges has a place to turn to.
-          </p>
+          </motion.p>
         </motion.div>
 
         {/* Our Scope */}
@@ -96,12 +96,12 @@ const AboutUs = () => {
           <motion.h3 className="text-4xl font-extrabold text-purple-700 mb-2">
             Our Vision & Mission
           </motion.h3>
-          <p className="leading-relaxed text-black">
+          <motion.p className="leading-relaxed text-gray-700">
             Our vision is a world where seeking mental health support is free of judgment and accessible to
             all. We believe that mental well-being should be a priority, not a privilege. Through our
             platform, we strive to empower individuals by offering self-assessment tools, educational
             resources, and direct access to professional support.
-          </p>
+          </motion.p>
         </motion.div>
 
         {/* What We Offer */}
@@ -181,11 +181,11 @@ const AboutUs = () => {
           <motion.h3 className="text-2xl font-extrabold text-purple-700 mb-2">
             Commitment to Privacy & Security
           </motion.h3>
-          <p className="leading-relaxed text-black">
+          <motion.p className="leading-relaxed text-gray-700">
             Your mental health journey is personal, and we respect your privacy. TheraMind follows strict
             data security and confidentiality protocols to ensure that your information remains protected
             at all times.
-          </p>
+          </motion.p>
         </motion.div>
 
         {/* Get in Touch */}
@@ -233,10 +233,10 @@ const AboutUs = () => {
             </motion.ul>
           </motion.p>
         </motion.div>
-      </main>
+      </motion.main>
 
       <Footer />
-    </div>
+    </motion.div>
   );
 };
 
