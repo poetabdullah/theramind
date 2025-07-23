@@ -154,7 +154,7 @@ useEffect(() => {
 
     for (let i = 3; i <= 6; i++) {
       const selectedCondition = responses[`question_${questions[i]?.id}`];
-      if (selectedCondition) conditionCounts[selectedCondition]++;
+      if (selectedCondition) { conditionCounts[selectedCondition]++ };
     }
 
     const detected = Object.keys(conditionCounts).reduce((a, b) => conditionCounts[a] > conditionCounts[b] ? a : b);
@@ -283,7 +283,7 @@ useEffect(() => {
 
 
   const getProgress = () => {
-    if (noConditionDiagnosed || suicidalThoughts) return 100;
+    if (noConditionDiagnosed || suicidalThoughts) { return 100 };
 
     const totalQuestions = questions.length;
 
