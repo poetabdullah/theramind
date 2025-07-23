@@ -304,7 +304,7 @@ export default function ManagePatients() {
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => handleSelect(p.patient_email)}
                   >
-                    {p.patient_name}
+                    {p.patient_name} ({p.patient_email})
                   </li>
                 ))
               ) : (
