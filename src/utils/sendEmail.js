@@ -13,6 +13,7 @@ export const sendCancelEmail = async ({
     
   }
   try {
+    //Payload sent to EmailJS to format the email content
     const templateParams = {
       patient_name: patientName,
       doctor_name: doctorName,
@@ -49,6 +50,7 @@ export const sendRescheduleEmail = async ({
   meetLink,
   rescheduledBy,
 }) => {
+  //Ensuring at least one email is provided; either patient or doctor
     const recipientEmail = patientEmail?.trim() || doctorEmail?.trim() || '';
 
   if (!recipientEmail) {
@@ -59,6 +61,7 @@ export const sendRescheduleEmail = async ({
     return;
   }
   try {
+    //To format the time in a readable format; toLocaleString() is used to convert ISO string to local date format
     const formatTime = (isoString) => {
     const date = new Date(isoString);
     return isNaN(date.getTime())
@@ -73,6 +76,7 @@ export const sendRescheduleEmail = async ({
           hour12: true,
         });
       };
+      //Payload sent to EmailJS to format the email content
     const templateParams = {
       to_email,
       to_role,

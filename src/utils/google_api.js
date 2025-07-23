@@ -48,6 +48,7 @@ export async function initGoogleApi() {
   });
 }
 
+// ⛔ DEPRECATED — do not use again
 export function requestAccessToken(prompt = 'consent') {
   return new Promise((resolve, reject) => {
     if (!tokenClient) {
@@ -165,7 +166,7 @@ export async function deleteEventWithToken(calendarId, eventId, token) {
 // Fallback for deleting calendar events
 export async function deleteGoogleCalendarEvent(calendarId, eventId) {
   const token = localStorage.getItem("google_calendar_access_token");
-  if (!token) throw new Error("No token. Please re-login.");
+  if (!token) { throw new Error("No token. Please re-login."); }
 
   const res = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}?sendUpdates=all`,
