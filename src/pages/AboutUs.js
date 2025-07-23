@@ -209,6 +209,20 @@ const AboutUs = () => {
                 </motion.a><span> - theramind.web
                 </span>
               </motion.li>
+               <motion.li>
+                <motion.a href="https://www.facebook.com/profile.php?id=61578365679039"
+                  className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
+                hover:underline">Facebook
+                </motion.a><span> - TheraMind
+                </span>
+              </motion.li>
+              <motion.li>
+                <motion.a href="https://x.com/theramind"
+                  className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
+                hover:underline">Twitter
+                </motion.a><span> - theramind
+                </span>
+              </motion.li>
               <motion.li>
                 <motion.a href="mailto:theramind.web@gmail.com"
                   className="text-purple-700 font-medium transition duration-200 hover:text-orange-500 
