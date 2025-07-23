@@ -1,5 +1,6 @@
 import emailjs from 'emailjs-com';
 
+//Objects with destructured parameters for sending emails
 export const sendAppointmentConfirmationEmail = async ({
   patientName,
   doctorName,
@@ -8,6 +9,7 @@ export const sendAppointmentConfirmationEmail = async ({
   patientEmail,
 }) => {
   try {
+    //Email payload sent to EmailJS to format the email content
     const templateParams = {
       patient_name: patientName,
       doctor_name: doctorName,
