@@ -1,6 +1,7 @@
 import { db } from "../firebaseConfig.js";
 import { doc, setDoc } from "firebase/firestore";
 
+//Async is used to return promises (function/operations that take time to complete)
 const saveQuestionsToFirestore = async () => {
   const questions = [
     //Question # 1
@@ -987,6 +988,8 @@ const saveQuestionsToFirestore = async () => {
     },
   ];
   for (const question of questions) {
+    //Updating/Overwriting the entire question object in questions collection
+    //Awaiting to write each question/document to Firestore one after another not all at once
     await setDoc(doc(db, "questions", question.id), question);
   }
   console.log("Questions saved separately in Firestore!");
