@@ -277,12 +277,13 @@ const healing_tips_meditations = {
 const saveHealingTipsToFirestore = async () => {
   try {
     const collectionRef = collection(db, "healingTips");
-
+    //Loops through each subtype in healing_tips_meditations
     for (const subtype in healing_tips_meditations) {
       const data = healing_tips_meditations[subtype];
       //Using subtype as document ID
       const docRef = doc(collectionRef, subtype);
       await setDoc(docRef, {
+        //Adding subtype as a field to increase searchability
         subtype,
         ...data
       });
