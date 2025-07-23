@@ -32,18 +32,18 @@ const WelcomeScreen = () => {
         setLoading(false);
         return;
       }
-
-      setUser(user); // store user so we can use it later
+       //Storing user so we can use it later
+      setUser(user);
       try {
+        //Only patient can access questionnaire
         const patientDoc = await getDoc(doc(db, "patients", user.email));
-        const doctorDoc = await getDoc(doc(db, "doctors", user.email));
-
-        if (!patientDoc.exists() && !doctorDoc.exists()) {
+        //Checking email if not patient redirect to home
+        if (!patientDoc.exists()) {
           navigate("/");
           return;
         }
 
-        // Check if patient has taken the assessment recently
+        //Check if patient has taken the assessment recently
         const assessmentsRef = collection(db, "patients", user.email, "assessments");
         const assessmentsQuery = query(
           assessmentsRef,
@@ -51,11 +51,12 @@ const WelcomeScreen = () => {
           limit(1)
         );
         const snapshot = await getDocs(assessmentsQuery);
-
+        //If no assessments found, user is eligible
         if (snapshot.empty) {
           setEligible(true);
           setMessage("You are eligible to take the questionnaire.");
         } else {
+          //If assessments found, check the latest one, taken within 3 months or not, comparing with current date
           const latestAssessmentDoc = snapshot.docs[0];
           const latestTimestamp = latestAssessmentDoc.data().timestamp.toDate();
           const today = new Date();
@@ -85,17 +86,20 @@ const WelcomeScreen = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Redirect if questionnaire was not started
+  //Redirect if questionnaire was not started, on reloading the page
   useEffect(() => {
+    //Checking from browser's temporary storage if questionnaire was started
     const started = sessionStorage.getItem("questionnaireStarted");
     if (!started) {
       navigate("/start-screen");
     }
-  }, [navigate]);
+  }, [navigate]); //Dependency to check user is logged in and questionnaire was started
 
-  // Prevent back button navigation
+  //Prevent back button navigation
   useEffect(() => {
+    //Adding a new state to browser history so no real page navigation occurs
     window.history.pushState(null, "", window.location.href);
+    //Setting a custom handler for the back button to still navigate to start screen not reopen questionnaire again
     window.onpopstate = () => {
       navigate("/start-screen");
     };
@@ -103,6 +107,7 @@ const WelcomeScreen = () => {
 
   const handleStart = () => {
     if (eligible) {
+      //Setting a flag in session storage to indicate questionnaire has started
       sessionStorage.setItem("questionnaireStarted", "true");
       navigate("/questionnaire");
     }
@@ -129,7 +134,7 @@ const WelcomeScreen = () => {
           >
             Our diagnostic questionnaire will help assess your mental well-being. Answer honestly for accurate insights.
           </motion.p>
-
+          {/*If still loading, show loading message, else show questionnaire button*/}
           {loading ? (
             <p className="text-lg text-white">Checking eligibility...</p>
           ) : eligible ? (
