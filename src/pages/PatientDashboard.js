@@ -75,6 +75,7 @@ const PatientDashboard = () => {
     (async () => {
       try {
         // 1) load all plans for patient
+        // encodeURIComponent() is a JavaScript function used to encode a Uniform Resource Identifier (URI) component. 
         const res = await axios.get(
           `${API_BASE}/treatment/user/patient/${encodeURIComponent(patientData.email)}/`
         );

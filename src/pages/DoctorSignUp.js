@@ -76,12 +76,15 @@ export default function DoctorSignUp() {
         location: "",
         contact: "",
         profilePic: null,
+        // 2 edu and 2 exp forms
         education: Array.from({ length: 2 }, () => ({ degree: "", institute: "", gradDate: "", proof: null })),
         experiences: Array.from({ length: 2 }, () => ({ org: "", role: "", start: "", end: "", resume: null })),
         bio: "",
         verified: false,
         STATUS: "pending",
     });
+
+    //  Why arrays with Array.from? For fixed-length entries to simplify mapping in the form.
     const [error, setError] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
@@ -162,7 +165,9 @@ export default function DoctorSignUp() {
     }, [authInstance, googleProvider, navigate]);
 
     // update helpers
+    // This function is used to update a single field (key-value pair) directly within the doctor state object.
     const updateField = useCallback((k, v) => setDoctor((d) => ({ ...d, [k]: v })), []);
+    //updates a nested object within an array that is part of the doctor state. In this context, it's used for updating items in the education and experiences arrays.
     const updateArray = useCallback((arr, i, k, v) => {
         setDoctor((d) => {
             const copy = [...d[arr]];
