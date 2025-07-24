@@ -12,12 +12,12 @@ export default function DoctorDetails({ data, onChange, onNext, onBack }) {
     const specialtiesOptions = ["Stress", "Anxiety", "Depression", "Trauma", "OCD"];
 
     useEffect(() => {
-        // DOB bounds between age 24 and 80
+        // DOB bounds between age 25 and 70
         const today = new Date();
         const max = new Date();
-        max.setFullYear(today.getFullYear() - 24);
+        max.setFullYear(today.getFullYear() - 25);
         const min = new Date();
-        min.setFullYear(today.getFullYear() - 80);
+        min.setFullYear(today.getFullYear() - 70);
         setMaxDob(max.toISOString().split("T")[0]);
         setMinDob(min.toISOString().split("T")[0]);
     }, []);
