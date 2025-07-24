@@ -15,13 +15,14 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	const [openDates, setOpenDates] = useState({});
 
 	const combineDateAndTime = (date, time) => {
-		if (!date || !time) return null;
+		if (!date || !time) { return null; }
 		const combined = new Date(date);
 		combined.setHours(time.getHours());
 		combined.setMinutes(time.getMinutes());
 		return combined.toISOString();
 	};
 
+	//Combining date and time into a single ISO string
 	const formatDate = dateStr =>
 		new Date(dateStr).toLocaleDateString(undefined, {
 			weekday: 'long',
@@ -30,9 +31,8 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 			day: 'numeric',
 		});
 
-	const todayKey = formatDate(new Date().toISOString());
-
 	useEffect(() => {
+		//Runs when doctor email changes
 		const fetchDoctorData = async () => {
 			try {
 				const docRef = doc(db, 'doctors', doctorEmail);
@@ -40,6 +40,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 
 				if (docSnap.exists()) {
 					const data = docSnap.data();
+					//Cleans up timeslots to remove any empty or null values
 					const cleanTimeslots = data?.timeslots?.filter(Boolean) || [];
 					setDoctorData({
 						email: doctorEmail,
@@ -47,6 +48,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 						timeslots: cleanTimeslots,
 					});
 				} else {
+					//If no data exists, create a new doctor timeslot entry
 					const newDoctor = {
 						email: doctorEmail,
 						name: 'Doctor',
@@ -66,36 +68,42 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 	}, [doctorEmail]);
 
 	useEffect(() => {
-		if (!doctorData) return;
+		if (!doctorData) {return;}
+		//Check if today's date has any timeslots and set it open by default
 		const todayKey = formatDate(new Date().toISOString());
+		//Group timeslots by date for better management
 		const grouped = groupSlotsByDate(doctorData.timeslots || []);
 		if (grouped[todayKey]) {
 			setOpenDates(prev => ({ ...prev, [todayKey]: true }));
 		}
 	}, [doctorData]);
 
+	//Group timeslots by date, filtering out past dates
 	const groupSlotsByDate = slots => {
 		return slots.reduce((groups, slot) => {
 		const slotDate = new Date(slot);
 		const now = new Date();
-		if (slotDate <= now) return groups;
+		if (slotDate <= now) {return groups;}
 				const dateKey = formatDate(slot);
-				if (!groups[dateKey]) groups[dateKey] = [];
+				if (!groups[dateKey]) {groups[dateKey] = [];}
 				groups[dateKey].push(slot);
-				//Sorting the timeslots for each date
+				//Sorting the timeslots for each date chronologically
 				groups[dateKey].sort((a, b) => new Date(a) - new Date(b));
 				return groups;
 			}, {});
 	};
 
 	const handleAddTimeslot = async () => {
+		//Combining selected date and time into a single ISO string
 		const baseDate = combineDateAndTime(selectedDate, selectedTime);
-		if (!baseDate) return toast.error('Please select both date and time.');
+		if (!baseDate) { return toast.error('Please select both date and time.'); }
 
+		//Doesn't allow adding timeslots in the past
 		if (new Date(baseDate) <= new Date()){
 			return toast.info ('You cannot add a timeslot in the past!');
 		}
 
+		//Repeating the timeslot for the specified number of weeks
 		const repeatedSlots = [];
 		const base = new Date(baseDate);
 
@@ -104,7 +112,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 			newSlot.setDate(base.getDate() + i * 7);
 			repeatedSlots.push(newSlot.toISOString());
 		}
-
+		//Merging the new timeslots with existing ones, ensuring no duplicates
 		const updatedTimeslots = [
 			...(doctorData?.timeslots || []),
 			...repeatedSlots.filter(ts => !doctorData?.timeslots?.includes(ts)),
@@ -143,7 +151,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 
 	if (!doctorData) {
 		return (
-			<p className="text-center text-gray-500 mt-3">Loading doctor data...</p>
+			<motion.p className="text-center text-gray-500 mt-3">Loading doctor data...</motion.p>
 		);
 	}
 
@@ -160,15 +168,15 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 				transition={{ duration: 0.5 }}
 				className="bg-white rounded-2xl shadow-md p-6 mb-6"
 			>
-				<h2 className="text-2xl font-bold mb-6 text-gray-700">
+				<motion.h2 className="text-2xl font-bold mb-6 text-gray-700">
 					Timeslot Management
-				</h2>
+				</motion.h2>
 
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-					<div>
-						<label className="block font-medium mb-1 text-gray-700">
+				<motion.div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+					<motion.div>
+						<motion.label className="block font-medium mb-1 text-gray-700">
 							Select Date
-						</label>
+						</motion.label>
 						<ReactDatePicker
 							selected={selectedDate}
 							onChange={setSelectedDate}
@@ -177,11 +185,11 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 							placeholderText="Choose a date"
 							className="border border-gray-300 rounded-lg px-3 py-2 w-full"
 						/>
-					</div>
-					<div>
-						<label className="block font-medium mb-1 text-gray-700">
+					</motion.div>
+					<motion.div>
+						<motion.label className="block font-medium mb-1 text-gray-700">
 							Select Time
-						</label>
+						</motion.label>
 						<ReactDatePicker
 							selected={selectedTime}
 							onChange={setSelectedTime}
@@ -193,12 +201,12 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 							placeholderText="Choose a time"
 							className="border border-gray-300 rounded-lg px-3 py-2 w-full"
 						/>
-					</div>
-					<div>
-						<label className="block font-medium mb-1 text-gray-700">
+					</motion.div>
+					<motion.div>
+						<motion.label className="block font-medium mb-1 text-gray-700">
 							Repeat for (weeks)
-						</label>
-						<input
+						</motion.label>
+						<motion.input
 							type="number"
 							min={1}
 							max={52}
@@ -207,8 +215,8 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 							className="border border-gray-300 rounded-lg px-3 py-2 w-full"
 							placeholder="e.g., 4"
 						/>
-					</div>
-				</div>
+					</motion.div>
+				</motion.div>
 
 				<motion.button
 					onClick={handleAddTimeslot}
@@ -274,7 +282,7 @@ const DoctorTimeslotManagement = ({ doctorEmail }) => {
 					))}
 				</motion.div>
 			) : (
-				<p className="text-gray-500 text-center">No timeslots available yet.</p>
+				<motion.p className="text-gray-500 text-center">No timeslots available yet.</motion.p>
 			)}
 		</motion.div>
 		</>

@@ -8,7 +8,6 @@ import { sendCancelEmail } from "../utils/sendEmail";
 import { arrayUnion } from "firebase/firestore";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { refreshAccessToken, deleteEventWithToken } from "../utils/google_api";
-import { requestAccessToken } from "../utils/google_api";
 import { sendRescheduleEmail } from "../utils/sendEmail";
 
 const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
@@ -51,7 +50,7 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
         console.error("Error fetching appointments:", error);
       }
     };
-    if (doctorEmail) fetchAppointments();
+    if (doctorEmail) {fetchAppointments();}
   }, [doctorEmail]);
 
   const handleCancelAppointment = async (
@@ -63,10 +62,10 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
     try {
       const emailToUse = appData.patientEmail;
       if (!emailToUse)
-        throw new Error(
+        {throw new Error(
           "Cannot send cancellation email: patient email missing."
-        );
-
+        );}
+        //Cancel Google Calendar event if it exists via access token
       if (appData.calendarEventId && appData.organizerRefreshToken) {
         const accessToken = await refreshAccessToken(
           appData.organizerRefreshToken
@@ -80,10 +79,10 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
 
       const doctorDoc = doctors.find((doc) => doc.email === doctorEmail);
       if (!doctorDoc || !doctorDoc.id)
-        throw new Error("Doctor not found or missing ID");
+       { throw new Error("Doctor not found or missing ID"); }
 
       const doctorRef = doc(db, "doctors", doctorDoc.id);
-
+      //Adding the deleted timeslot back to doctor's available timeslots
       await deleteDoc(doc(db, "appointments", appointmentId));
       await updateDoc(doctorRef, {
         timeslots: arrayUnion(timeslot),
@@ -132,7 +131,7 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
 
       const doctorDoc = doctors.find((doc) => doc.email === doctorEmail);
       if (!doctorDoc || !doctorDoc.id)
-        throw new Error("Doctor not found or missing ID");
+       { throw new Error("Doctor not found or missing ID");}
 
       const doctorRef = doc(db, "doctors", doctorDoc.id);
 
@@ -201,7 +200,7 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
   };
 
   const formatDateTime = (isoString) => {
-    if (!isoString) return "—";
+    if (!isoString) {return "—";}
     const date = new Date(isoString);
     return isNaN(date)
       ? "Invalid date"
@@ -228,16 +227,20 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
     setOpenDates((prev) => ({ ...prev, [date]: !prev[date] }));
   };
 
+  //To show the appointments for the selected date
   const filteredAppointments = selectedDate
     ? appointments.filter((app) => {
+      //Split the timeslot to get the date part
         const appDate = new Date(app.timeslot).toISOString().split("T")[0];
         return appDate === selectedDate;
       })
     : appointments;
 
+    //Reduce appointments into grouped format by date
   const groupedAppointments = filteredAppointments.reduce((acc, app) => {
+    //Format the date (readable format) to use as key
     const dateKey = formatDate(app.timeslot);
-    if (!acc[dateKey]) acc[dateKey] = [];
+    if (!acc[dateKey]) {acc[dateKey] = [];}
     acc[dateKey].push(app);
     return acc;
   }, {});
@@ -342,7 +345,7 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
                             </motion.p>
 
                             {/* Reschedule + Cancel Buttons */}
-                            <div className="flex gap-2 mt-2">
+                            <motion.div className="flex gap-2 mt-2">
                               <motion.button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -369,7 +372,7 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
                               >
                                 Cancel
                               </motion.button>
-                            </div>
+                            </motion.div>
 
                             {/* Reschedule Dropdown */}
                             {reschedulingId === appt.id && (
@@ -379,14 +382,14 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
                                 whileHover={{ scale: 1.02 }}
                                 transition={{ type: "spring", stiffness: 200 }}
                               >
-                                <select
+                                <motion.select
                                   value={reschedulingTimeslot}
                                   onChange={(e) =>
                                     setReschedulingTimeslot(e.target.value)
                                   }
                                   className="px-3 py-2 rounded border border-gray-300"
                                 >
-                                  <option value="">Select new timeslot</option>
+                                  <motion.option value="">Select new timeslot</motion.option>
                                   {doctors
                                     ?.find(
                                       (doc) => doc.email === appt.doctorEmail
@@ -396,7 +399,7 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
                                     )
                                     .sort((a, b) => new Date(a) - new Date(b))
                                     .map((slot) => (
-                                      <option key={slot} value={slot}>
+                                      <motion.option key={slot} value={slot}>
                                         {new Date(slot).toLocaleString(
                                           "en-US",
                                           {
@@ -409,11 +412,11 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
                                             hour12: true,
                                           }
                                         )}
-                                      </option>
+                                      </motion.option>
                                     ))}
-                                </select>
+                                </motion.select>
 
-                                <div className="flex justify-end gap-2">
+                                <motion.div className="flex justify-end gap-2">
                                   <motion.button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -438,7 +441,7 @@ const DoctorAppointment = ({ doctorEmail, currentUser, doctors = [] }) => {
                                   >
                                     Cancel
                                   </motion.button>
-                                </div>
+                                </motion.div>
                               </motion.div>
                             )}
                           </motion.div>

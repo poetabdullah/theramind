@@ -39,7 +39,7 @@ export default function PatientBookAppointment() {
     fetchAppointments();
   }, [auth]);
 
-  if (loading) return <motion.div className="p-6 text-center">Loading your appointments...</motion.div>;
+  if (loading) { return <motion.div className="p-6 text-center">Loading your appointments...</motion.div>; }
 
   return (
     <motion.div className="mx-auto max-w-10xl px-1 py-1 space-y-8">

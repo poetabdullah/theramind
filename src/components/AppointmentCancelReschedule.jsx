@@ -27,6 +27,7 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
         const appointmentsRef = collection(db, "appointments");
         const q = query(
           appointmentsRef,
+          //Ternary operator to filter appointments based on user role; doctor or patient
           where(userRole === "doctor" ? "doctorEmail" : "patientEmail", "==", userEmail)
         );
         const snapshot = await getDocs(q);
@@ -52,7 +53,7 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
         timeslots: arrayUnion(timeslot),
       });
 
-      // Send email notification
+      //To send email notification
       await sendCancelEmail({
         patientName: appData.patientName,
         doctorName: appData.doctorName,
@@ -69,7 +70,7 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
 
   const handleReschedule = async (appointmentId, doctorEmail, oldTimeslot, appData) => {
     const newTimeslot = newTimes[appointmentId];
-    if (!newTimeslot) return toast.warning("Please select a new time.");
+    if (!newTimeslot) { return toast.warning("Please select a new time."); }
 
     try {
       const appointmentRef = doc(db, "appointments", appointmentId);
@@ -112,15 +113,15 @@ const AppointmentCancelReschedule = ({ userEmail, userRole }) => {
       <motion.ul className="space-y-6">
         {appointments.map((app) => (
           <motion.li key={app.id} className="border p-4 rounded shadow">
-            <p><b>Doctor:</b> {app.doctorName}</p>
-            <p><b>Patient:</b> {app.patientName}</p>
-            <p><b>Time:</b> {app.timeslot}</p>
-            <p>
-              <b>Meet Link:</b>{" "}
-              <a href={app.meetLink} className="text-blue-500 underline">{app.meetLink}</a>
-            </p>
+            <motion.p><motion.b>Doctor:</motion.b> {app.doctorName}</motion.p>
+            <motion.p><motion.b>Patient:</motion.b> {app.patientName}</motion.p>
+            <motion.p><motion.b>Time:</motion.b> {app.timeslot}</motion.p>
+            <motion.p>
+              <motion.b>Meet Link:</motion.b>{" "}
+              <motion.a href={app.meetLink} className="text-blue-500 underline">{app.meetLink}</motion.a>
+            </motion.p>
 
-            <input
+            <motion.input
               type="datetime-local"
               className="mt-2 p-1 border rounded"
               value={newTimes[app.id] || ""}

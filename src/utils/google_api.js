@@ -4,21 +4,21 @@ let accessToken = null;
 const CLIENT_ID = "996770367618-1u5ib31uqm033hf0n353rc45qt7r2gpg.apps.googleusercontent.com";
 const SCOPES = "https://www.googleapis.com/auth/calendar.events";
 
-// Wait until Google Identity Services loads
+//Waiting until Google Identity Services (GIS) loads
 export function waitForGoogle() {
   return new Promise((resolve, reject) => {
     if (window.google && window.google.accounts && window.google.accounts.oauth2) {
       resolve();
       return;
     }
-
+    //Checking every 100ms if GIS is loaded, for 5 seconds
     const interval = setInterval(() => {
       if (window.google && window.google.accounts && window.google.accounts.oauth2) {
         clearInterval(interval);
         resolve();
       }
     }, 100);
-
+    //Rejecting if GIS not loaded after 5 seconds
     setTimeout(() => {
       clearInterval(interval);
       reject(new Error("Google Identity Services script load timeout"));
@@ -26,7 +26,7 @@ export function waitForGoogle() {
   });
 }
 
-// Initialize GIS token client (NO PROMPT)
+//Initializing GIS token client (NO PROMPT)
 export async function initGoogleApi() {
   await waitForGoogle();
 
@@ -94,7 +94,7 @@ export async function refreshAccessToken(refreshToken) {
   return data.access_token;
 }
 
-// Create Google Meet event with existing access token
+//Creating Google Meet event with existing access token
 export async function createGoogleMeetEvent(summary, description, startISO, endISO, patientEmail, doctorEmail) {
   const token = localStorage.getItem("google_calendar_access_token");
 
@@ -118,7 +118,8 @@ export async function createGoogleMeetEvent(summary, description, startISO, endI
       },
     },
   };
-
+  //Sending POST request to Google Calendar API
+  //Using conferenceDataVersion=1 to enable Google Meet links
   const res = await fetch(
     "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all",
     {
@@ -143,7 +144,7 @@ export async function createGoogleMeetEvent(summary, description, startISO, endI
   return await res.json();
 }
 
-// Delete Google Calendar event with stored access token
+//Deleting Google Calendar event with stored access token
 export async function deleteEventWithToken(calendarId, eventId, token) {
   const res = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
@@ -163,7 +164,7 @@ export async function deleteEventWithToken(calendarId, eventId, token) {
   return { success: true };
 }
 
-// Fallback for deleting calendar events
+//Fallback for deleting calendar events
 export async function deleteGoogleCalendarEvent(calendarId, eventId) {
   const token = localStorage.getItem("google_calendar_access_token");
   if (!token) { throw new Error("No token. Please re-login."); }
