@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+// for DOM references (dropdown click detection)
 import axios from "axios";
 import { auth, db } from "../firebaseConfig";
 import {

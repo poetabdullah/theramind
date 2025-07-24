@@ -69,6 +69,8 @@ const PatientSignUp = () => {
 
   const navigate = useNavigate();
   const authInstance = useMemo(() => auth, []);
+  //Prevents creating a new object/function on every render.
+  //Reduces unnecessary re-renders and auth bugs.
 
   // Pre-configure Google provider once
   const googleProvider = useMemo(() => {
@@ -84,6 +86,7 @@ const PatientSignUp = () => {
   }, [authInstance]);
 
   // CAPTCHA generator
+  // Filters confusing characters (no I, 1, O, 0).
   const generateCaptcha = useCallback(() => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let code = "";
@@ -93,6 +96,9 @@ const PatientSignUp = () => {
   }, []);
   useEffect(() => { if (step === 3) generateCaptcha(); }, [step, generateCaptcha]);
 
+  //useCallback() + useEffect() combo:
+  //useCallback prevents re-creating generateCaptcha on every re-render.
+  //useEffect ensures new CAPTCHA is generated only when step === 3
   // === Step 1: OAuth & parallel collection check ===
   const handleGoogleSignUp = useCallback(async () => {
     setError({});
@@ -103,6 +109,7 @@ const PatientSignUp = () => {
       const email = user.email;
 
       // parallel existence check
+      //Uses Promise.all for parallel execution — more efficient than sequential calls.
       const [patSnap, docSnap, adminSnap] = await Promise.all([
         getDoc(doc(db, "patients", email)),
         getDoc(doc(db, "doctors", email)),

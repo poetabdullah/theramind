@@ -38,12 +38,12 @@ const TheraChat = () => {
         fetchConversations(loggedInUser.uid);
       }
     });
-
+    //Hides sidebar for mobile screens by default.
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
   }, [navigate]);
-
+  //Ensures the newest message is always visible by scrolling to the bottom.
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -101,8 +101,9 @@ const TheraChat = () => {
       const backendUrl = "https://api.theramind.site/api/";
 
       const response = await axios.post(
-        `${backendUrl}therachat/`, // <– No leading slash
+        `${backendUrl}therachat/`,
         { prompt: input },
+        // Data type has to be in json format
         { headers: { "Content-Type": "application/json" } }
       );
 

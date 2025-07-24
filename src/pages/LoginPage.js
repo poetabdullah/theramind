@@ -42,6 +42,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  // prevents re-instantiating the Firebase Auth object on re-render.
   const auth = useMemo(() => getAuth(), []);
 
   const dismissError = useCallback(() => setError(null), []);

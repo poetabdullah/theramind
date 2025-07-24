@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid"; //Generates unique IDs for goals/actions
 import axios from "axios";
 import PatientSelector from "../components/PatientSelector";
 import GoalEditor from "../components/GoalEditor";
