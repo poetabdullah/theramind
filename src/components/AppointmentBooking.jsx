@@ -21,7 +21,6 @@ import {
 } from "../utils/google_api";
 import { sendAppointmentConfirmationEmail } from "./AppointmentConfirmationEmail";
 import {
-  deleteGoogleCalendarEvent,
   refreshAccessToken,
   deleteEventWithToken,
 } from "../utils/google_api";
@@ -44,10 +43,10 @@ export async function cancelAppointmentAsDoctor(
   const appointmentRef = doc(db, "appointments", appointmentId);
   const snapshot = await getDoc(appointmentRef);
 
-  if (!snapshot.exists()) throw new Error("Appointment not found");
+  if (!snapshot.exists()) {throw new Error("Appointment not found");}
 
   const data = snapshot.data();
-
+  //A particular doctor can only cancel their own appointments
   if (data.doctorEmail !== currentDoctorEmail) {
     throw new Error("You do not have permission to delete this appointment.");
   }
@@ -97,7 +96,7 @@ const AppointmentBooking = () => {
         setIsSignedIn(true);
         setPatientEmail(user.email);
 
-        // Fetch patient name from Firestore
+        //Fetching patient name from Firestore
         const q = query(
           collection(db, "patients"),
           where("email", "==", user.email)
@@ -139,7 +138,7 @@ const AppointmentBooking = () => {
   }, []);
 
   useEffect(() => {
-    if (!patientEmail) return;
+    if (!patientEmail) {return;}
     const fetchAppointments = async () => {
       setLoadingAppointments(true);
       try {
@@ -173,6 +172,7 @@ const AppointmentBooking = () => {
     }
 
     try {
+      //Fetching the selected doctor's data
       const doctorRef = doc(db, "doctors", selectedDoctor.id);
       const updatedDoctorSnap = await getDoc(doctorRef);
       const updatedDoctor = updatedDoctorSnap.data();
@@ -186,7 +186,7 @@ const AppointmentBooking = () => {
         collection(db, "appointments"),
         where("patientEmail", "==", patientEmail)
       );
-
+      //Patient can only book one appointment at a time
       const existingAppointments = await getDocs(activeAppointment);
       if (!existingAppointments.empty) {
         toast.info(
@@ -205,8 +205,9 @@ const AppointmentBooking = () => {
         toast.warning("You already have an appointment at this time.");
         return;
       }
-
+      //Converting selectedTimeslot to Date object
       const start = new Date(selectedTimeslot);
+      //Adding 30 minutes for the end time
       const end = new Date(start.getTime() + 30 * 60000);
 
       // ✅ Reuse access token from login
@@ -217,7 +218,7 @@ const AppointmentBooking = () => {
         );
         return;
       }
-
+      //Format of the calendar event being stored
       const calendarEvent = await createGoogleMeetEvent(
         `Appointment with ${selectedDoctor.fullName}`,
         "TheraMind Appointment",
@@ -225,7 +226,8 @@ const AppointmentBooking = () => {
         end.toISOString(),
         patientEmail,
         selectedDoctor.email,
-        access_token // ✅ pass the token directly
+        //Passing the access token directly
+        access_token
       );
 
       const meetLink =
@@ -307,14 +309,14 @@ const AppointmentBooking = () => {
       }
 
       const doctorDoc = doctors.find((doc) => doc.email === doctorEmail);
-      if (!doctorDoc) throw new Error("Doctor not found in state");
+      if (!doctorDoc) {throw new Error("Doctor not found in state");}
 
       const doctorRef = doc(db, "doctors", doctorDoc.id);
 
-      // Delete the appointment from Firestore
+      //Deleting the appointment from Firestore
       await deleteDoc(doc(db, "appointments", appointmentId));
 
-      // Restore the cancelled timeslot, arrayUnion ensures no duplicates
+      //Restoring the cancelled timeslot, arrayUnion ensures no duplicates
       await updateDoc(doctorRef, {
         timeslots: arrayUnion(timeslot),
       });
@@ -328,7 +330,7 @@ const AppointmentBooking = () => {
       });
 
       console.log("Sending cancel email to:", emailToUse);
-      // Remove from UI
+      //Removing from UI
       setAppointments((prev) =>
         prev.filter((appt) => appt.id !== appointmentId)
       );
@@ -369,7 +371,7 @@ const AppointmentBooking = () => {
       const doctorDoc = doctors.find(
         (doc) => doc.email === appointment.doctorEmail
       );
-      if (!doctorDoc) throw new Error("Doctor not found.");
+      if (!doctorDoc) { throw new Error("Doctor not found."); }
       const doctorRef = doc(db, "doctors", doctorDoc.id);
 
       if (!doctorDoc.timeslots.includes(new_time)) {
@@ -400,7 +402,7 @@ const AppointmentBooking = () => {
       );
 
       if (!calendarEventUpdate.ok)
-        throw new Error("Failed to update Google Calendar event.");
+       {throw new Error("Failed to update Google Calendar event.");}
 
       const appointmentRef = doc(db, "appointments", appointment.id);
       await updateDoc(appointmentRef, { timeslot: new_time });
@@ -685,7 +687,7 @@ const AppointmentBooking = () => {
                         {appt.doctorName}
                       </motion.p>
 
-                      <div className="flex gap-2">
+                      <motion.div className="flex gap-2">
                         <motion.button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -712,7 +714,7 @@ const AppointmentBooking = () => {
                         >
                           Cancel
                         </motion.button>
-                      </div>
+                      </motion.div>
                     </motion.div>
 
                     {reschedulingId === appt.id && (
@@ -722,20 +724,20 @@ const AppointmentBooking = () => {
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: "spring", stiffness: 200 }}
                       >
-                        <select
+                        <motion.select
                           value={reschedulingTimeslot}
                           onChange={(e) =>
                             setReschedulingTimeslot(e.target.value)
                           }
                           className="px-3 py-2 rounded border border-gray-300"
                         >
-                          <option value="">Select new timeslot</option>
+                          <motion.option value="">Select new timeslot</motion.option>
                           {doctors
                             ?.find((doc) => doc.email === appt.doctorEmail)
                             ?.timeslots.filter((slot) => slot !== appt.timeslot)
                             .sort((a, b) => new Date(a) - new Date(b))
                             .map((slot) => (
-                              <option key={slot} value={slot}>
+                              <motion.option key={slot} value={slot}>
                                 {new Date(slot).toLocaleString("en-US", {
                                   weekday: "short",
                                   year: "numeric",
@@ -745,11 +747,11 @@ const AppointmentBooking = () => {
                                   minute: "2-digit",
                                   hour12: true,
                                 })}
-                              </option>
+                              </motion.option>
                             ))}
-                        </select>
+                        </motion.select>
 
-                        <div className="flex justify-end gap-2">
+                        <motion.div className="flex justify-end gap-2">
                           <motion.button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -774,7 +776,7 @@ const AppointmentBooking = () => {
                           >
                             Cancel
                           </motion.button>
-                        </div>
+                        </motion.div>
                       </motion.div>
                     )}
 

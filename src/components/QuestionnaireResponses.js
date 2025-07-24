@@ -9,6 +9,7 @@ import {
   where,
 } from "firebase/firestore";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const QuestionnaireResponses = ({ patientEmail }) => {
   const [latestResponses, setLatestResponses] = useState([]);
@@ -91,68 +92,68 @@ const QuestionnaireResponses = ({ patientEmail }) => {
   }, [patientEmail]);
 
   return (
-    <div className="bg-white p-4 border rounded-2xl shadow-md w-full">
-      <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
+    <motion.div className="bg-white p-4 border rounded-2xl shadow-md w-full">
+      <motion.h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-800 bg-clip-text text-transparent">
         Latest Assessment & Responses
-      </h2>
+      </motion.h2>
       {loading ? (
-        <p className="text-gray-500">Loading data...</p>
+        <motion.p className="text-gray-500">Loading data...</motion.p>
       ) : (
-        <div className="p-4 border rounded-2xl bg-purple-50">
+        <motion.div className="p-4 border rounded-2xl bg-purple-50">
           {latestAssessment ? (
-            <div className="mb-4">
-              <h3 className="text-md font-semibold text-purple-700">
+            <motion.div className="mb-4">
+              <motion.h3 className="text-md font-semibold text-purple-700">
                 Latest Assessment
-              </h3>
+              </motion.h3>
               {formattedDate && (
-                <p>
-                  <strong>Date:</strong> {formattedDate}
-                </p>
+                <motion.p>
+                  <motion.strong>Date:</motion.strong> {formattedDate}
+                </motion.p>
               )}
-              <p>
-                <strong>Diagnosed Subtype:</strong>{" "}
+              <motion.p>
+                <motion.strong>Diagnosed Subtype:</motion.strong>{" "}
                 {latestAssessment?.diagnosedSubtype || "None"}
-              </p>
-              <p>
-                <strong>No Condition Diagnosed:</strong>{" "}
+              </motion.p>
+              <motion.p>
+                <motion.strong>No Condition Diagnosed:</motion.strong>{" "}
                 {latestAssessment?.noConditionDiagnosed ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Suicidal Thoughts:</strong>{" "}
+              </motion.p>
+              <motion.p>
+                <motion.strong>Suicidal Thoughts:</motion.strong>{" "}
                 {latestAssessment?.suicidalThoughts ? "Yes" : "No"}
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
           ) : (
-            <p className="text-gray-500">No assessment found.</p>
+            <motion.p className="text-gray-500">No assessment found.</motion.p>
           )}
 
           {latestResponses.length > 0 && (
-            <div>
-              <button
+            <motion.div>
+              <motion.button
                 onClick={() => setShowResponses(!showResponses)}
                 className="flex items-center gap-2 text-md font-semibold text-purple-700 hover:underline"
               >
                 Response Summary{" "}
                 {showResponses ? <FaChevronUp /> : <FaChevronDown />}
-              </button>
+              </motion.button>
 
               {showResponses && (
-                <ul className="list-disc pl-5 mt-2 bg-white p-3 border rounded-xl shadow-sm">
+                <motion.ul className="list-disc pl-5 mt-2 bg-white p-3 border rounded-xl shadow-sm">
                   {latestResponses.map((response, index) => (
-                    <li key={index} className="mb-2 ms-3">
-                      <strong>Question:</strong>{" "}
+                    <motion.li key={index} className="mb-2 ms-3">
+                      <motion.strong>Question:</motion.strong>{" "}
                       {response.questionText || "N/A"}
-                      <br />
-                      <strong>Response:</strong> {response.response || "N/A"}
-                    </li>
+                      <motion.br />
+                      <motion.strong>Response:</motion.strong> {response.response || "N/A"}
+                    </motion.li>
                   ))}
-                </ul>
+                </motion.ul>
               )}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -167,7 +167,7 @@ useEffect(() => {
 
   let nextIndex = currentQuestionIndex + 1;
 
-  // If Condition = Depression & Male Or Female with no birth history, skipping postpartum questions
+  //If Condition = Depression & Male Or Female with no birth history, skipping postpartum questions
   if (
   detectedCondition === "Depression" &&
   currentQuestionIndex === 34 &&
@@ -176,13 +176,14 @@ useEffect(() => {
     (user?.gender?.toLowerCase() === "female" && birthHistory?.toLowerCase() === "no")
   )
 ) {
-  nextIndex = 38; // Skip postpartum questions
+  //Skipping postpartum questions
+  nextIndex = 38;
 }
 
   const currentQuestion = questions[currentQuestionIndex];
   const selectedOption = responses[`question_${currentQuestion?.id}`];
 
-  // Add subtype scoring
+  //Adding subtype scoring
   if (selectedOption && currentQuestion?.category) {
     const score = currentQuestion.options.find(option => option.name === selectedOption)?.score || 0;
     setSubtypeScores(prev => ({
@@ -191,7 +192,7 @@ useEffect(() => {
     }));
   }
 
-  // Check if the current question is the last one in the detected condition range
+  //Checking if the current question is the last one in the detected condition range
   if (currentQuestionIndex === conditionRanges[detectedCondition]?.end) {
     setIsQuestionnaireComplete(true);
     return;
@@ -199,7 +200,7 @@ useEffect(() => {
 
   setCurrentQuestionIndex(nextIndex);
 
-  // Update diagnosed subtype
+  //Updating diagnosed subtype, based on the highest score
   const maxSubtype = Object.keys(subtypeScores).reduce(
     (a, b) => subtypeScores[a] > subtypeScores[b] ? a : b,
     ""
@@ -234,12 +235,12 @@ useEffect(() => {
   setNoConditionDiagnosed(false);
   setSuicidalThoughts(false);
 
-  //Use detectedCondition state, not detectedConditions array
+  //Using detectedCondition state, not detectedConditions array
   const condition = detectedCondition;
 
   let newIndex = currentQuestionIndex - 1;
 
-  //Skip postpartum questions backward if Depression & Gender = Male Or Female with no birth history
+  //Skipping postpartum questions backward if Depression & Gender = Male Or Female with no birth history
   if (
   condition === "Depression" &&
   newIndex >= 35 && newIndex <= 37 &&
@@ -303,11 +304,11 @@ useEffect(() => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50 items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl text-purple-600">Loading questionnaire...</p>
-        </div>
-      </div>
+      <motion.div className="flex flex-col min-h-screen bg-gray-50 items-center justify-center">
+        <motion.div className="text-center">
+          <motion.p className="text-xl text-purple-600">Loading questionnaire...</motion.p>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -319,12 +320,12 @@ useEffect(() => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}>
-        <header className="text-center py-4">
+        <motion.header className="text-center py-4">
           <motion.h2 className="text-5xl font-bold text-purple-800 mt-2"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}>Diagnosis Result</motion.h2>
-        </header>
+        </motion.header>
         <main className="flex-grow flex items-center justify-center mb-4">
           <motion.div className="bg-gradient-to-r from-purple-200 to-fuchsia-200 shadow-lg rounded-lg p-6 w-full max-w-xl text-center"
             initial={{ scale: 0.8, opacity: 0 }}
@@ -361,10 +362,10 @@ useEffect(() => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="text-center py-4">
+    <motion.div className="flex flex-col min-h-screen">
+      <motion.header className="text-center py-4">
         <motion.h2 className="text-5xl font-extrabold text-purple-700 mt-2" {...fadeInUp}>Diagnostic Questionnaire</motion.h2>
-      </header>
+      </motion.header>
       <main className="flex-grow flex items-center justify-center mb-5 bg-gradient-to-r from-purple-150 to-orange-150">
         <motion.div
           className={`p-6 w-full max-w-xl relative ${suicidalThoughts || noConditionDiagnosed
@@ -416,15 +417,15 @@ useEffect(() => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.9, duration: 0.8 }}>
                   <motion.span whileHover={{ scale: 1.05, textShadow: "0px 0px 8px rgba(255, 0, 0, 0.8)" }}>
-                    <strong>Umang:</strong> 0311 7786264
+                    <motion.strong>Umang:</motion.strong> 0311 7786264
                   </motion.span>
-                  <br />
+                  <motion.br />
                   <motion.span whileHover={{ scale: 1.05, textShadow: "0px 0px 8px rgba(255, 0, 0, 0.8)" }}>
-                    <strong>Rozan:</strong> 0304 111 1741
+                    <motion.strong>Rozan:</motion.strong> 0304 111 1741
                   </motion.span>
-                  <br />
+                  <motion.br />
                   <motion.span whileHover={{ scale: 1.05, textShadow: "0px 0px 8px rgba(255, 0, 0, 0.8)" }}>
-                    <strong>Welfare Bureau:</strong> 1121
+                    <motion.strong>Welfare Bureau:</motion.strong> 1121
                   </motion.span></motion.p>
                 <motion.p className="mt-4 font-bold text-red-900"
                   initial={{ opacity: 0 }}
@@ -439,8 +440,8 @@ useEffect(() => {
           <AnimatePresence>
             {!noConditionDiagnosed && !suicidalThoughts && questions.length > 0 && currentQuestionIndex < questions.length && (!(detectedCondition === "Depression" && user?.gender?.toLowerCase() === "male" && currentQuestionIndex >= 35 && currentQuestionIndex <=37)) && (
               <motion.div {...fadeInUp}>
-                <h3 className="text-2xl font-bold text-orange-600 mb-3">{questions[currentQuestionIndex]?.text}</h3>
-                <div className="grid grid-cols-1 gap-2">
+                <motion.h3 className="text-2xl font-bold text-orange-600 mb-3">{questions[currentQuestionIndex]?.text}</motion.h3>
+                <motion.div className="grid grid-cols-1 gap-2">
                   {questions[currentQuestionIndex]?.options.map((option, index) => (
                     <motion.label
                       key={index}
@@ -448,7 +449,7 @@ useEffect(() => {
                       whileTap={{ scale: 0.95 }}
                       className="flex items-center space-x-2 bg-gradient-to-r from-fuchsia-400 to-purple-400 p-2 rounded-full cursor-pointer hover:to-purple-600 transition-colors"
                     >
-                      <input
+                      <motion.input
                         type="radio"
                         name={`question_${questions[currentQuestionIndex]?.id}`}
                         value={option.name}
@@ -456,15 +457,15 @@ useEffect(() => {
                         onChange={changeEvent}
                         className="form-radio h-5 w-5 text-purple-600"
                       />
-                      <span>{option.label}</span>
+                      <motion.span>{option.label}</motion.span>
                     </motion.label>
                   ))}
-                </div>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="flex justify-between mt-6">
+          <motion.div className="flex justify-between mt-6">
             {currentQuestionIndex > 0 && !noConditionDiagnosed && !suicidalThoughts && (
               <motion.button
                 className="bg-gradient-to-r from-purple-600 to-orange-500 text-white p-2 rounded hover:scale-105 transition duration-300"
@@ -489,24 +490,24 @@ useEffect(() => {
                 Next
               </motion.button>
             )}
-          </div>
+          </motion.div>
           {/* Progress Bar (Hidden when interrupted) */}
           {!noConditionDiagnosed && !suicidalThoughts && (
-            <div className="w-full max-w-xl mx-auto my-4 px-6">
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <motion.div className="w-full max-w-xl mx-auto my-4 px-6">
+              <motion.div className="w-full bg-gray-200 rounded-full h-2.5">
                 <motion.div
                   className="bg-gradient-to-r from-purple-600 to-orange-500 h-2.5 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${getProgress()}%` }}
                   transition={{ duration: 0.5 }}
                 ></motion.div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
         </motion.div>
       </main>
       <Footer />
-    </div >
+    </motion.div >
   );
 };
 
