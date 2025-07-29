@@ -1,142 +1,191 @@
-# TheraMind - Mental Health Support Platform
+# 🧠 TheraMind – Mental Health Support Platform  
 
-TheraMind is an online platform designed to diagnose mental health disorders, suggest possible solutions, and offer a space for users to track their mental health status. It connects therapists and patients, facilitating seamless communication and ensuring that individuals who may feel uncomfortable seeking help in person can find support from the comfort of their homes. This platform is part of a university final-year project and leverages cutting-edge tools, software engineering principles, and artificial intelligence to create a comprehensive solution.
-
----
-
-## Project Overview
-
-### **Key Features**
-- **Mental Health Diagnosis**: Users can take assessments that help diagnose specific mental health disorders.
-- **AI-powered Recommendations**: Based on the diagnosis, the platform provides personalized recommendations to address the mental health issues identified.
-- **Therapist & Patient Interaction**: Patients can communicate with therapists for virtual consultations and receive continuous support.
-- **User-Friendly Interface**: Tailored to make mental health services accessible to all users, whether they are patients or healthcare providers.
-- **Security**: Ensures the privacy and confidentiality of users’ personal and medical data.
-
-### **Technologies Used**
-- **Frontend**: Built with React.js, utilizing components like Tailwind CSS for UI design.
-- **Backend**: Powered by Django with Django Rest Framework for API management.
-- **Database**: Firestore (Firebase) for storing and retrieving user data securely.
-- **Authentication**: Firebase Authentication for secure user login and registration.
-- **AI Integration**: Using artificial intelligence algorithms for diagnosing mental health conditions and recommending solutions.
+![Project Banner – Replace with your custom banner image](assets/banner.png)  
 
 ---
 
-## Project Structure
-
-- **Frontend**: 
-    - A React app built with Tailwind CSS, React Router, and Firebase.
-    - The user interface includes components for navigating between patient sign-up, diagnosis, health history forms, and the chatbot (TheraChat) for interacting with patients.
-    - Mobile-responsive design for smooth experience on various devices.
-
-- **Backend**: 
-    - Django project with Django Rest Framework for building REST APIs.
-    - Firebase integration via custom utilities (`firebase_auth.py`, `firestore.py`) to manage user authentication and Firestore operations.
-    - Views and URLs configured to handle requests related to mental health assessments, therapist interactions, and patient data.
+## 👥 Contributors  
+- **Abdullah Imran** – Full-Stack & AI Engineer  
+- **Ambreen** – Backend & Database Specialist  
+- **Hamda Qadeer** – Frontend Developer & Research Lead  
+<br>  
+*Final Year Project (2025) – University of Management and Technology, Lahore*  
 
 ---
 
-## Setup and Installation
+## 📌 About the Project  
 
-### Prerequisites
+TheraMind is a **web-based mental health support platform** that guides individuals **from initiation to actionable treatment plans**.  
+It provides **personalized mental health support** across five major conditions — **Stress, Trauma, Depression, Anxiety, and OCD** — each with three subtypes.  
 
-- Python 3.x
-- Node.js and npm
-- Django and Django Rest Framework
-- Firebase account and Firebase Admin SDK
-- React app setup with Tailwind CSS
-
-### Backend Setup
-
-1. **Clone the repository**:
-    ```bash
-    git clone https://github.com/yourusername/theramind.git
-    cd theramind/backend
-    ```
-
-2. **Create a virtual environment**:
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # For MacOS/Linux
-    venv\Scripts\activate  # For Windows
-    ```
-
-3. **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4. **Setup Firebase credentials**:
-    - Download the `firebase_admin_credentials.json` from Firebase console and place it in the `backend/firebase/` folder.
-
-5. **Run Django migrations**:
-    ```bash
-    python manage.py migrate
-    ```
-
-6. **Start the Django development server**:
-    ```bash
-    python manage.py runserver
-    ```
-
-### Frontend Setup
-
-1. **Navigate to the frontend directory**:
-    ```bash
-    cd ../frontend
-    ```
-
-2. **Install Node.js dependencies**:
-    ```bash
-    npm install
-    ```
-
-3. **Run the React app**:
-    ```bash
-    npm start
-    ```
+Unlike traditional systems, TheraMind combines **questionnaire-based diagnosis, appointment booking, treatment plan design, AI-driven chat support, educational content, and meditation exercises** into one coherent ecosystem.  
 
 ---
 
-## Features and Use Cases
+## 🚀 Core Features  
 
-### **Therapist & Patient Roles**
-- **Therapists**: Can create educational content, manage patient consultations, and track patient progress.
-- **Patients**: Can sign up, complete assessments, consult with therapists, and track their mental health progress.
+### 👤 Patient View  
+- Signup & complete a guided **questionnaire**.  
+- Receive a **personalized diagnosis & recommendations**.  
+- Book & attend **doctor appointments** via Google Meet.  
+- Access a structured **treatment plan** designed by your doctor.  
+- Explore **educational content** (articles, patient stories).  
+- Use **meditation timers & guided videos**.  
+- Interact with **TheraChat (AI-powered empathetic chatbot)**.  
 
-### **Interactive Features**
-- **Chatbot (TheraChat)**: A chatbot that offers users instant responses, helps with mental health questions, and suggests personalized coping strategies.
-- **Sign Up & Authentication**: Firebase Authentication is used for secure user registration and login.
-- **Health History Forms**: Users fill out forms regarding mental health history for better diagnosis.
-- **Progress Tracker**: Both therapists and patients can track progress over time.
+### 👨‍⚕️ Doctor View  
+- Register & wait for **admin approval**.  
+- Manage available **appointment slots**.  
+- Conduct **video appointments** with patients.  
+- Design & update **treatment plans** (goal-action structure with versioning & priority levels).  
+- Write & publish **articles**.  
+- Use **TheraChat** for support and research.  
 
----
-
-## Future Improvements
-
-- **Expanded AI Features**: Enhance the AI-powered mental health diagnosis and recommendations.
-- **Patient Analytics**: Enable more advanced data analysis for patients’ mental health trends.
-- **Multi-language Support**: Adding support for more languages to make the platform more accessible.
-
----
-
-## Project Status
-
-Currently, the project is in the working phase, and several core components, such as user authentication, health assessments, and the React frontend, are functional. The integration of AI for diagnosis and further enhancements in the therapist-patient interaction are under development.
-
----
-
-## Contributing
-
-We welcome contributions to this project! Feel free to fork the repository, make changes, and submit pull requests. If you find any bugs or want to suggest improvements, please create an issue, and we’ll look into it.
+### 🛠️ Admin View  
+- Approve or block doctors.  
+- Manage patient/doctor accounts.  
+- Oversee **system analytics** (Firebase Analytics).  
+- Communicate with developers for escalations.  
 
 ---
 
-## Acknowledgments
+## 🧩 Complete Feature Set  
 
-- **Firebase**: For providing powerful backend services like Authentication and Firestore.
-- **Django**: For the robust web framework that powers the backend.
-- **React & Tailwind CSS**: For providing the tools to create a responsive and intuitive frontend.
-- **Gemini**: For integrating ChatBot.
+- **Meditation** → Breathing timers + curated YouTube video library.  
+- **Education** → Tag-based article & patient story browsing.  
+- **Write** → Patients submit stories, doctors publish articles (AI filters for relevance using CNN+SBERT).  
+- **Treatment Plans** → Immutable, weekly versioned, with weighted actions (priority levels 1–3).  
+- **Questionnaire** → Multi-stage diagnosis with suicide-risk detection & tailored condition-specific questions.  
+- **Appointments** → Google Meet integration, rescheduling, cancellation, and email reminders.  
+- **TheraChat** → Gemini-powered chatbot with custom fine-tuning for:  
+  1. Empathetic support.  
+  2. Knowledge-based answers.  
+  3. Refusal on irrelevant queries.  
 
 ---
+
+## 🏗️ System Architecture  
+
+flowchart LR
+    A[Patient/Doctor/Admin] -->|React + Tailwind| B[Frontend (Vercel)]
+    B -->|REST API| C[Django Backend (EC2)]
+    C --> D[Firestore DB]
+    C --> E[AI Models (TensorFlow/Keras/SBERT)]
+    C --> F[Gemini API (Vertex AI)]
+    C --> G[Google Services (OAuth, Calendar, Meet)]
+    C --> H[EmailJS]
+
+🛠️ Tech Stack
+Core Technologies
+- React JS (Frontend)
+  
+- Tailwind CSS (Designing)
+  
+- Django (Backend)
+  
+- Google Firestore (NoSQL Database)
+
+- Google Firebase (Authentication)
+
+
+
+**Additional Integrations**
+- AI / NLP → TensorFlow, Keras, NLTK, Hugging Face, SBERT + CNN
+
+- Chatbot → Gemini API + Vertex AI endpoint
+
+- Auth → Google Identity Services (OAuth 2.0)
+
+- Appointments → Google Calendar + Meet APIs
+
+- Notifications → EmailJS
+
+- Analytics → Firebase Analytics
+
+⚙️ Deployment Setup
+Component	Service Used	Notes
+Frontend	Vercel	Hosts React + Tailwind app
+Backend	Amazon EC2	Django + AI Models deployed
+Domain	Hostinger + NGINX	theramind.site → Vercel, api.theramind.site → EC2
+Models	EC2 (TensorFlow, SBERT)	Served via backend
+Collab Tools	GitHub, ClickUp, Google Colab	VCS + Agile + Model Training
+
+📷 Screenshots & UI Showcase
+(Replace placeholders with actual screenshots)
+
+Patient Dashboard
+
+Doctor Dashboard
+
+Admin Panel
+
+TheraChat (AI Chatbot)
+
+🧪 AI Models & Experiments
+We experimented with multiple architectures for content filtering & chatbot training:
+
+Logistic Regression, LSTM, GRU, BiLSTM → Overfitting issues.
+
+SBERT + 1D CNN (with negative mining + noise injection) → Stable & accurate classification.
+
+Gemini fine-tuning:
+
+V1 → Over-restricted, failed to answer knowledge questions.
+
+V2 → Retrained with expanded dataset → Balanced empathy + knowledge.
+
+(Insert graphs/metrics here – confusion matrix, training accuracy, loss curves)
+
+🧑‍💻 Challenges & Learnings
+Dependency Conflicts → TensorFlow & NLP libraries caused major conflicts, solved via environment isolation.
+
+Cloud Deployment → Models ran fine locally but failed in Docker/EC2 initially → resolved with optimized images.
+
+Google OAuth Approval → Navigated security checks for sensitive scopes.
+
+AI Fine-tuning → Achieved balance between empathy & knowledge after multiple dataset iterations.
+
+📥 Getting Started
+Clone & Setup
+bash
+Copy
+Edit
+git clone https://github.com/<your-repo>/theramind.git
+cd theramind
+Frontend
+bash
+Copy
+Edit
+cd frontend
+npm install
+npm run dev
+Backend
+bash
+Copy
+Edit
+cd backend
+pip install -r requirements.txt
+python manage.py runserver
+Environment Variables
+Firebase credentials
+
+Gemini API keys
+
+Google OAuth credentials
+
+EmailJS config
+
+🙌 Team & Acknowledgments
+TheraMind was envisioned, designed, and built by:
+
+Abdullah Imran – AI & Full-Stack Development
+
+Ambreen – Backend & Database Engineering
+
+Hamda Qadeer – Frontend & Research Development
+
+Special thanks to University of Management and Technology, Lahore for providing guidance and resources.
+
+📄 License
+This project was developed as an academic final year project.
+Usage permissions can be discussed upon request.
