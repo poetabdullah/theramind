@@ -139,7 +139,7 @@ flowchart LR
 ![Content Filtering](assets/ml_model.png)
 
 ### Questionnaire
-![Questionnaire](assets/questionnaire.png)
+![Questionnaire](assets/question.png)
 
 ### Treatment Plan
 ![Treatment Plan](assets/treatment.png)
@@ -187,13 +187,12 @@ We experimented with multiple architectures for content filtering & chatbot trai
 
 ### Clone & Setup
 ```bash
-git clone https://github.com/<your-repo>/theramind.git
+git clone https://github.com/poetabdullah/theramind.git
 cd theramind
 ```
 
 ### Frontend Setup
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
@@ -201,6 +200,7 @@ npm run dev
 ### Backend Setup
 ```bash
 cd backend
+venv\scripts\activate
 pip install -r requirements.txt
 python manage.py runserver
 ```
