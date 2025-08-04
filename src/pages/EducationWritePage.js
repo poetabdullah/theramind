@@ -198,16 +198,15 @@ const EducationWritePage = () => {
 
     while (retries < maxRetries) {
       try {
-        const res = await axios({
-          method: "post",
-          url: `${backendUrl}/validate-content/`,
-          data: JSON.stringify({ title, content }),   // ✅ force JSON
-          headers: {
-            "Content-Type": "application/json",       // ✅ correct media type
-            "Accept": "application/json",             // ✅ ensure JSON back
-          },
-          withCredentials: false,                      // 🚨 turn off for now, unless you’re using cookies
-        });
+        const res = await axios.post(
+          `${backendUrl}/validate-content/`,
+          { title, content },  // 👈 pass object, axios will JSON.stringify automatically
+          {
+            headers: {
+              Accept: "application/json",  // optional
+            },
+          }
+        );
 
 
         if (res && res.data && typeof res.data.valid === "boolean") {
