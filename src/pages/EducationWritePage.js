@@ -218,9 +218,9 @@ const EducationWritePage = () => {
         res = await fetch(`${backendUrl}/validate-content/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ content }),
         });
+
 
         if (res.ok) {
           data = await res.json();
