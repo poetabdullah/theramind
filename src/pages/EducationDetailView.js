@@ -30,10 +30,17 @@ const EducationDetailView = () => {
       setLoggedInUser(user || null);
     });
     // Fetches the data from the backend: article or a story
+    // Helper function to build API URL with trailing slash and clean slashes
+    function buildApiUrl(base, ...paths) {
+      return [base.replace(/\/+$/, ''), ...paths.map(p => p.replace(/^\/+|\/+$/g, ''))].join('/') + '/';
+    }
+
     const fetchData = async () => {
       const apiUrl =
         process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api" || "http://localhost:8000/api";
-      const url = `${apiUrl}/${type}/${id}`;
+
+      // Build the full URL safely with trailing slash
+      const url = buildApiUrl(apiUrl, type, id);
 
       try {
         const response = await axios.get(url, {
