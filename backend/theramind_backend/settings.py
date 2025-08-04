@@ -126,7 +126,8 @@ INSTALLED_APPS = [
 # --- MIDDLEWARE Configuration ---
 # Order matters for middleware!
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # must be first
+    "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",
+    # "corsheaders.middleware.CorsMiddleware",  # must be first
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
