@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { db, auth } from "../firebaseConfig";
@@ -14,7 +15,6 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { onAuthStateChanged } from "firebase/auth";
 import AIAnalysisAnimation from "../components/AIAnalysisAnimation";
-import axios from "axios";   // ✅ switched to axios
 
 // Enhanced Strip HTML/markdown for model input
 const stripHtml = (html) => {
@@ -22,24 +22,27 @@ const stripHtml = (html) => {
   tempDiv.innerHTML = html;
   let text = tempDiv.textContent || tempDiv.innerText || "";
 
+  // Remove common markdown syntax
   text = text
-    .replace(/#{1,6}\s+/g, "")
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/~~(.*?)~~/g, "$1")
-    .replace(/`(.*?)`/g, "$1")
-    .replace(/```[\s\S]*?```/g, "")
-    .replace(/\[(.*?)\]\(.*?\)/g, "$1")
-    .replace(/^\s*[-*+]\s+/gm, "")
-    .replace(/^\s*\d+\.\s+/gm, "")
-    .replace(/^\s*>\s+/gm, "")
+    .replace(/#{1,6}\s+/g, '') // Remove headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+    .replace(/\*(.*?)\*/g, '$1') // Remove italic
+    .replace(/~~(.*?)~~/g, '$1') // Remove strikethrough
+    .replace(/`(.*?)`/g, '$1') // Remove inline code
+    .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links, keep text
+    .replace(/^\s*[-*+]\s+/gm, '') // Remove bullet points
+    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered lists
+    .replace(/^\s*>\s+/gm, '') // Remove blockquotes
     .trim();
 
   return text;
 };
 
+// Normalize text: collapse whitespace
 const normalize = (text) => text.trim().replace(/\s+/g, " ");
 
+// Count word differences between two stripped texts
 const countWordDiff = (oldText, newText) => {
   const oldWords = normalize(oldText).split(/\s+/).filter(Boolean);
   const newWords = normalize(newText).split(/\s+/).filter(Boolean);
@@ -68,14 +71,18 @@ const EducationWritePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Keep originals for diff check
   const originalStrippedRef = useRef("");
   const originalTitleRef = useRef("");
 
+  // AI Animation and result state
   const [showAIAnimation, setShowAIAnimation] = useState(false);
   const [aiAnalysisResult, setAiAnalysisResult] = useState(null);
   const [aiAnalysisMessage, setAiAnalysisMessage] = useState("");
+
   const [triggerCompletion, setTriggerCompletion] = useState(false);
 
+  // Auth and role detection
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -98,6 +105,7 @@ const EducationWritePage = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Fetch available tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -110,6 +118,7 @@ const EducationWritePage = () => {
     fetchTags();
   }, []);
 
+  // Load original content when editing
   useEffect(() => {
     const fetchDoc = async () => {
       if (isEditing && docId) {
@@ -148,6 +157,7 @@ const EducationWritePage = () => {
 
     const stripped = normalize(stripHtml(content));
 
+    // Validate ALL minimum criteria first - only proceed if everything is valid
     if (title.length < 10 || title.length > 100) {
       setError("Title must be 10–100 characters.");
       setIsSubmitting(false);
@@ -164,14 +174,19 @@ const EducationWritePage = () => {
       return;
     }
 
+    // On edits, check if changes are significant enough
     if (isEditing) {
       const titleUnchanged = title === originalTitleRef.current;
       const diff = countWordDiff(originalStrippedRef.current, stripped);
+
+      // Don't allow update if less than 5 words changed
       if (diff < 5) {
         setError("Please make at least 5 words of changes before updating.");
         setIsSubmitting(false);
         return;
       }
+
+      // Skip AI validation if less than 7 words changed
       if (titleUnchanged && diff < 7) {
         try {
           await updateDoc(doc(db, type, docId), {
@@ -189,36 +204,32 @@ const EducationWritePage = () => {
       }
     }
 
+
+    // Trigger AI validation
     setShowAIAnimation(true);
 
-    let data = null;
+    let res, data;
     let retries = 0;
     const maxRetries = 5;
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
 
     while (retries < maxRetries) {
       try {
-        const res = await axios.post(
-          `${backendUrl}/validate-content/`,
-          { title, content }, // 👈 pass plain object
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-            },
-            withCredentials: false,
-          }
-        );
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || "https://api.theramind.site/api";
+        res = await fetch(`${backendUrl}/validate-content/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ content }),
+        });
 
-
-
-        if (res && res.data && typeof res.data.valid === "boolean") {
-          data = res.data;
-          break;
+        if (res.ok) {
+          data = await res.json();
+          if (data && typeof data.valid === "boolean") break;
         }
       } catch (e) {
         console.error("Retry error:", e);
       }
+
       retries++;
       await new Promise((r) => setTimeout(r, 1500));
     }
@@ -226,20 +237,8 @@ const EducationWritePage = () => {
     if (!data || typeof data.valid !== "boolean") {
       setAiAnalysisResult(false);
       setAiAnalysisMessage("🚨 AI validation failed or returned incomplete data.");
-      setTriggerCompletion(true);
+      setTriggerCompletion(true); // Force AI animation to finish
       return;
-    }
-
-    // ✅ Ensure data is normalized object
-    if (typeof data === "string") {
-      try {
-        data = JSON.parse(data);
-      } catch {
-        setAiAnalysisResult(false);
-        setAiAnalysisMessage("🚨 AI returned invalid JSON.");
-        setTriggerCompletion(true);
-        return;
-      }
     }
 
     const allowed = data.valid;
@@ -261,7 +260,8 @@ const EducationWritePage = () => {
 
     setAiAnalysisResult(allowed);
     setAiAnalysisMessage(msg);
-    setTriggerCompletion(true);
+    setTriggerCompletion(true);  // This is what allows animation to exit stage 3
+
   };
 
   const handleAIAnalysisComplete = async () => {
@@ -380,6 +380,7 @@ const EducationWritePage = () => {
         message={aiAnalysisMessage}
         triggerCompletion={triggerCompletion}
       />
+
 
       <Footer />
     </div>
