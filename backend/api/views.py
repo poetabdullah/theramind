@@ -116,6 +116,7 @@ def health_check(request):
     return JsonResponse({"status": "ok", "msg": "Backend is up"})
 
 
+@require_http_methods(["OPTIONS", "POST"])
 @api_view(["POST"])
 def validate_content(request):
     html = request.data.get("content", "").strip()
