@@ -126,19 +126,18 @@ CORS_ALLOW_CREDENTIALS = True
 # --- MIDDLEWARE Configuration ---
 # Order matters for middleware!
 MIDDLEWARE = [
-    "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",
-    # "corsheaders.middleware.CorsMiddleware",  # must be first
+    "corsheaders.middleware.CorsMiddleware",  # must be very first
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    # "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",  # disable for now
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",
+    # remove EnforceAllowedOriginsMiddleware completely
 ]
+
 # --- CORS Headers Configuration ---
 # REMOVED: The `add_cors_headers` function from `django.http import JsonResponse`
 # and the function itself. This is handled by `django-cors-headers`.
