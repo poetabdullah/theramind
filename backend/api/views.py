@@ -116,6 +116,9 @@ def health_check(request):
     return JsonResponse({"status": "ok", "msg": "Backend is up"})
 
 
+from django.views.decorators.http import require_http_methods
+
+
 @require_http_methods(["OPTIONS", "POST"])
 @api_view(["POST"])
 def validate_content(request):
