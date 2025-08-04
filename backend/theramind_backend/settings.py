@@ -122,7 +122,7 @@ INSTALLED_APPS = [
     "rest_framework",  # Added for Django REST Framework
     "api",  # Your custom API app
 ]
-
+CORS_ALLOW_CREDENTIALS = True
 # --- MIDDLEWARE Configuration ---
 # Order matters for middleware!
 MIDDLEWARE = [
