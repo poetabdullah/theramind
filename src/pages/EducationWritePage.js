@@ -200,13 +200,16 @@ const EducationWritePage = () => {
       try {
         const res = await axios.post(
           `${backendUrl}/validate-content/`,
-          { title, content },  // 👈 pass object, axios will JSON.stringify automatically
+          { title, content }, // 👈 pass plain object
           {
             headers: {
-              Accept: "application/json",  // optional
+              "Content-Type": "application/json",
+              "Accept": "application/json",
             },
+            withCredentials: false,
           }
         );
+
 
 
         if (res && res.data && typeof res.data.valid === "boolean") {
