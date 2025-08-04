@@ -198,14 +198,17 @@ const EducationWritePage = () => {
 
     while (retries < maxRetries) {
       try {
-        const res = await axios.post(
-          `${backendUrl}/validate-content/`,
-          { title, content },
-          {
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        const res = await axios({
+          method: "post",
+          url: `${backendUrl}/validate-content/`,
+          data: JSON.stringify({ title, content }),   // ✅ force JSON
+          headers: {
+            "Content-Type": "application/json",       // ✅ correct media type
+            "Accept": "application/json",             // ✅ ensure JSON back
+          },
+          withCredentials: false,                      // 🚨 turn off for now, unless you’re using cookies
+        });
+
 
         if (res && res.data && typeof res.data.valid === "boolean") {
           data = res.data;
@@ -348,8 +351,8 @@ const EducationWritePage = () => {
                   type="button"
                   onClick={() => handleTagClick(tag)}
                   className={`px-4 py-2 rounded-full text-sm transition-colors ${selectedTags.includes(tag)
-                      ? "bg-purple-600 text-white"
-                      : "bg-purple-300 text-purple-900"
+                    ? "bg-purple-600 text-white"
+                    : "bg-purple-300 text-purple-900"
                     } hover:bg-purple-700`}
                 >
                   {tag}
