@@ -95,6 +95,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "theramind.site",
+    "api.theramind.site",
 ]
 
 # Filter out any empty strings that might result from os.getenv if the variable isn't set
@@ -106,6 +107,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://theramind.site",
+    "https://www.theramind.site",
 ]
 
 # --- Application definition ---
@@ -124,22 +126,17 @@ INSTALLED_APPS = [
 # --- MIDDLEWARE Configuration ---
 # Order matters for middleware!
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # must be first
     "django.middleware.security.SecurityMiddleware",
-    # WhiteNoise should be placed directly after SecurityMiddleware for static files
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    # CorsMiddleware should be placed as high as possible, especially before any
-    # middleware that can generate responses, such as Django's CommonMiddleware
-    # or Whitenoise's WhiteNoiseMiddleware if you have custom responses.
-    "corsheaders.middleware.CorsMiddleware",
-    "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",
+    # "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",  # disable for now
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
 # --- CORS Headers Configuration ---
 # REMOVED: The `add_cors_headers` function from `django.http import JsonResponse`
 # and the function itself. This is handled by `django-cors-headers`.
