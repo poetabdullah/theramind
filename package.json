@@ -25,6 +25,8 @@
     "dompurify": "^3.2.5",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.9.1",
+    "firebase-admin": "^13.4.0",
+    "firestore-export-import": "^1.6.0",
     "framer-motion": "^12.15.0",
     "gapi": "^0.0.3",
     "gapi-script": "^1.2.0",

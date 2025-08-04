@@ -62,3 +62,11 @@ nltk_data/
 backend/wheelsbackend/venv
 backend/wheels
 backend/api/__pycache__/
+backend/firebase_admin_credentials.json
+backend/vertex_ai_credentials.json
+$outfile
+exportFirestore.js
+firestore_backup.json
+firestore.json
+output-0.json
+firestore-backup

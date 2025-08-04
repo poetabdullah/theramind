@@ -94,21 +94,20 @@ PORT = os.getenv(
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "localhost:3000",
-    # "0.0.0.0", # This is for listening on all interfaces, not for ALLOWED_HOSTS
     "theramind.site",
-    "thera-mind.web.app",
-    ".vercel.app",  # Allows subdomains like <something>.vercel.app
-    # Add your Heroku app's domain dynamically
-    # Heroku automatically sets an env var like HEROKU_APP_NAME
-    os.getenv("HEROKU_APP_NAME", "") + ".herokuapp.com",
-    # If you have other custom domains on Heroku:
-    # 'your-custom-domain.com',
-    # 'www.your-custom-domain.com',
 ]
+
 # Filter out any empty strings that might result from os.getenv if the variable isn't set
 ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h]
-CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://theramind.site",
+]
+
 # --- Application definition ---
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -133,6 +132,7 @@ MIDDLEWARE = [
     # middleware that can generate responses, such as Django's CommonMiddleware
     # or Whitenoise's WhiteNoiseMiddleware if you have custom responses.
     "corsheaders.middleware.CorsMiddleware",
+    "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -144,17 +144,6 @@ MIDDLEWARE = [
 # REMOVED: The `add_cors_headers` function from `django.http import JsonResponse`
 # and the function itself. This is handled by `django-cors-headers`.
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https:\/\/.*\.vercel\.app$",
-    r"^https:\/\/theramind\.site$",
-    r"^https:\/\/thera-mind\.web\.app$",
-    r"^http:\/\/localhost:3000$",
-    r"^https:\/\/[a-zA-Z0-9-]+\.herokuapp\.com$",  # Regex for Heroku app domains
-]
-
-CORS_ALLOW_CREDENTIALS = (
-    True  # Allows cookies and authentication headers to be sent cross-origin
-)
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -201,6 +190,23 @@ TEMPLATES = [
 
 # --- WSGI Application ---
 WSGI_APPLICATION = "theramind_backend.wsgi.application"
+
+# Prevent clickjacking
+X_FRAME_OPTIONS = "DENY"
+
+# Stronger frame policy (modern)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+
+# Force HTTPS in production
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Strict HTTPS
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 
 # --- Database Configuration ---
