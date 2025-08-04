@@ -136,6 +136,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "theramind_backend.middleware.EnforceAllowedOriginsMiddleware",
 ]
 # --- CORS Headers Configuration ---
 # REMOVED: The `add_cors_headers` function from `django.http import JsonResponse`

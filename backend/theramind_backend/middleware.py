@@ -1,6 +1,8 @@
+# theramind_backend/middleware.py
 from django.http import HttpResponseForbidden
 
 ALLOWED_FRONTEND_ORIGINS = [
+    "https://www.theramind.site",
     "https://theramind.site",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -12,13 +14,24 @@ class EnforceAllowedOriginsMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        origin = request.headers.get("Origin") or request.headers.get("Referer")
+        origin = request.headers.get("Origin")
         if origin and any(origin.startswith(o) for o in ALLOWED_FRONTEND_ORIGINS):
-            response = self.get_response(request)
+            # Handle preflight OPTIONS request properly
+            if request.method == "OPTIONS":
+                response = HttpResponseForbidden()  # dummy body
+                response.status_code = 200  # must return 200 OK for OPTIONS
+            else:
+                response = self.get_response(request)
 
-            # Add CORS headers for allowed origins — especially for redirects
+            # ✅ Add CORS headers for allowed origins
             response["Access-Control-Allow-Origin"] = origin
             response["Access-Control-Allow-Credentials"] = "true"
+            response["Access-Control-Allow-Methods"] = (
+                "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            )
+            response["Access-Control-Allow-Headers"] = (
+                "Authorization, Content-Type, X-CSRFToken, Accept, Origin, User-Agent"
+            )
             response["Vary"] = "Origin"
 
             return response
