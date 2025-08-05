@@ -194,7 +194,7 @@ cd theramind
 ### Frontend Setup
 ```bash
 npm install
-npm run dev
+npm start
 ```
 
 ### Backend Setup
