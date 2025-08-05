@@ -101,7 +101,7 @@ ALLOWED_HOSTS = [
 # Filter out any empty strings that might result from os.getenv if the variable isn't set
 ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h]
 
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
