@@ -69,3 +69,4 @@ firestore_backup.json
 firestore.json
 output-0.json
 firestore-backup
+.vercel
