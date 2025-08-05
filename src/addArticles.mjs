@@ -1,3 +1,5 @@
+// static file
+
 import { db } from "./firebaseConfig.js"; // ✅ Use `import` instead of `require`
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
