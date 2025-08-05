@@ -2,13 +2,6 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "www.theramind.site" }],
-      "destination": "https://theramind.site/$1",
-      "permanent": true
-    },
-    {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "theramind.vercel.app" }],
       "destination": "https://theramind.site/$1",
       "permanent": true
     }
