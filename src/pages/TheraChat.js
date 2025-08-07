@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Send, Menu } from "lucide-react";
 import Footer from "../components/Footer";
 import ReactMarkdown from "react-markdown";
+import DOMPurify from "dompurify"; // ✅ Added for sanitizing markdown
 import Sidebar from "../components/TheraChat Sidebar";
 import { db } from "../firebaseConfig";
 import {
@@ -38,12 +39,12 @@ const TheraChat = () => {
         fetchConversations(loggedInUser.uid);
       }
     });
-    //Hides sidebar for mobile screens by default.
+
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
   }, [navigate]);
-  //Ensures the newest message is always visible by scrolling to the bottom.
+
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -90,33 +91,53 @@ const TheraChat = () => {
     return text.length > 30 ? `${text.substring(0, 30)}...` : text;
   };
 
+  const sanitizeInput = (text) => {
+    // Basic client-side input sanitization to prevent unwanted characters/scripts
+    return text
+      .replace(/<script.*?>.*?<\/script>/gi, "")
+      .replace(/<\/?[^>]+(>|$)/g, "") // Strip HTML tags
+      .trim()
+      .substring(0, 1000); // Limit input length
+  };
+
   const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMessage = { text: input, sender: "user", timestamp: Date.now() };
+    const cleanInput = sanitizeInput(input);
+    if (!cleanInput) return;
+
+    const userMessage = {
+      text: cleanInput,
+      sender: "user",
+      timestamp: Date.now(),
+    };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
       const backendUrl = "https://api.theramind.site/api/";
-
       const response = await axios.post(
         `${backendUrl}therachat/`,
-        { prompt: input },
-        // Data type has to be in json format
+        { prompt: cleanInput },
         { headers: { "Content-Type": "application/json" } }
       );
 
-
       const aiResponse = response.data.response || "Something went wrong.";
-      const botMessage = { text: aiResponse, sender: "ai", timestamp: Date.now() };
+      const cleanResponse = sanitizeInput(aiResponse);
+
+      const botMessage = {
+        text: cleanResponse,
+        sender: "ai",
+        timestamp: Date.now(),
+      };
+
       setMessages((prev) => [...prev, botMessage]);
 
       if (user) {
         const updatedMessages = [...messages, userMessage, botMessage];
         if (!currentConversation) {
           const chatRef = doc(collection(db, "conversations"));
-          const title = createTitle(input);
+          const title = createTitle(cleanInput);
           const newConvo = {
             id: chatRef.id,
             userId: user.uid,
@@ -156,11 +177,9 @@ const TheraChat = () => {
     }
   };
 
-
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       <div className="flex flex-1 relative">
-        {/* Mobile sidebar toggle button */}
         <button
           className="md:hidden absolute top-4 left-4 z-20 bg-white rounded-full p-2 shadow-md"
           onClick={toggleSidebar}
@@ -168,7 +187,6 @@ const TheraChat = () => {
           <Menu className="w-5 h-5 text-purple-600" />
         </button>
 
-        {/* Sidebar */}
         <div
           className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
             } transition-transform duration-300 ease-in-out md:translate-x-0 fixed md:relative z-10 h-screen`}
@@ -182,9 +200,8 @@ const TheraChat = () => {
             onToggle={toggleSidebar}
           />
         </div>
-        {/* Main chat area */}
+
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          {/* Semi-transparent overlay for mobile when sidebar is open */}
           {sidebarOpen && (
             <div
               className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-5"
@@ -192,23 +209,15 @@ const TheraChat = () => {
             ></div>
           )}
 
-          {/* Main content wrapper with fixed height */}
-          <div
-            className="flex flex-col"
-            style={{ height: "calc(100vh - 80px)" }}
-          >
-            {/* Headline section - with reduced flex properties */}
+          <div className="flex flex-col" style={{ height: "calc(100vh - 80px)" }}>
             {!hideHeadline && messages.length === 0 && (
               <div className="flex items-center justify-center h-48">
-                {" "}
-                {/* Fixed height instead of flex-grow */}
                 <h1 className="text-4xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent py-6">
                   How can I assist you today?
                 </h1>
               </div>
             )}
 
-            {/* Chat messages container */}
             <div
               ref={chatContainerRef}
               className="flex-1 w-full max-w-4xl p-6 space-y-3 overflow-y-auto mx-auto"
@@ -218,7 +227,6 @@ const TheraChat = () => {
                     ? "calc(100vh - 160px)"
                     : "calc(100vh - 160px - 48px)",
               }}
-            // Adjust height based on whether headline is shown
             >
               {messages.map((msg, index) => (
                 <div
@@ -232,7 +240,6 @@ const TheraChat = () => {
                       : "bg-gradient-to-r from-purple-800 to-purple-500 text-white"
                       } rounded-2xl px-5 py-3 shadow-lg max-w-xl leading-normal text-left text-base break-words whitespace-pre-wrap`}
                   >
-                    {/* Gemini responds in markdown and that text needs to be processed in order to display it accurately */}
                     <ReactMarkdown
                       components={{
                         p: ({ node, ...props }) => (
@@ -248,15 +255,19 @@ const TheraChat = () => {
                         ),
                       }}
                     >
-                      {msg.text
-                        .replace(/\n{3,}/g, "\n")
-                        .replace(/\n\s*\n/g, "\n")
-                        .replace(/•\s*/g, "")}
+                      {
+                        DOMPurify.sanitize(
+                          msg.text
+                            .replace(/\n{3,}/g, "\n")
+                            .replace(/\n\s*\n/g, "\n")
+                            .replace(/•\s*/g, ""),
+                          { ALLOWED_TAGS: [], ALLOWED_ATTR: [] } // only plain text allowed
+                        )
+                      }
                     </ReactMarkdown>
                   </div>
                 </div>
               ))}
-              {/* Loading animation when the AI is responding */}
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-purple-500 text-white rounded-2xl px-5 py-3 shadow-lg max-w-md text-left">
@@ -270,8 +281,6 @@ const TheraChat = () => {
               )}
             </div>
 
-            {/* Input area - fixed height */}
-            {/* This style of height and width is carefully curated and was widely tested as per the sidebar. It earlier made the UI area practically non-functional. */}
             <div className="w-full bg-white border-t border-gray-100 py-4">
               <div className="max-w-3xl mx-auto px-4">
                 <div className="flex items-center w-full space-x-3">
@@ -298,9 +307,9 @@ const TheraChat = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div >
       <Footer />
-    </div>
+    </div >
   );
 };
 
