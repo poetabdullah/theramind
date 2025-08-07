@@ -12,6 +12,7 @@ import TreatmentTemplates from "../components/TreatmentTemplates";
 import emailjs from "@emailjs/browser";
 import { sendCreateOrUpdateEmail } from "../components/emailUtils";
 import Footer from "../components/Footer";
+import DOMPurify from "dompurify";
 
 // Base URL for your API (adjust if needed)
 const API_BASE =
@@ -520,6 +521,12 @@ const CreateTreatmentPlan = () => {
   const handleSavePlan = async () => {
     console.log("💾 Starting save process...");
 
+    const cleanPatient = DOMPurify.sanitize(selectedPatient);
+    if (cleanPatient !== selectedPatient) {
+      alert("Invalid characters in patient email.");
+      return;
+    }
+
     if (!validateForm()) {
       console.warn("❌ Form validation failed");
       return;
@@ -540,14 +547,27 @@ const CreateTreatmentPlan = () => {
     });
 
     // Sanitize goals payload
-    const goalsPayload = goals.map((goal) => ({
-      title: goal.title.trim(),
-      actions: goal.actions.map((a) => ({
-        description: a.description.trim(),
-        priority: Math.max(1, Math.min(5, parseInt(a.priority) || 1)), // Ensure valid priority range
-        assigned_to: a.assigned_to,
-      })),
-    }));
+    const goalsPayload = goals.map((goal) => {
+      // sanitize title
+      const cleanTitle = DOMPurify.sanitize(goal.title.trim());
+      if (cleanTitle !== goal.title.trim()) {
+        throw new Error("Invalid characters in goal title.");
+      }
+      return {
+        title: cleanTitle,
+        actions: goal.actions.map((a) => {
+          const cleanDesc = DOMPurify.sanitize(a.description.trim());
+          if (cleanDesc !== a.description.trim()) {
+            throw new Error("Invalid characters in action description.");
+          }
+          return {
+            description: cleanDesc,
+            priority: Math.max(1, Math.min(5, parseInt(a.priority) || 1)),
+            assigned_to: a.assigned_to,
+          };
+        }),
+      };
+    });
 
     const baseData = {
       doctor_email: doctor.email,
