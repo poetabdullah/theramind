@@ -13,6 +13,7 @@ import {
 import Footer from "../components/Footer";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import DOMPurify from "dompurify";
 import { onAuthStateChanged } from "firebase/auth";
 import AIAnalysisAnimation from "../components/AIAnalysisAnimation";
 
@@ -155,7 +156,9 @@ const EducationWritePage = () => {
     setIsSubmitting(true);
     setError("");
 
-    const stripped = normalize(stripHtml(content));
+    const cleanHtml = DOMPurify.sanitize(content);
+    const stripped = normalize(stripHtml(cleanHtml));
+
 
     // Validate ALL minimum criteria first - only proceed if everything is valid
     if (title.length < 10 || title.length > 100) {
@@ -202,6 +205,13 @@ const EducationWritePage = () => {
         setIsSubmitting(false);
         return;
       }
+
+      if (cleanHtml !== content) {
+        setError("Your content contains disallowed or unsafe HTML. Please remove any embedded scripts or suspicious code.");
+        setIsSubmitting(false);
+        return;
+      }
+
     }
 
 
@@ -218,7 +228,7 @@ const EducationWritePage = () => {
         res = await fetch(`${backendUrl}/validate-content/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify({ content: cleanHtml }),
         });
 
 
