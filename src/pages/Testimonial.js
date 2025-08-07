@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Footer from "../components/Footer.js";
+import DOMPurify from "dompurify";
 import { db } from "../firebaseConfig.js";
 import { collection, addDoc } from "firebase/firestore";
 
@@ -55,23 +56,36 @@ const Testimonial = () => {
     if (!formData.name.trim()) errors.name = "Name is required";
     if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
       errors.email = "Please enter a valid email address";
-    if (!formData.message.trim()) errors.message = "Message is required";
+
+    const msg = formData.message.trim();
+    if (!msg) errors.message = "Message is required";
+    else if (msg.length < 10)
+      errors.message = "Message must be at least 10 characters";
+    else if (msg.length > 500)
+      errors.message = "Message must be under 500 characters";
+
     if (rating === 0) errors.rating = "Please select a rating";
 
     setErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) return;
 
+    const sanitizedMessage = DOMPurify.sanitize(formData.message, {
+      ALLOWED_TAGS: [], // Remove all tags
+      ALLOWED_ATTR: [],
+    });
+
     setLoading(true);
     try {
       await addDoc(collection(db, "testimonials"), {
-        name: formData.name,
-        email: formData.email,
-        message: formData.message,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        message: sanitizedMessage,
         rating,
         timestamp: new Date(),
       });
@@ -85,6 +99,7 @@ const Testimonial = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
